@@ -1,0 +1,37 @@
+**.ipynb_checkpoints
+**cache*
+**.pdf
+**.zip
+**.npy
+.coverage
+**slurm*
+**logs*
+env
+**.pyc
+**.gif
+**.DS_Store
+**.idea
+*.pth
+**Icon*
+venv
+.vscode/**
+# Compiled python modules.
+*.pyc
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+
+build
+.gitmodules
+build
+dist
+
+**.gslides
+**.xml
+
+experiments/data/
+!experiments/data/get_datasets.ipynb
+.hypothesis
