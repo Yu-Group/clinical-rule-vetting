@@ -3,6 +3,7 @@
 **.pdf
 **.zip
 **.npy
+**AutogluonModels*
 .coverage
 **slurm*
 **logs*

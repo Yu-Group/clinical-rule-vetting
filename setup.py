@@ -18,13 +18,11 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'autogluon',
-        'cython',
         'imodels>=1.0.1',
         'matplotlib',
         'numpy',
         'pandas',
         'pytest',
-        'scipy',
         'scikit-learn>=0.23.0',  # 0.23+ only works on py3.6+
         'tqdm',
     ],

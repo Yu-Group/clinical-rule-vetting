@@ -1,10 +1,10 @@
-<h1 align="center">Interpretable Clinical Decision Rules ⚕️ </h1>
+<h1 align="center">⚕️ Interpretable Clinical Decision Rules ⚕️️</h1>
 <p align="center"> Validating and deriving clinical-decision rules. Work-in-progress.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-mit-blue.svg">
-  <img src="https://img.shields.io/badge/python-3.6--3.9-blue">
+  <img src="https://img.shields.io/badge/python-3.7-blue">
   <a href="https://github.com/Yu-Group/medical-rules/actions"><img src="https://github.com/Yu-Group/medical-rules/workflows/tests/badge.svg"></a>
   <img src="https://img.shields.io/github/checks-status/Yu-Group/medical-rules/master">
  </p>  
@@ -15,6 +15,8 @@ We hope to use a unified modeling pipeline across a variety of contributed datas
 
 # Still under development
 - `baseline.py` template
+- build in slightly more autogluon support
+- data_dictionary template  
 - modeling pipeline
 - visualization / posthoc pipeline
 

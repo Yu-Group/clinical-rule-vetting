@@ -2,6 +2,8 @@ from os.path import join as oj
 
 import numpy as np
 import pandas as pd
+'''Helper functions for dataset.py
+'''
 
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
