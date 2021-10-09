@@ -19,24 +19,14 @@ setuptools.setup(
     install_requires=[
         'autogluon',
         'imodels>=1.0.1',
+        'matlotlib',
         'numpy',
         'pandas',
+        'pytest',
         'scipy',
         'scikit-learn>=0.23.0',  # 0.23+ only works on py3.6+
+        'tqdm',
     ],
-    extras_require={
-        'dev': [
-            'dvu',
-            'gdown',
-            'jupyter',
-            'jupytext',
-            'matplotlib',
-            'pytest',
-            'pytest-cov',
-            'slurmpy',
-            'tqdm',
-        ]
-    },
     python_requires='>=3.6',
     classifiers=[
         "Programming Language :: Python :: 3",

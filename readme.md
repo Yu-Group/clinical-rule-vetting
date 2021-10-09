@@ -5,7 +5,10 @@
 <p align="center">
   <img src="https://img.shields.io/badge/license-mit-blue.svg">
   <img src="https://img.shields.io/badge/python-3.6--3.9-blue">
+  <a href="https://github.com/Yu-Group/medical-rules/actions"><img src="https://github.com/Yu-Group/medical-rules/workflows/tests/badge.svg"></a>
+  <img src="https://img.shields.io/github/checks-status/Yu-Group/medical-rules/master">
  </p>  
+
 This is a *collaborative* repository intended to validate and derive clinical-decision rules. 
 
 
@@ -35,7 +38,12 @@ pytest
 # How do I contribute?
 
 To contribute, fork this repo + create a pull request for a new project.
+The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecarn](mrules/projects/iai_pecarn)) into a new folder and then edit that one.
 
+- [ ] Rewrite the functions in `dataset.py` for the new dataset
+- [ ] fdaslkfj
+
+**What is included in each step.**
 
 - data preprocessing
 	- extract out reliable features / feature names

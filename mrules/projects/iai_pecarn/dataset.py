@@ -23,12 +23,14 @@ class Dataset(MDataset):
         """
 
         RAW_DATA_PATH = oj(mrules.DATA_PATH, 'iai_pecarn', 'raw')
+        os.makedirs(RAW_DATA_PATH, exist_ok=True)
 
         # all the fnames to be loaded and searched over
-        fnames = sorted([fname for fname in os.listdir(RAW_DATA_PATH)
-                         if 'csv' in fname
-                         and not 'formats' in fname
-                         and not 'form6' in fname])  # remove outcome
+        fnames = sorted([
+            fname for fname in os.listdir(RAW_DATA_PATH)
+            if 'csv' in fname
+               and not 'formats' in fname
+               and not 'form6' in fname])  # remove outcome
 
         # read through each fname and save into the r dictionary
         r = {}
