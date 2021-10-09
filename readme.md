@@ -20,11 +20,16 @@ We hope to use a unified modeling pipeline across a variety of contributed datas
 
 # Datasets
 
-| Dataset id | Task                                                        | Size                            |
-| ---------- | ----------------------------------------------------------- | ------------------------------- |
-| [iai_pecarn](projects/iai_pecarn) | Predict intra-abdominal injury requiring acute intervention | 12,044 patients, 203 with IAI-I |
+| Dataset id | Links | Task                                                        | Size                            |
+| ---------- | ----- | ----------------------------------------------------------- | ------------------------------- |
+| [iai_pecarn](projects/iai_pecarn) | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | Predict intra-abdominal injury requiring acute intervention | 12,044 patients, 203 with IAI-I |
 |            |                                                             |                                 |
 |            |                                                             |                                 |
+
+<p align="center">
+    Research paper 📄, Data download link 🔗 
+</br>
+</p>
 
 Datasets must be tabular (or at least have interpretable input features),
 be reasonably large (e.g. have at least 100 positive and negative cases),

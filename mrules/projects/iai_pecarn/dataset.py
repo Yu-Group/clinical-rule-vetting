@@ -12,17 +12,22 @@ from mrules.util.dataset import MDataset
 
 class Dataset(MDataset):
 
-    def clean_data(self) -> pd.DataFrame:
+    def clean_data(self, data_path: str = mrules.DATA_PATH) -> pd.DataFrame:
         """
         Convert the raw data files into a pandas dataframe.
         Dataframe keys should be reasonable (lowercase, underscore-separated)
+
+        Params
+        ------
+        data_path: str, optional
+            Path to all data files
 
         Returns
         -------
         cleaned_data: pd.DataFrame
         """
 
-        RAW_DATA_PATH = oj(mrules.DATA_PATH, 'iai_pecarn', 'raw')
+        RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(RAW_DATA_PATH, exist_ok=True)
 
         # all the fnames to be loaded and searched over

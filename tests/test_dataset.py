@@ -5,7 +5,8 @@ import os
 import unittest
 
 import mrules
-
+from os.path import join as oj
+DATA_PATH = oj(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 
 class TestDatasets(unittest.TestCase):
     def test_datasets_implemented(self):
@@ -26,7 +27,7 @@ class TestDatasets(unittest.TestCase):
             dset = module.Dataset()
 
             # pipeline should run
-            df_train, df_tune, df_test = dset.get_data()
+            df_train, df_tune, df_test = dset.get_data(data_path=DATA_PATH, save_csvs=False)
             assert df_tune.shape[0] > 0, 'Tune set must not be empty'
             assert df_train.shape[0] > df_tune.shape[0], 'Train set should be larger than tune set'
 
