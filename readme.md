@@ -11,6 +11,10 @@
 
 This is a *collaborative* repository intended to validate and derive clinical-decision rules. 
 
+# Still under development
+- `baseline.py` template
+- modeling pipeline
+- visualization / posthoc pipeline
 
 # Datasets
 
