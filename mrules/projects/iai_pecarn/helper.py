@@ -2,6 +2,8 @@ from os.path import join as oj
 
 import numpy as np
 import pandas as pd
+'''Helper functions for dataset.py
+'''
 
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
@@ -49,9 +51,9 @@ def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     ids_iai_np = np.array(list(ids_iai)) - 1
     ids_np = np.array(list(ids)) - 1
 
-    iai = np.zeros(NUM_PATIENTS).astype(np.int)
+    iai = np.zeros(NUM_PATIENTS).astype(int)
     iai[ids_iai_np] = 1
-    iai_intervention = np.zeros(NUM_PATIENTS).astype(np.int)
+    iai_intervention = np.zeros(NUM_PATIENTS).astype(int)
     iai_intervention[ids_np] = 1
 
     df_iai = pd.DataFrame.from_dict({
@@ -93,7 +95,7 @@ def rename_values(df):
         10: 'unknown'  # physician did not answer
     }
     df['MOI'] = df.RecodedMOI.map(moi)
-    df = df.drop(columns=['RecodedMOI'])
+    df = df.drop(columns=['RecodedMOI']).copy()
     abdTenderDegree = {
         1: 'Mild',
         2: 'Moderate',
@@ -147,7 +149,7 @@ def rename_values(df):
     for k in ks_remap:
         vals = df[k].values
         is_na = df[k].isna()
-        uniques = np.unique(vals).astype(np.str)
+        uniques = np.unique(vals).astype(str)
         contains_nan = np.sum(is_na) > 0
         if contains_nan and uniques.size in [4, 5] or ~contains_nan and uniques.size in [3, 4]:
             if '1.0' in uniques and '2.0' in uniques and ('3.0' in uniques or 'other' in uniques):

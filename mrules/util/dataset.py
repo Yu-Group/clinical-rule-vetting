@@ -13,10 +13,15 @@ import mrules
 class MDataset:
 
     @abstractmethod
-    def clean_data(self) -> pd.DataFrame:
+    def clean_data(self, data_path: str = mrules.DATA_PATH) -> pd.DataFrame:
         """
         Convert the raw data files into a pandas dataframe.
         Dataframe keys should be reasonable (lowercase, underscore-separated)
+
+        Params
+        ------
+        data_path: str, optional
+            Path to all data files
 
         Returns
         -------
@@ -86,8 +91,15 @@ class MDataset:
         """
         return NotImplemented
 
-    def get_data(self, save_csvs=False):
+    def get_data(self, save_csvs: bool=False, data_path: str=mrules.DATA_PATH):
         '''Runs all the processing and returns the data
+
+        Params
+        ------
+        save_csvs: bool, optional
+            Whether to save csv files of the processed data
+        data_path: str, optional
+            Path to all data
 
         Returns
         -------
@@ -97,14 +109,14 @@ class MDataset:
         '''
         np.random.seed(0)
         random.seed(0)
-        CACHE_PATH = oj(mrules.DATA_PATH, 'joblib_cache')
+        CACHE_PATH = oj(data_path, 'joblib_cache')
         cache = Memory(CACHE_PATH, verbose=0).cache
-        cleaned_data = cache(self.clean_data)()
+        cleaned_data = cache(self.clean_data)(data_path=data_path)
         preprocessed_data = cache(self.preprocess_data)(cleaned_data)
         extracted_features = cache(self.extract_features)(preprocessed_data)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
-            PROCESSED_PATH = oj(mrules.DATA_PATH, self.get_dataset_id(), 'processed')
+            PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
             os.makedirs(PROCESSED_PATH)
             df_train.to_csv(PROCESSED_PATH, 'train.csv')
             df_train.to_csv(PROCESSED_PATH, 'tune.csv')

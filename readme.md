@@ -1,24 +1,37 @@
-<h1 align="center">Interpretable Clinical Decision Rules ⚕️ </h1>
+<h1 align="center">⚕️ Interpretable Clinical Decision Rules ⚕️️</h1>
 <p align="center"> Validating and deriving clinical-decision rules. Work-in-progress.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-mit-blue.svg">
-  <img src="https://img.shields.io/badge/python-3.6--3.9-blue">
+  <img src="https://img.shields.io/badge/python-3.7-blue">
   <a href="https://github.com/Yu-Group/medical-rules/actions"><img src="https://github.com/Yu-Group/medical-rules/workflows/tests/badge.svg"></a>
   <img src="https://img.shields.io/github/checks-status/Yu-Group/medical-rules/master">
  </p>  
 
-This is a *collaborative* repository intended to validate and derive clinical-decision rules. 
+This is a *collaborative* repository intended to validate and derive clinical-decision rules.
+We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices.
 
+
+# Still under development
+- `baseline.py` template
+- build in slightly more autogluon support
+- data_dictionary template  
+- modeling pipeline
+- visualization / posthoc pipeline
 
 # Datasets
 
-| Dataset id | Task                                                        | Size                            |
-| ---------- | ----------------------------------------------------------- | ------------------------------- |
-| [iai_pecarn](projects/iai_pecarn) | Predict intra-abdominal injury requiring acute intervention | 12,044 patients, 203 with IAI-I |
+| Dataset id | Links | Task                                                        | Size                            |
+| ---------- | ----- | ----------------------------------------------------------- | ------------------------------- |
+| [iai_pecarn](projects/iai_pecarn) | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | Predict intra-abdominal injury requiring acute intervention | 12,044 patients, 203 with IAI-I |
 |            |                                                             |                                 |
 |            |                                                             |                                 |
+
+<p align="center">
+    Research paper 📄, Data download link 🔗 
+</br>
+</p>
 
 Datasets must be tabular (or at least have interpretable input features),
 be reasonably large (e.g. have at least 100 positive and negative cases),
