@@ -5,8 +5,9 @@ import os
 import unittest
 
 import mrules
-from os.path import join as oj
+
 DATA_PATH = oj(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
+
 
 class TestDatasets(unittest.TestCase):
     def test_datasets_implemented(self):

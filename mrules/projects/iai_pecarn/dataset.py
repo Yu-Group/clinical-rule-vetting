@@ -40,6 +40,8 @@ class Dataset(MDataset):
         # read through each fname and save into the r dictionary
         r = {}
         print('read all the csvs...', fnames)
+        if len(fnames) == 0:
+            print('no csvs found in path', RAW_DATA_PATH)
         for fname in tqdm(fnames):
             df = pd.read_csv(oj(RAW_DATA_PATH, fname), encoding="ISO-8859-1")
             df.rename(columns={'SubjectID': 'id'}, inplace=True)

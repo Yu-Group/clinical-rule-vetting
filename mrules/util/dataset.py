@@ -111,7 +111,7 @@ class MDataset:
         random.seed(0)
         CACHE_PATH = oj(data_path, 'joblib_cache')
         cache = Memory(CACHE_PATH, verbose=0).cache
-        cleaned_data = cache(self.clean_data)()
+        cleaned_data = cache(self.clean_data)(data_path=data_path)
         preprocessed_data = cache(self.preprocess_data)(cleaned_data)
         extracted_features = cache(self.extract_features)(preprocessed_data)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
