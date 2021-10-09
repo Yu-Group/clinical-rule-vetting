@@ -12,35 +12,39 @@
 This is a *collaborative* repository intended to validate and derive clinical-decision rules. 
 
 
+# Datasets
+
+| Dataset id | Task                                                        | Size                            |
+| ---------- | ----------------------------------------------------------- | ------------------------------- |
+| [iai_pecarn](projects/iai_pecarn) | Predict intra-abdominal injury requiring acute intervention | 12,044 patients, 203 with IAI-I |
+|            |                                                             |                                 |
+|            |                                                             |                                 |
 
 
 
-# Installation
-
-Note: requires python 3.6-3.9 and pytest (for running the automated tests). 
-It is best practice to create a virtualenv or pipenv for this project.
-
-```bash
-git clone https://github.com/Yu-Group/medical-rules
-cd medical-rules
-python setup.py sdist
-pip install -e .
-```
-
-Now run the automatic tests to ensure everything works.
-
-```
-pytest
-```
+- currently in the process of downloading / preprocessing a series of tabular datasets
+  - see [PECARN datasets](https://pecarn.org/datasets/)
+  - see [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22)
+  - see rules in [MDCalc](https://www.mdcalc.com/)
+  - open to many more datasets
+- criteria for each dataset
+  - must be reasonably large (e.g. have at least 100 positive and negative cases)
+  - currently must be binary outcome
+  - maybe should already have an existing rule
 
 
 
 # How do I contribute?
 
-To contribute, fork this repo + create a pull request for a new project.
+To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps belwo.
 The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecarn](mrules/projects/iai_pecarn)) into a new folder and then edit that one.
 
-- [ ] Rewrite the functions in `dataset.py` for the new dataset
+- [ ] Repo set up
+  - [ ] Create a fork of this repo
+  - [ ] Install the repo as shown above	
+- [ ] Data preprocessing
+  - [ ] Download the raw data into 
+  - [ ] Rewrite the functions in `dataset.py` for the new dataset
 - [ ] fdaslkfj
 
 **What is included in each step.**
@@ -65,26 +69,24 @@ The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecar
 - documentation is available in the [API](yu-group.github.io/medical-rules/)
 
 
-# Datasets
+# Installation
 
-| Dataset id | Task                                                        | Size                            |
-| ---------- | ----------------------------------------------------------- | ------------------------------- |
-| [iai_pecarn](projects/iai_pecarn) | Predict intra-abdominal injury requiring acute intervention | 12,044 patients, 203 with IAI-I |
-|            |                                                             |                                 |
-|            |                                                             |                                 |
+Note: requires python 3.6-3.9 and pytest (for running the automated tests). 
+It is best practice to create a virtualenv or pipenv for this project.
 
+```bash
+git clone https://github.com/Yu-Group/medical-rules
+cd medical-rules
+python setup.py sdist
+pip install -e .
+```
 
+Now run the automatic tests to ensure everything works.
 
-- currently in the process of downloading / preprocessing a series of tabular datasets
-  - see [PECARN datasets](https://pecarn.org/datasets/)
-  - see [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22)
-  - see rules in [MDCalc](https://www.mdcalc.com/)
-  - open to many more datasets
-- criteria for each dataset
-  - must be reasonably large (e.g. have at least 100 positive and negative cases)
-  - currently must be binary outcome
-  - maybe should already have an existing rule
+```
+pytest
+```
 
 # Reference
 
-- Inspired by the [BIG-bench](https://github.com/google/BIG-bench) effort
+Inspired by the [BIG-bench](https://github.com/google/BIG-bench) effort

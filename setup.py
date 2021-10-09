@@ -19,7 +19,7 @@ setuptools.setup(
     install_requires=[
         'autogluon',
         'imodels>=1.0.1',
-        'matlotlib',
+        'matplotlib',
         'numpy',
         'pandas',
         'pytest',

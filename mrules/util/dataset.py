@@ -1,6 +1,7 @@
 from os.path import join as oj
 
 import numpy as np
+import os
 import pandas as pd
 import random
 from abc import abstractmethod
@@ -103,7 +104,9 @@ class MDataset:
         extracted_features = cache(self.extract_features)(preprocessed_data)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
-            df_train.to_csv(oj(mrules.DATA_PATH, self.get_dataset_id(), 'processed', 'train.csv'))
-            df_train.to_csv(oj(mrules.DATA_PATH, self.get_dataset_id(), 'processed', 'tune.csv'))
-            df_train.to_csv(oj(mrules.DATA_PATH, self.get_dataset_id(), 'processed', 'test.csv'))
+            PROCESSED_PATH = oj(mrules.DATA_PATH, self.get_dataset_id(), 'processed')
+            os.makedirs(PROCESSED_PATH)
+            df_train.to_csv(PROCESSED_PATH, 'train.csv')
+            df_train.to_csv(PROCESSED_PATH, 'tune.csv')
+            df_train.to_csv(PROCESSED_PATH, 'test.csv')
         return df_train, df_tune, df_test
