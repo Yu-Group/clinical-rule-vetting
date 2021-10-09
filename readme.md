@@ -9,7 +9,9 @@
   <img src="https://img.shields.io/github/checks-status/Yu-Group/medical-rules/master">
  </p>  
 
-This is a *collaborative* repository intended to validate and derive clinical-decision rules. 
+This is a *collaborative* repository intended to validate and derive clinical-decision rules.
+We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices.
+
 
 # Still under development
 - `baseline.py` template
