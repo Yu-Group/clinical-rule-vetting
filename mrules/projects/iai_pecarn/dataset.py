@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 import mrules
 from mrules.projects.iai_pecarn import helper
-from mrules.util.dataset import MDataset
+from mrules.api.dataset import MDataset
 
 
 class Dataset(MDataset):

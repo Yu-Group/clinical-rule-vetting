@@ -10,15 +10,17 @@
  </p>  
 
 This is a *collaborative* repository intended to validate and derive clinical-decision rules.
-We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices.
-
+We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices for clinical decision rules.
+Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
 # Still under development
 - `baseline.py` template
-- build in slightly more autogluon support
+- build in more autogluon support
 - data_dictionary template  
 - modeling pipeline
-- visualization / posthoc pipeline
+- build in more vflow support
+- build in more eda support  
+    - visualization / posthoc pipeline
 
 # Datasets
 
@@ -53,13 +55,14 @@ The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecar
   - [ ] Come up with a `project_name` for the new project (e.g. iai_pecarn) 	
 - [ ] Data preprocessing
   - [ ] Download the raw data into `data/{project_name}/raw`
-  - [ ] Rewrite the functions in `dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](mrules/projects/iai_pecarn/dataset.py))
+  - [ ] Copy over the template files from `mrules/projects/iai_pecarn` to a new folder `mrules/projects/{project_name}`
+  - [ ] Rewrite the functions in `mrules/projects/{project_name}/dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](mrules/projects/iai_pecarn/dataset.py))
 	- Note: Notebooks / helper functions are optional
 - [ ] Data description
-  - [ ] Add a `data_dictionary.md` file that describes each feature in the processed data
-  - [ ] Add a `readme.md` file that describes the data and the prediction task. This should include basic details of data collection (who, how, when, where) and why it is important, and how a clinical decision rule may be used in this context
+  - [ ] Add a `mrules/projects/{project_name}/data_dictionary.md` file that describes each feature in the processed data
+  - [ ] Add a `mrules/projects/{project_name}/readme.md` file that describes the data and the prediction task. This should include basic details of data collection (who, how, when, where) and why it is important, and how a clinical decision rule may be used in this context
 - [ ] Modeling
-  - [ ] Implement the functions in `baseline.py` for predicting given a baseline rule (if there is no existing rule for this project, then leave these not implemented)
+  - [ ] Implement the functions in `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (if there is no existing rule for this project, then leave these not implemented)
 - [ ] Merging
   - [ ] Ensure that all tests pass by running `pytest` from the repo directory
   - [ ] Open a pull request and it will be reviewed / merged	

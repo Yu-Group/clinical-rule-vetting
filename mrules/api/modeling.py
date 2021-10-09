@@ -25,7 +25,7 @@ def fit_interpretable_models(train_data: pd.DataFrame, tune_data: pd.DataFrame):
 
 
 if __name__ == '__main__':
-    # todo: loop over datasets
+    # todo: loop over datasets (see test_datasets.py)
     np.random.seed(0)
     random.seed(0)
     df_train, df_tune, df_test = Dataset().get_data()
