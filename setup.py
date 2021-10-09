@@ -17,6 +17,7 @@ setuptools.setup(
     url="https://github.com/Yu-Group/medical-rules",
     packages=setuptools.find_packages(),
     install_requires=[
+        'autogluon',
         'imodels>=1.0.1',
         'numpy',
         'pandas',

@@ -10,6 +10,7 @@ env
 **.pyc
 **.gif
 **.DS_Store
+**joblib*
 **.idea
 *.pth
 **Icon*
