@@ -31,6 +31,9 @@
 import numpy as np
 import pandas as pd
 
+&#39;&#39;&#39;Helper functions for dataset.py
+&#39;&#39;&#39;
+
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     &#34;&#34;&#34;Read in the outcomes
@@ -77,9 +80,9 @@ def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     ids_iai_np = np.array(list(ids_iai)) - 1
     ids_np = np.array(list(ids)) - 1
 
-    iai = np.zeros(NUM_PATIENTS).astype(np.int)
+    iai = np.zeros(NUM_PATIENTS).astype(int)
     iai[ids_iai_np] = 1
-    iai_intervention = np.zeros(NUM_PATIENTS).astype(np.int)
+    iai_intervention = np.zeros(NUM_PATIENTS).astype(int)
     iai_intervention[ids_np] = 1
 
     df_iai = pd.DataFrame.from_dict({
@@ -121,7 +124,7 @@ def rename_values(df):
         10: &#39;unknown&#39;  # physician did not answer
     }
     df[&#39;MOI&#39;] = df.RecodedMOI.map(moi)
-    df = df.drop(columns=[&#39;RecodedMOI&#39;])
+    df = df.drop(columns=[&#39;RecodedMOI&#39;]).copy()
     abdTenderDegree = {
         1: &#39;Mild&#39;,
         2: &#39;Moderate&#39;,
@@ -136,6 +139,7 @@ def rename_values(df):
 
     # print(np.unique(df[&#39;AbdTenderDegree&#39;], return_counts=True))
     df[&#39;AbdTenderDegree&#39;] = df.AbdTenderDegree.map(abdTenderDegree)
+
     # print(np.unique(df[&#39;AbdTenderDegree&#39;], return_counts=True))
     binary = {
         0: &#39;no&#39;,
@@ -175,15 +179,15 @@ def rename_values(df):
     for k in ks_remap:
         vals = df[k].values
         is_na = df[k].isna()
-        uniques = np.unique(vals).astype(np.str)
+        uniques = np.unique(vals).astype(str)
         contains_nan = np.sum(is_na) &gt; 0
         if contains_nan and uniques.size in [4, 5] or ~contains_nan and uniques.size in [3, 4]:
-            if &#39;1.0&#39; in uniques and &#39;2.0&#39; in uniques and (&#39;3.0&#39; in uniques or &#39;other&#39; in uniques):
+            if &#39;1&#39; in uniques and &#39;2&#39; in uniques and (&#39;3&#39; in uniques or &#39;other&#39; in uniques):
                 df[k] = df[k].map({
-                    &#39;1.0&#39;: &#39;yes&#39;,
-                    &#39;2.0&#39;: &#39;no&#39;,
-                    &#39;3.0&#39;: &#39;unknown&#39;,
-                    &#39;4.0&#39;: &#39;unknown&#39;,
+                    &#39;1&#39;: &#39;yes&#39;,
+                    &#39;2&#39;: &#39;no&#39;,
+                    &#39;3&#39;: &#39;unknown&#39;,
+                    &#39;4&#39;: &#39;unknown&#39;,
                     &#39;other&#39;: &#39;other&#39;,
                     np.nan: &#39;unknown&#39;,
                 })
@@ -214,6 +218,7 @@ def derived_feats(df):
     df[&#39;Race&#39;] = df[&#39;Race_orig&#39;]
     df.loc[df.Hispanic == &#39;yes&#39;, &#39;Race&#39;] = &#39;Hispanic&#39;
     df.loc[df.Race == &#39;White&#39;, &#39;Race&#39;] = &#39;White (Non-Hispanic)&#39;
+    df.drop(columns=&#39;Race_orig&#39;, inplace=True)
 
     return df</code></pre>
 </details>
@@ -258,6 +263,7 @@ def derived_feats(df):
     df[&#39;Race&#39;] = df[&#39;Race_orig&#39;]
     df.loc[df.Hispanic == &#39;yes&#39;, &#39;Race&#39;] = &#39;Hispanic&#39;
     df.loc[df.Race == &#39;White&#39;, &#39;Race&#39;] = &#39;White (Non-Hispanic)&#39;
+    df.drop(columns=&#39;Race_orig&#39;, inplace=True)
 
     return df</code></pre>
 </details>
@@ -323,9 +329,9 @@ iai_intervention (has 203 positives)</dd>
     ids_iai_np = np.array(list(ids_iai)) - 1
     ids_np = np.array(list(ids)) - 1
 
-    iai = np.zeros(NUM_PATIENTS).astype(np.int)
+    iai = np.zeros(NUM_PATIENTS).astype(int)
     iai[ids_iai_np] = 1
-    iai_intervention = np.zeros(NUM_PATIENTS).astype(np.int)
+    iai_intervention = np.zeros(NUM_PATIENTS).astype(int)
     iai_intervention[ids_np] = 1
 
     df_iai = pd.DataFrame.from_dict({
@@ -379,7 +385,7 @@ set types of</p></div>
         10: &#39;unknown&#39;  # physician did not answer
     }
     df[&#39;MOI&#39;] = df.RecodedMOI.map(moi)
-    df = df.drop(columns=[&#39;RecodedMOI&#39;])
+    df = df.drop(columns=[&#39;RecodedMOI&#39;]).copy()
     abdTenderDegree = {
         1: &#39;Mild&#39;,
         2: &#39;Moderate&#39;,
@@ -394,6 +400,7 @@ set types of</p></div>
 
     # print(np.unique(df[&#39;AbdTenderDegree&#39;], return_counts=True))
     df[&#39;AbdTenderDegree&#39;] = df.AbdTenderDegree.map(abdTenderDegree)
+
     # print(np.unique(df[&#39;AbdTenderDegree&#39;], return_counts=True))
     binary = {
         0: &#39;no&#39;,
@@ -433,15 +440,15 @@ set types of</p></div>
     for k in ks_remap:
         vals = df[k].values
         is_na = df[k].isna()
-        uniques = np.unique(vals).astype(np.str)
+        uniques = np.unique(vals).astype(str)
         contains_nan = np.sum(is_na) &gt; 0
         if contains_nan and uniques.size in [4, 5] or ~contains_nan and uniques.size in [3, 4]:
-            if &#39;1.0&#39; in uniques and &#39;2.0&#39; in uniques and (&#39;3.0&#39; in uniques or &#39;other&#39; in uniques):
+            if &#39;1&#39; in uniques and &#39;2&#39; in uniques and (&#39;3&#39; in uniques or &#39;other&#39; in uniques):
                 df[k] = df[k].map({
-                    &#39;1.0&#39;: &#39;yes&#39;,
-                    &#39;2.0&#39;: &#39;no&#39;,
-                    &#39;3.0&#39;: &#39;unknown&#39;,
-                    &#39;4.0&#39;: &#39;unknown&#39;,
+                    &#39;1&#39;: &#39;yes&#39;,
+                    &#39;2&#39;: &#39;no&#39;,
+                    &#39;3&#39;: &#39;unknown&#39;,
+                    &#39;4&#39;: &#39;unknown&#39;,
                     &#39;other&#39;: &#39;other&#39;,
                     np.nan: &#39;unknown&#39;,
                 })

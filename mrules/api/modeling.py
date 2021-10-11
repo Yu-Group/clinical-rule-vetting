@@ -15,12 +15,32 @@ import mrules
 from mrules.projects.iai_pecarn.dataset import Dataset
 
 
-def fit_interpretable_models(train_data: pd.DataFrame, tune_data: pd.DataFrame):
+def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable: bool = True):
+    """
+
+    Parameters
+    ----------
+    train_data
+    tune_data
+    interpretable: bool
+        Whether to fit interpretable models or standard models
+
+    Returns
+    -------
+    predictor
+    """
     train_data = TabularDataset(train_data)
     test_data = TabularDataset(tune_data)
     predictor = TabularPredictor(label='outcome', path=mrules.AUTOGLUON_CACHE_PATH)
-    predictor.fit(train_data, presets='interpretable', verbosity=2, time_limit=30)
-    print(predictor.interpretable_models_summary())
+    kwargs = dict(
+        verbosity=2,
+        time_limit=30,
+    )
+    if interpretable:
+        predictor.fit(train_data, presets='interpretable', **kwargs)
+        print(predictor.interpretable_models_summary())
+    else:
+        predictor.fit(train_data, **kwargs)
     return predictor
 
 
@@ -29,5 +49,5 @@ if __name__ == '__main__':
     np.random.seed(0)
     random.seed(0)
     df_train, df_tune, df_test = Dataset().get_data()
-    predictor = fit_interpretable_models(df_train, df_tune)
+    predictor = fit_models(df_train, df_tune)
     print(predictor)

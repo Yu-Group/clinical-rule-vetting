@@ -14,9 +14,12 @@ We hope to use a unified modeling pipeline across a variety of contributed datas
 Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
 # Still under development
-- `baseline.py` template
+- clean up dataset for iai_pecarn
 - build in more autogluon support
-- data_dictionary template  
+- data_dictionary template
+- store metadata somewhere (can use for validation but not for predicting)  
+- readme template  
+- set up more automatic testing  
 - modeling pipeline
 - build in more vflow support
 - build in more eda support  
@@ -58,11 +61,13 @@ The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecar
   - [ ] Copy over the template files from `mrules/projects/iai_pecarn` to a new folder `mrules/projects/{project_name}`
   - [ ] Rewrite the functions in `mrules/projects/{project_name}/dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](mrules/projects/iai_pecarn/dataset.py))
 	- Note: Notebooks / helper functions are optional
+    - See [the template file](mrules/templates/dataset.py) for documentation of each function
 - [ ] Data description
   - [ ] Add a `mrules/projects/{project_name}/data_dictionary.md` file that describes each feature in the processed data
-  - [ ] Add a `mrules/projects/{project_name}/readme.md` file that describes the data and the prediction task. This should include basic details of data collection (who, how, when, where) and why it is important, and how a clinical decision rule may be used in this context
+  - [ ] Add a `mrules/projects/{project_name}/readme.md` file that describes the data and the prediction task. This should include basic details of data collection (who, how, when, where) and why it is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
 - [ ] Modeling
-  - [ ] Implement the functions in `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (if there is no existing rule for this project, then leave these not implemented)
+  - [ ] Implement the functions in `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (if there is no existing rule for this project, then have each method simply return None)
+    - See [the template file](mrules/templates/baseline.py) for documentation of each function
 - [ ] Merging
   - [ ] Ensure that all tests pass by running `pytest` from the repo directory
   - [ ] Open a pull request and it will be reviewed / merged	
@@ -86,7 +91,7 @@ The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecar
 
 # Installation
 
-Note: requires python 3.6-3.9 and pytest (for running the automated tests). 
+Note: requires python 3.7 and pytest (for running the automated tests). 
 It is best practice to create a virtualenv or pipenv for this project.
 
 ```bash

@@ -2,6 +2,7 @@ from os.path import join as oj
 
 import numpy as np
 import pandas as pd
+
 '''Helper functions for dataset.py
 '''
 
@@ -110,6 +111,7 @@ def rename_values(df):
 
     # print(np.unique(df['AbdTenderDegree'], return_counts=True))
     df['AbdTenderDegree'] = df.AbdTenderDegree.map(abdTenderDegree)
+
     # print(np.unique(df['AbdTenderDegree'], return_counts=True))
     binary = {
         0: 'no',
@@ -152,12 +154,12 @@ def rename_values(df):
         uniques = np.unique(vals).astype(str)
         contains_nan = np.sum(is_na) > 0
         if contains_nan and uniques.size in [4, 5] or ~contains_nan and uniques.size in [3, 4]:
-            if '1.0' in uniques and '2.0' in uniques and ('3.0' in uniques or 'other' in uniques):
+            if '1' in uniques and '2' in uniques and ('3' in uniques or 'other' in uniques):
                 df[k] = df[k].map({
-                    '1.0': 'yes',
-                    '2.0': 'no',
-                    '3.0': 'unknown',
-                    '4.0': 'unknown',
+                    '1': 'yes',
+                    '2': 'no',
+                    '3': 'unknown',
+                    '4': 'unknown',
                     'other': 'other',
                     np.nan: 'unknown',
                 })
@@ -188,5 +190,6 @@ def derived_feats(df):
     df['Race'] = df['Race_orig']
     df.loc[df.Hispanic == 'yes', 'Race'] = 'Hispanic'
     df.loc[df.Race == 'White', 'Race'] = 'White (Non-Hispanic)'
+    df.drop(columns='Race_orig', inplace=True)
 
     return df

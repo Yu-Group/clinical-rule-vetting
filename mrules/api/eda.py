@@ -1,3 +1,3 @@
 """Exploratory data analysis for rules-data.
-Generates automatic reports given MDataset.
+Generates automatic reports given DatasetTemplate.
 """

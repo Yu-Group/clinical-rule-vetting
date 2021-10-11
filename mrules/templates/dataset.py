@@ -10,8 +10,9 @@ from joblib import Memory
 import mrules
 
 
-class MDataset:
-
+class DatasetTemplate:
+    """Classes that use this template should be called "Dataset"
+    """
     @abstractmethod
     def clean_data(self, data_path: str = mrules.DATA_PATH) -> pd.DataFrame:
         """
@@ -91,8 +92,9 @@ class MDataset:
         """
         return NotImplemented
 
-    def get_data(self, save_csvs: bool=False, data_path: str=mrules.DATA_PATH):
-        '''Runs all the processing and returns the data
+    def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
+        '''Runs all the processing and returns the data.
+        This method does not need to be overriden.
 
         Params
         ------
@@ -100,6 +102,8 @@ class MDataset:
             Whether to save csv files of the processed data
         data_path: str, optional
             Path to all data
+        load_csvs: bool, optional
+            Whether to skip all processing and load data directly from csvs
 
         Returns
         -------
@@ -107,6 +111,10 @@ class MDataset:
         df_tune
         df_test
         '''
+        PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
+        if load_csvs:
+            return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
+                          for s in ['train.csv', 'tune.csv', 'test.csv']])
         np.random.seed(0)
         random.seed(0)
         CACHE_PATH = oj(data_path, 'joblib_cache')
@@ -116,9 +124,8 @@ class MDataset:
         extracted_features = cache(self.extract_features)(preprocessed_data)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
-            PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
-            os.makedirs(PROCESSED_PATH)
-            df_train.to_csv(PROCESSED_PATH, 'train.csv')
-            df_train.to_csv(PROCESSED_PATH, 'tune.csv')
-            df_train.to_csv(PROCESSED_PATH, 'test.csv')
+            os.makedirs(PROCESSED_PATH, exist_ok=True)
+            df_train.to_csv(oj(PROCESSED_PATH, 'train.csv'))
+            df_tune.to_csv(oj(PROCESSED_PATH, 'tune.csv'))
+            df_test.to_csv(oj(PROCESSED_PATH, 'test.csv'))
         return df_train, df_tune, df_test

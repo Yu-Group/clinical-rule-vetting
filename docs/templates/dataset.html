@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>mrules.util.dataset API documentation</title>
+<title>mrules.templates.dataset API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>mrules.util.dataset</code></h1>
+<h1 class="title">Module <code>mrules.templates.dataset</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -38,13 +38,19 @@ from joblib import Memory
 import mrules
 
 
-class MDataset:
-
+class DatasetTemplate:
+    &#34;&#34;&#34;Classes that use this template should be called &#34;Dataset&#34;
+    &#34;&#34;&#34;
     @abstractmethod
-    def clean_data(self) -&gt; pd.DataFrame:
+    def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
         Convert the raw data files into a pandas dataframe.
         Dataframe keys should be reasonable (lowercase, underscore-separated)
+
+        Params
+        ------
+        data_path: str, optional
+            Path to all data files
 
         Returns
         -------
@@ -114,8 +120,18 @@ class MDataset:
         &#34;&#34;&#34;
         return NotImplemented
 
-    def get_data(self, save_csvs=False):
-        &#39;&#39;&#39;Runs all the processing and returns the data
+    def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
+        &#39;&#39;&#39;Runs all the processing and returns the data.
+        This method does not need to be overriden.
+
+        Params
+        ------
+        save_csvs: bool, optional
+            Whether to save csv files of the processed data
+        data_path: str, optional
+            Path to all data
+        load_csvs: bool, optional
+            Whether to skip all processing and load data directly from csvs
 
         Returns
         -------
@@ -123,20 +139,23 @@ class MDataset:
         df_tune
         df_test
         &#39;&#39;&#39;
+        PROCESSED_PATH = oj(data_path, self.get_dataset_id(), &#39;processed&#39;)
+        if load_csvs:
+            return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
+                          for s in [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]])
         np.random.seed(0)
         random.seed(0)
-        CACHE_PATH = oj(mrules.DATA_PATH, &#39;joblib_cache&#39;)
+        CACHE_PATH = oj(data_path, &#39;joblib_cache&#39;)
         cache = Memory(CACHE_PATH, verbose=0).cache
-        cleaned_data = cache(self.clean_data)()
+        cleaned_data = cache(self.clean_data)(data_path=data_path)
         preprocessed_data = cache(self.preprocess_data)(cleaned_data)
         extracted_features = cache(self.extract_features)(preprocessed_data)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
-            PROCESSED_PATH = oj(mrules.DATA_PATH, self.get_dataset_id(), &#39;processed&#39;)
-            os.makedirs(PROCESSED_PATH)
-            df_train.to_csv(PROCESSED_PATH, &#39;train.csv&#39;)
-            df_train.to_csv(PROCESSED_PATH, &#39;tune.csv&#39;)
-            df_train.to_csv(PROCESSED_PATH, &#39;test.csv&#39;)
+            os.makedirs(PROCESSED_PATH, exist_ok=True)
+            df_train.to_csv(oj(PROCESSED_PATH, &#39;train.csv&#39;))
+            df_tune.to_csv(oj(PROCESSED_PATH, &#39;tune.csv&#39;))
+            df_test.to_csv(oj(PROCESSED_PATH, &#39;test.csv&#39;))
         return df_train, df_tune, df_test</code></pre>
 </details>
 </section>
@@ -149,22 +168,28 @@ class MDataset:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="mrules.util.dataset.MDataset"><code class="flex name class">
-<span>class <span class="ident">MDataset</span></span>
+<dt id="mrules.templates.dataset.DatasetTemplate"><code class="flex name class">
+<span>class <span class="ident">DatasetTemplate</span></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Classes that use this template should be called "Dataset"</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class MDataset:
-
+<pre><code class="python">class DatasetTemplate:
+    &#34;&#34;&#34;Classes that use this template should be called &#34;Dataset&#34;
+    &#34;&#34;&#34;
     @abstractmethod
-    def clean_data(self) -&gt; pd.DataFrame:
+    def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
         Convert the raw data files into a pandas dataframe.
         Dataframe keys should be reasonable (lowercase, underscore-separated)
+
+        Params
+        ------
+        data_path: str, optional
+            Path to all data files
 
         Returns
         -------
@@ -234,8 +259,18 @@ class MDataset:
         &#34;&#34;&#34;
         return NotImplemented
 
-    def get_data(self, save_csvs=False):
-        &#39;&#39;&#39;Runs all the processing and returns the data
+    def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
+        &#39;&#39;&#39;Runs all the processing and returns the data.
+        This method does not need to be overriden.
+
+        Params
+        ------
+        save_csvs: bool, optional
+            Whether to save csv files of the processed data
+        data_path: str, optional
+            Path to all data
+        load_csvs: bool, optional
+            Whether to skip all processing and load data directly from csvs
 
         Returns
         -------
@@ -243,20 +278,23 @@ class MDataset:
         df_tune
         df_test
         &#39;&#39;&#39;
+        PROCESSED_PATH = oj(data_path, self.get_dataset_id(), &#39;processed&#39;)
+        if load_csvs:
+            return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
+                          for s in [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]])
         np.random.seed(0)
         random.seed(0)
-        CACHE_PATH = oj(mrules.DATA_PATH, &#39;joblib_cache&#39;)
+        CACHE_PATH = oj(data_path, &#39;joblib_cache&#39;)
         cache = Memory(CACHE_PATH, verbose=0).cache
-        cleaned_data = cache(self.clean_data)()
+        cleaned_data = cache(self.clean_data)(data_path=data_path)
         preprocessed_data = cache(self.preprocess_data)(cleaned_data)
         extracted_features = cache(self.extract_features)(preprocessed_data)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
-            PROCESSED_PATH = oj(mrules.DATA_PATH, self.get_dataset_id(), &#39;processed&#39;)
-            os.makedirs(PROCESSED_PATH)
-            df_train.to_csv(PROCESSED_PATH, &#39;train.csv&#39;)
-            df_train.to_csv(PROCESSED_PATH, &#39;tune.csv&#39;)
-            df_train.to_csv(PROCESSED_PATH, &#39;test.csv&#39;)
+            os.makedirs(PROCESSED_PATH, exist_ok=True)
+            df_train.to_csv(oj(PROCESSED_PATH, &#39;train.csv&#39;))
+            df_tune.to_csv(oj(PROCESSED_PATH, &#39;tune.csv&#39;))
+            df_test.to_csv(oj(PROCESSED_PATH, &#39;test.csv&#39;))
         return df_train, df_tune, df_test</code></pre>
 </details>
 <h3>Subclasses</h3>
@@ -265,12 +303,15 @@ class MDataset:
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="mrules.util.dataset.MDataset.clean_data"><code class="name flex">
-<span>def <span class="ident">clean_data</span></span>(<span>self) ‑> pandas.core.frame.DataFrame</span>
+<dt id="mrules.templates.dataset.DatasetTemplate.clean_data"><code class="name flex">
+<span>def <span class="ident">clean_data</span></span>(<span>self, data_path: str = '/Volumes/GoogleDrive/My Drive/research/medical_rules/medical-rules/data') ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert the raw data files into a pandas dataframe.
 Dataframe keys should be reasonable (lowercase, underscore-separated)</p>
+<h2 id="params">Params</h2>
+<p>data_path: str, optional
+Path to all data files</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>cleaned_data</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
@@ -281,10 +322,15 @@ Dataframe keys should be reasonable (lowercase, underscore-separated)</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
-def clean_data(self) -&gt; pd.DataFrame:
+def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     Convert the raw data files into a pandas dataframe.
     Dataframe keys should be reasonable (lowercase, underscore-separated)
+
+    Params
+    ------
+    data_path: str, optional
+        Path to all data files
 
     Returns
     -------
@@ -293,7 +339,7 @@ def clean_data(self) -&gt; pd.DataFrame:
     return NotImplemented</code></pre>
 </details>
 </dd>
-<dt id="mrules.util.dataset.MDataset.extract_features"><code class="name flex">
+<dt id="mrules.templates.dataset.DatasetTemplate.extract_features"><code class="name flex">
 <span>def <span class="ident">extract_features</span></span>(<span>self, preprocessed_data: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -330,11 +376,19 @@ def extract_features(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
     return NotImplemented</code></pre>
 </details>
 </dd>
-<dt id="mrules.util.dataset.MDataset.get_data"><code class="name flex">
-<span>def <span class="ident">get_data</span></span>(<span>self, save_csvs=False)</span>
+<dt id="mrules.templates.dataset.DatasetTemplate.get_data"><code class="name flex">
+<span>def <span class="ident">get_data</span></span>(<span>self, save_csvs: bool = False, data_path: str = '/Volumes/GoogleDrive/My Drive/research/medical_rules/medical-rules/data', load_csvs: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Runs all the processing and returns the data</p>
+<div class="desc"><p>Runs all the processing and returns the data.
+This method does not need to be overriden.</p>
+<h2 id="params">Params</h2>
+<p>save_csvs: bool, optional
+Whether to save csv files of the processed data
+data_path: str, optional
+Path to all data
+load_csvs: bool, optional
+Whether to skip all processing and load data directly from csvs</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>df_train</code></dt>
@@ -348,8 +402,18 @@ def extract_features(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_data(self, save_csvs=False):
-    &#39;&#39;&#39;Runs all the processing and returns the data
+<pre><code class="python">def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
+    &#39;&#39;&#39;Runs all the processing and returns the data.
+    This method does not need to be overriden.
+
+    Params
+    ------
+    save_csvs: bool, optional
+        Whether to save csv files of the processed data
+    data_path: str, optional
+        Path to all data
+    load_csvs: bool, optional
+        Whether to skip all processing and load data directly from csvs
 
     Returns
     -------
@@ -357,24 +421,27 @@ def extract_features(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
     df_tune
     df_test
     &#39;&#39;&#39;
+    PROCESSED_PATH = oj(data_path, self.get_dataset_id(), &#39;processed&#39;)
+    if load_csvs:
+        return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
+                      for s in [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]])
     np.random.seed(0)
     random.seed(0)
-    CACHE_PATH = oj(mrules.DATA_PATH, &#39;joblib_cache&#39;)
+    CACHE_PATH = oj(data_path, &#39;joblib_cache&#39;)
     cache = Memory(CACHE_PATH, verbose=0).cache
-    cleaned_data = cache(self.clean_data)()
+    cleaned_data = cache(self.clean_data)(data_path=data_path)
     preprocessed_data = cache(self.preprocess_data)(cleaned_data)
     extracted_features = cache(self.extract_features)(preprocessed_data)
     df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
     if save_csvs:
-        PROCESSED_PATH = oj(mrules.DATA_PATH, self.get_dataset_id(), &#39;processed&#39;)
-        os.makedirs(PROCESSED_PATH)
-        df_train.to_csv(PROCESSED_PATH, &#39;train.csv&#39;)
-        df_train.to_csv(PROCESSED_PATH, &#39;tune.csv&#39;)
-        df_train.to_csv(PROCESSED_PATH, &#39;test.csv&#39;)
+        os.makedirs(PROCESSED_PATH, exist_ok=True)
+        df_train.to_csv(oj(PROCESSED_PATH, &#39;train.csv&#39;))
+        df_tune.to_csv(oj(PROCESSED_PATH, &#39;tune.csv&#39;))
+        df_test.to_csv(oj(PROCESSED_PATH, &#39;test.csv&#39;))
     return df_train, df_tune, df_test</code></pre>
 </details>
 </dd>
-<dt id="mrules.util.dataset.MDataset.get_dataset_id"><code class="name flex">
+<dt id="mrules.templates.dataset.DatasetTemplate.get_dataset_id"><code class="name flex">
 <span>def <span class="ident">get_dataset_id</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -390,7 +457,7 @@ def get_dataset_id(self) -&gt; str:
     return NotImplemented</code></pre>
 </details>
 </dd>
-<dt id="mrules.util.dataset.MDataset.get_outcome_name"><code class="name flex">
+<dt id="mrules.templates.dataset.DatasetTemplate.get_outcome_name"><code class="name flex">
 <span>def <span class="ident">get_outcome_name</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -406,7 +473,7 @@ def get_outcome_name(self) -&gt; str:
     return NotImplemented</code></pre>
 </details>
 </dd>
-<dt id="mrules.util.dataset.MDataset.preprocess_data"><code class="name flex">
+<dt id="mrules.templates.dataset.DatasetTemplate.preprocess_data"><code class="name flex">
 <span>def <span class="ident">preprocess_data</span></span>(<span>self, cleaned_data: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -444,7 +511,7 @@ def preprocess_data(self, cleaned_data: pd.DataFrame) -&gt; pd.DataFrame:
     return NotImplemented</code></pre>
 </details>
 </dd>
-<dt id="mrules.util.dataset.MDataset.split_data"><code class="name flex">
+<dt id="mrules.templates.dataset.DatasetTemplate.split_data"><code class="name flex">
 <span>def <span class="ident">split_data</span></span>(<span>self, preprocessed_data: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -501,21 +568,21 @@ def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="mrules.util" href="index.html">mrules.util</a></code></li>
+<li><code><a title="mrules.templates" href="index.html">mrules.templates</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="mrules.util.dataset.MDataset" href="#mrules.util.dataset.MDataset">MDataset</a></code></h4>
+<h4><code><a title="mrules.templates.dataset.DatasetTemplate" href="#mrules.templates.dataset.DatasetTemplate">DatasetTemplate</a></code></h4>
 <ul class="two-column">
-<li><code><a title="mrules.util.dataset.MDataset.clean_data" href="#mrules.util.dataset.MDataset.clean_data">clean_data</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.extract_features" href="#mrules.util.dataset.MDataset.extract_features">extract_features</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.get_data" href="#mrules.util.dataset.MDataset.get_data">get_data</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.get_dataset_id" href="#mrules.util.dataset.MDataset.get_dataset_id">get_dataset_id</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.get_outcome_name" href="#mrules.util.dataset.MDataset.get_outcome_name">get_outcome_name</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.preprocess_data" href="#mrules.util.dataset.MDataset.preprocess_data">preprocess_data</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.split_data" href="#mrules.util.dataset.MDataset.split_data">split_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.clean_data" href="#mrules.templates.dataset.DatasetTemplate.clean_data">clean_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.extract_features" href="#mrules.templates.dataset.DatasetTemplate.extract_features">extract_features</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_data" href="#mrules.templates.dataset.DatasetTemplate.get_data">get_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_dataset_id" href="#mrules.templates.dataset.DatasetTemplate.get_dataset_id">get_dataset_id</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_outcome_name" href="#mrules.templates.dataset.DatasetTemplate.get_outcome_name">get_outcome_name</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.preprocess_data" href="#mrules.templates.dataset.DatasetTemplate.preprocess_data">preprocess_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.split_data" href="#mrules.templates.dataset.DatasetTemplate.split_data">split_data</a></code></li>
 </ul>
 </li>
 </ul>

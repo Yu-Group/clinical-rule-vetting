@@ -7,26 +7,11 @@ from tqdm import tqdm
 
 import mrules
 from mrules.projects.iai_pecarn import helper
-from mrules.api.dataset import MDataset
+from mrules.templates.dataset import DatasetTemplate
 
 
-class Dataset(MDataset):
-
+class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = mrules.DATA_PATH) -> pd.DataFrame:
-        """
-        Convert the raw data files into a pandas dataframe.
-        Dataframe keys should be reasonable (lowercase, underscore-separated)
-
-        Params
-        ------
-        data_path: str, optional
-            Path to all data files
-
-        Returns
-        -------
-        cleaned_data: pd.DataFrame
-        """
-
         RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(RAW_DATA_PATH, exist_ok=True)
 
@@ -76,18 +61,6 @@ class Dataset(MDataset):
         return df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame) -> pd.DataFrame:
-        """Preprocess the data.
-        Impute missing values.
-        Should put the prediction target in a column named "outcome"
-
-        Parameters
-        ----------
-        cleaned_data: pd.DataFrame
-
-        Returns
-        -------
-        preprocessed_data: pd.DataFrame
-        """
 
         # drop cols with vals missing this percent of the time
         FRAC_MISSING_ALLOWED = 0.05
@@ -107,18 +80,6 @@ class Dataset(MDataset):
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
-        """Extract features from preprocessed data
-        All features should be binary
-
-
-        Parameters
-        ----------
-        preprocessed_data
-
-        Returns
-        -------
-        extracted_features: pd.DataFrame
-        """
         # add engineered featuures
         df = helper.derived_feats(preprocessed_data)
         # convert feats to dummy
@@ -133,8 +94,8 @@ class Dataset(MDataset):
                              'AbdomenPain', 'Costal', 'DecrBreathSound', 'DistractingPain',
                              'FemurFracture', 'GCSScore', 'Hypotension', 'LtCostalTender',
                              'MOI', 'RtCostalTender', 'SeatBeltSign', 'ThoracicTender',
-                             'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex'] + \
-                            ['Race', 'InitHeartRate', 'InitSysBPRange']  # new ones to consider
+                             'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex']
+        # PECARN_FEAT_NAMES += ['Race', 'InitHeartRate', 'InitSysBPRange'] # extra features that could be included
         pecarn_feats = set()
         for pecarn_feat in PECARN_FEAT_NAMES:
             for feat_name in feat_names:
@@ -144,34 +105,16 @@ class Dataset(MDataset):
         return df[pecarn_feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
-        """Split into 3 sets: training, tuning, testing
-        Keep in mind any natural splits (e.g. hospitals)
-        Ensure that there are positive points in all splits.
-
-        Parameters
-        ----------
-        preprocessed_data
-
-        Returns
-        -------
-        df_train
-        df_tune
-        df_test
-        """
         # 60-20-20 split
         return np.split(preprocessed_data.sample(frac=1, random_state=42),
                         [int(.6 * len(preprocessed_data)),
                          int(.8 * len(preprocessed_data))])
 
     def get_outcome_name(self) -> str:
-        """Should return the name of the outcome we are predicting
-        """
-        return 'iai_intervention'
+        return 'iai_intervention'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
-        """Should return the name of the dataset id
-        """
-        return 'iai_pecarn'
+        return 'iai_pecarn'  # return the name of the dataset id
 
 
 if __name__ == '__main__':

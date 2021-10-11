@@ -35,22 +35,12 @@ from tqdm import tqdm
 
 import mrules
 from mrules.projects.iai_pecarn import helper
-from mrules.util.dataset import MDataset
+from mrules.templates.dataset import DatasetTemplate
 
 
-class Dataset(MDataset):
-
-    def clean_data(self) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;
-        Convert the raw data files into a pandas dataframe.
-        Dataframe keys should be reasonable (lowercase, underscore-separated)
-
-        Returns
-        -------
-        cleaned_data: pd.DataFrame
-        &#34;&#34;&#34;
-
-        RAW_DATA_PATH = oj(mrules.DATA_PATH, &#39;iai_pecarn&#39;, &#39;raw&#39;)
+class Dataset(DatasetTemplate):
+    def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
+        RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), &#39;raw&#39;)
         os.makedirs(RAW_DATA_PATH, exist_ok=True)
 
         # all the fnames to be loaded and searched over
@@ -63,6 +53,8 @@ class Dataset(MDataset):
         # read through each fname and save into the r dictionary
         r = {}
         print(&#39;read all the csvs...&#39;, fnames)
+        if len(fnames) == 0:
+            print(&#39;no csvs found in path&#39;, RAW_DATA_PATH)
         for fname in tqdm(fnames):
             df = pd.read_csv(oj(RAW_DATA_PATH, fname), encoding=&#34;ISO-8859-1&#34;)
             df.rename(columns={&#39;SubjectID&#39;: &#39;id&#39;}, inplace=True)
@@ -97,18 +89,6 @@ class Dataset(MDataset):
         return df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Preprocess the data.
-        Impute missing values.
-        Should put the prediction target in a column named &#34;outcome&#34;
-
-        Parameters
-        ----------
-        cleaned_data: pd.DataFrame
-
-        Returns
-        -------
-        preprocessed_data: pd.DataFrame
-        &#34;&#34;&#34;
 
         # drop cols with vals missing this percent of the time
         FRAC_MISSING_ALLOWED = 0.05
@@ -128,18 +108,6 @@ class Dataset(MDataset):
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Extract features from preprocessed data
-        All features should be binary
-
-
-        Parameters
-        ----------
-        preprocessed_data
-
-        Returns
-        -------
-        extracted_features: pd.DataFrame
-        &#34;&#34;&#34;
         # add engineered featuures
         df = helper.derived_feats(preprocessed_data)
         # convert feats to dummy
@@ -154,8 +122,8 @@ class Dataset(MDataset):
                              &#39;AbdomenPain&#39;, &#39;Costal&#39;, &#39;DecrBreathSound&#39;, &#39;DistractingPain&#39;,
                              &#39;FemurFracture&#39;, &#39;GCSScore&#39;, &#39;Hypotension&#39;, &#39;LtCostalTender&#39;,
                              &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
-                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;] + \
-                            [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;]  # new ones to consider
+                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
+        # PECARN_FEAT_NAMES += [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;] # extra features that could be included
         pecarn_feats = set()
         for pecarn_feat in PECARN_FEAT_NAMES:
             for feat_name in feat_names:
@@ -165,34 +133,16 @@ class Dataset(MDataset):
         return df[pecarn_feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Split into 3 sets: training, tuning, testing
-        Keep in mind any natural splits (e.g. hospitals)
-        Ensure that there are positive points in all splits.
-
-        Parameters
-        ----------
-        preprocessed_data
-
-        Returns
-        -------
-        df_train
-        df_tune
-        df_test
-        &#34;&#34;&#34;
         # 60-20-20 split
         return np.split(preprocessed_data.sample(frac=1, random_state=42),
                         [int(.6 * len(preprocessed_data)),
                          int(.8 * len(preprocessed_data))])
 
     def get_outcome_name(self) -&gt; str:
-        &#34;&#34;&#34;Should return the name of the outcome we are predicting
-        &#34;&#34;&#34;
-        return &#39;iai_intervention&#39;
+        return &#39;iai_intervention&#39;  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -&gt; str:
-        &#34;&#34;&#34;Should return the name of the dataset id
-        &#34;&#34;&#34;
-        return &#39;iai_pecarn&#39;
+        return &#39;iai_pecarn&#39;  # return the name of the dataset id
 
 
 if __name__ == &#39;__main__&#39;:
@@ -214,24 +164,14 @@ if __name__ == &#39;__main__&#39;:
 <span>class <span class="ident">Dataset</span></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Classes that use this template should be called "Dataset"</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Dataset(MDataset):
-
-    def clean_data(self) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;
-        Convert the raw data files into a pandas dataframe.
-        Dataframe keys should be reasonable (lowercase, underscore-separated)
-
-        Returns
-        -------
-        cleaned_data: pd.DataFrame
-        &#34;&#34;&#34;
-
-        RAW_DATA_PATH = oj(mrules.DATA_PATH, &#39;iai_pecarn&#39;, &#39;raw&#39;)
+<pre><code class="python">class Dataset(DatasetTemplate):
+    def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
+        RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), &#39;raw&#39;)
         os.makedirs(RAW_DATA_PATH, exist_ok=True)
 
         # all the fnames to be loaded and searched over
@@ -244,6 +184,8 @@ if __name__ == &#39;__main__&#39;:
         # read through each fname and save into the r dictionary
         r = {}
         print(&#39;read all the csvs...&#39;, fnames)
+        if len(fnames) == 0:
+            print(&#39;no csvs found in path&#39;, RAW_DATA_PATH)
         for fname in tqdm(fnames):
             df = pd.read_csv(oj(RAW_DATA_PATH, fname), encoding=&#34;ISO-8859-1&#34;)
             df.rename(columns={&#39;SubjectID&#39;: &#39;id&#39;}, inplace=True)
@@ -278,18 +220,6 @@ if __name__ == &#39;__main__&#39;:
         return df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Preprocess the data.
-        Impute missing values.
-        Should put the prediction target in a column named &#34;outcome&#34;
-
-        Parameters
-        ----------
-        cleaned_data: pd.DataFrame
-
-        Returns
-        -------
-        preprocessed_data: pd.DataFrame
-        &#34;&#34;&#34;
 
         # drop cols with vals missing this percent of the time
         FRAC_MISSING_ALLOWED = 0.05
@@ -309,18 +239,6 @@ if __name__ == &#39;__main__&#39;:
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Extract features from preprocessed data
-        All features should be binary
-
-
-        Parameters
-        ----------
-        preprocessed_data
-
-        Returns
-        -------
-        extracted_features: pd.DataFrame
-        &#34;&#34;&#34;
         # add engineered featuures
         df = helper.derived_feats(preprocessed_data)
         # convert feats to dummy
@@ -335,8 +253,8 @@ if __name__ == &#39;__main__&#39;:
                              &#39;AbdomenPain&#39;, &#39;Costal&#39;, &#39;DecrBreathSound&#39;, &#39;DistractingPain&#39;,
                              &#39;FemurFracture&#39;, &#39;GCSScore&#39;, &#39;Hypotension&#39;, &#39;LtCostalTender&#39;,
                              &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
-                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;] + \
-                            [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;]  # new ones to consider
+                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
+        # PECARN_FEAT_NAMES += [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;] # extra features that could be included
         pecarn_feats = set()
         for pecarn_feat in PECARN_FEAT_NAMES:
             for feat_name in feat_names:
@@ -346,50 +264,32 @@ if __name__ == &#39;__main__&#39;:
         return df[pecarn_feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Split into 3 sets: training, tuning, testing
-        Keep in mind any natural splits (e.g. hospitals)
-        Ensure that there are positive points in all splits.
-
-        Parameters
-        ----------
-        preprocessed_data
-
-        Returns
-        -------
-        df_train
-        df_tune
-        df_test
-        &#34;&#34;&#34;
         # 60-20-20 split
         return np.split(preprocessed_data.sample(frac=1, random_state=42),
                         [int(.6 * len(preprocessed_data)),
                          int(.8 * len(preprocessed_data))])
 
     def get_outcome_name(self) -&gt; str:
-        &#34;&#34;&#34;Should return the name of the outcome we are predicting
-        &#34;&#34;&#34;
-        return &#39;iai_intervention&#39;
+        return &#39;iai_intervention&#39;  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -&gt; str:
-        &#34;&#34;&#34;Should return the name of the dataset id
-        &#34;&#34;&#34;
-        return &#39;iai_pecarn&#39;</code></pre>
+        return &#39;iai_pecarn&#39;  # return the name of the dataset id</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="mrules.util.dataset.MDataset" href="../../util/dataset.html#mrules.util.dataset.MDataset">MDataset</a></li>
+<li><a title="mrules.templates.dataset.DatasetTemplate" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate">DatasetTemplate</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="mrules.util.dataset.MDataset" href="../../util/dataset.html#mrules.util.dataset.MDataset">MDataset</a></b></code>:
+<li><code><b><a title="mrules.templates.dataset.DatasetTemplate" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate">DatasetTemplate</a></b></code>:
 <ul class="hlist">
-<li><code><a title="mrules.util.dataset.MDataset.clean_data" href="../../util/dataset.html#mrules.util.dataset.MDataset.clean_data">clean_data</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.extract_features" href="../../util/dataset.html#mrules.util.dataset.MDataset.extract_features">extract_features</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.get_data" href="../../util/dataset.html#mrules.util.dataset.MDataset.get_data">get_data</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.get_dataset_id" href="../../util/dataset.html#mrules.util.dataset.MDataset.get_dataset_id">get_dataset_id</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.get_outcome_name" href="../../util/dataset.html#mrules.util.dataset.MDataset.get_outcome_name">get_outcome_name</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.preprocess_data" href="../../util/dataset.html#mrules.util.dataset.MDataset.preprocess_data">preprocess_data</a></code></li>
-<li><code><a title="mrules.util.dataset.MDataset.split_data" href="../../util/dataset.html#mrules.util.dataset.MDataset.split_data">split_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.clean_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.clean_data">clean_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.extract_features" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.extract_features">extract_features</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_data">get_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_dataset_id" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_dataset_id">get_dataset_id</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_outcome_name" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_outcome_name">get_outcome_name</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.preprocess_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.preprocess_data">preprocess_data</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.split_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.split_data">split_data</a></code></li>
 </ul>
 </li>
 </ul>
