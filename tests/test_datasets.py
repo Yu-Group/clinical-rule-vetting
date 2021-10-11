@@ -3,18 +3,17 @@ from os.path import join as oj
 import importlib
 import os
 import unittest
-import mrules.api.util
+
 import mrules
+import mrules.api.util
 
 DATA_PATH = oj(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 
 
 class TestDatasets(unittest.TestCase):
-    def test_datasets_implemented(self):
-        '''Check that each dataset is implemented
-        '''
-
-        # print(project_ids, os.listdir(mrules.PROJECTS_PATH))
+    def test_datasets(self):
+        """Check that each dataset is implemented
+        """
         project_ids = mrules.api.util.get_project_ids()
         project_module_names = [f'mrules.projects.{project_id}.dataset'
                                 for project_id in project_ids]

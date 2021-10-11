@@ -95,8 +95,9 @@ def rename_values(df):
         9: 'unknown',  # other mechanism
         10: 'unknown'  # physician did not answer
     }
-    df['MOI'] = df.RecodedMOI.map(moi)
-    df = df.drop(columns=['RecodedMOI']).copy()
+    df.loc[:, 'MOI'] = df.RecodedMOI.map(moi)
+
+    df.drop(columns=['RecodedMOI'], inplace=True)
     abdTenderDegree = {
         1: 'Mild',
         2: 'Moderate',

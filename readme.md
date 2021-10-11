@@ -14,12 +14,11 @@ We hope to use a unified modeling pipeline across a variety of contributed datas
 Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
 # Still under development
-- clean up dataset for iai_pecarn
 - build in more autogluon support
-- data_dictionary template
-- store metadata somewhere (can use for validation but not for predicting)  
-- readme template  
-- set up more automatic testing  
+- iai data_dictionary template
+- store metadata somewhere?? (can use for validation but not for predicting)  
+- iai readme template  
+- set up more automatic testing (check files + baseline functions)  
 - modeling pipeline
 - build in more vflow support
 - build in more eda support  

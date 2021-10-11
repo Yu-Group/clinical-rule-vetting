@@ -44,11 +44,11 @@ class Baseline(BaselineTemplate):
         return (predicted_probabilities > 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities, _ = self.traverse_rule(df_features)
+        predicted_probabilities = self.traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
-    def __str__(self):
-        self.traverse_rule()
+    def print_baseline(self, df_features):
+        self.traverse_rule(df_features)
         return self.str_print
 
 
