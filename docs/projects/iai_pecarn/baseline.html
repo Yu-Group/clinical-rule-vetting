@@ -72,11 +72,11 @@ class Baseline(BaselineTemplate):
         return (predicted_probabilities &gt; 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities, _ = self.traverse_rule(df_features)
+        predicted_probabilities = self.traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
-    def __str__(self):
-        self.traverse_rule()
+    def print_baseline(self, df_features):
+        self.traverse_rule(df_features)
         return self.str_print
 
 
@@ -151,11 +151,11 @@ Classes that use this template should be called "Baseline"</p></div>
         return (predicted_probabilities &gt; 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities, _ = self.traverse_rule(df_features)
+        predicted_probabilities = self.traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
-    def __str__(self):
-        self.traverse_rule()
+    def print_baseline(self, df_features):
+        self.traverse_rule(df_features)
         return self.str_print</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -200,6 +200,7 @@ Classes that use this template should be called "Baseline"</p></div>
 <ul class="hlist">
 <li><code><a title="mrules.templates.baseline.BaselineTemplate.predict" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate.predict">predict</a></code></li>
 <li><code><a title="mrules.templates.baseline.BaselineTemplate.predict_proba" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate.predict_proba">predict_proba</a></code></li>
+<li><code><a title="mrules.templates.baseline.BaselineTemplate.print_baseline" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate.print_baseline">print_baseline</a></code></li>
 </ul>
 </li>
 </ul>

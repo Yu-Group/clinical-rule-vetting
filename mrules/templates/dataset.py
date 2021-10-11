@@ -13,6 +13,7 @@ import mrules
 class DatasetTemplate:
     """Classes that use this template should be called "Dataset"
     """
+
     @abstractmethod
     def clean_data(self, data_path: str = mrules.DATA_PATH) -> pd.DataFrame:
         """
@@ -92,6 +93,12 @@ class DatasetTemplate:
         """
         return NotImplemented
 
+    @abstractmethod
+    def get_meta_keys(self) -> list:
+        """Return keys which should not be used in fitting but are still useful for analysis
+        """
+        return NotImplemented
+
     def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
         '''Runs all the processing and returns the data.
         This method does not need to be overriden.
@@ -125,7 +132,9 @@ class DatasetTemplate:
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
-            df_train.to_csv(oj(PROCESSED_PATH, 'train.csv'))
-            df_tune.to_csv(oj(PROCESSED_PATH, 'tune.csv'))
-            df_test.to_csv(oj(PROCESSED_PATH, 'test.csv'))
+            for df, fname in zip([df_train, df_tune, df_test],
+                                 ['train.csv', 'tune.csv', 'test.csv']):
+                meta_keys = mrules.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f'meta_{fname}'))
+                df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
         return df_train, df_tune, df_test

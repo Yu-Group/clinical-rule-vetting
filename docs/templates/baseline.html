@@ -69,10 +69,15 @@ class BaselineTemplate:
         &#34;&#34;&#34;
         return NotImplemented
 
-    def __str__(self):
-        &#34;&#34;&#34;Print the baseline model, allong with the number of patients falling into each subgroup.
+    def print_baseline(self, df_features: pd.DataFrame):
+        &#34;&#34;&#34;Return string of the baseline model, which includes the number of patients falling into each subgroup.
         Note this should be the same as the hardcoded values used in the predict function.
         However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+
+        Params
+        ------
+        df_features: pd.DataFrame
+            Path to all data files
 
         Returns
         -------
@@ -140,10 +145,15 @@ Classes that use this template should be called "Baseline"</p></div>
         &#34;&#34;&#34;
         return NotImplemented
 
-    def __str__(self):
-        &#34;&#34;&#34;Print the baseline model, allong with the number of patients falling into each subgroup.
+    def print_baseline(self, df_features: pd.DataFrame):
+        &#34;&#34;&#34;Return string of the baseline model, which includes the number of patients falling into each subgroup.
         Note this should be the same as the hardcoded values used in the predict function.
         However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+
+        Params
+        ------
+        df_features: pd.DataFrame
+            Path to all data files
 
         Returns
         -------
@@ -230,6 +240,43 @@ def predict_proba(self, df_features: pd.DataFrame):
     return NotImplemented</code></pre>
 </details>
 </dd>
+<dt id="mrules.templates.baseline.BaselineTemplate.print_baseline"><code class="name flex">
+<span>def <span class="ident">print_baseline</span></span>(<span>self, df_features: pandas.core.frame.DataFrame)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return string of the baseline model, which includes the number of patients falling into each subgroup.
+Note this should be the same as the hardcoded values used in the predict function.
+However, it is possible that they are slightly different, in case the data does not exactly match the original paper.</p>
+<h2 id="params">Params</h2>
+<p>df_features: pd.DataFrame
+Path to all data files</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>Printed version of the existing rule (with number of patients falling into each subgroup).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print_baseline(self, df_features: pd.DataFrame):
+    &#34;&#34;&#34;Return string of the baseline model, which includes the number of patients falling into each subgroup.
+    Note this should be the same as the hardcoded values used in the predict function.
+    However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+
+    Params
+    ------
+    df_features: pd.DataFrame
+        Path to all data files
+
+    Returns
+    -------
+    s: str
+        Printed version of the existing rule (with number of patients falling into each subgroup).
+    &#34;&#34;&#34;
+    return NotImplemented</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -253,6 +300,7 @@ def predict_proba(self, df_features: pd.DataFrame):
 <ul class="">
 <li><code><a title="mrules.templates.baseline.BaselineTemplate.predict" href="#mrules.templates.baseline.BaselineTemplate.predict">predict</a></code></li>
 <li><code><a title="mrules.templates.baseline.BaselineTemplate.predict_proba" href="#mrules.templates.baseline.BaselineTemplate.predict_proba">predict_proba</a></code></li>
+<li><code><a title="mrules.templates.baseline.BaselineTemplate.print_baseline" href="#mrules.templates.baseline.BaselineTemplate.print_baseline">print_baseline</a></code></li>
 </ul>
 </li>
 </ul>

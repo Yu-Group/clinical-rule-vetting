@@ -6,6 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 import mrules
+import mrules.api.util
 from mrules.projects.iai_pecarn import helper
 from mrules.templates.dataset import DatasetTemplate
 
@@ -90,25 +91,21 @@ class Dataset(DatasetTemplate):
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
                       if not 'iai' in k.lower()]
-        PECARN_FEAT_NAMES = ['AbdDistention', 'AbdTenderDegree', 'AbdTrauma', 'AbdTrauma_or_SeatBeltSign',
-                             'AbdomenPain', 'Costal', 'DecrBreathSound', 'DistractingPain',
-                             'FemurFracture', 'GCSScore', 'Hypotension', 'LtCostalTender',
-                             'MOI', 'RtCostalTender', 'SeatBeltSign', 'ThoracicTender',
-                             'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex']
-        # PECARN_FEAT_NAMES += ['Race', 'InitHeartRate', 'InitSysBPRange'] # extra features that could be included
-        pecarn_feats = set()
-        for pecarn_feat in PECARN_FEAT_NAMES:
-            for feat_name in feat_names:
-                if pecarn_feat in feat_name:
-                    pecarn_feats.add(feat_name)
-        pecarn_feats = sorted(list(pecarn_feats)) + ['outcome']
-        return df[pecarn_feats]
+        base_feat_names = []
+        base_feat_names += ['AbdDistention', 'AbdTenderDegree', 'AbdTrauma', 'AbdTrauma_or_SeatBeltSign',
+                            'AbdomenPain', 'Costal', 'DecrBreathSound', 'DistractingPain',
+                            'FemurFracture', 'GCSScore', 'Hypotension', 'LtCostalTender',
+                            'MOI', 'RtCostalTender', 'SeatBeltSign', 'ThoracicTender',
+                            'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex']
+        base_feat_names += self.get_meta_keys()
+        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names, base_feat_names=base_feat_names) + [
+            'outcome']
+        return df[feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
-        # 60-20-20 split
-        return np.split(preprocessed_data.sample(frac=1, random_state=42),
-                        [int(.6 * len(preprocessed_data)),
-                         int(.8 * len(preprocessed_data))])
+        return np.split(
+            preprocessed_data.sample(frac=1, random_state=42),
+            [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
 
     def get_outcome_name(self) -> str:
         return 'iai_intervention'  # return the name of the outcome we are predicting
@@ -116,8 +113,12 @@ class Dataset(DatasetTemplate):
     def get_dataset_id(self) -> str:
         return 'iai_pecarn'  # return the name of the dataset id
 
+    def get_meta_keys(self) -> list:
+        return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
+
 
 if __name__ == '__main__':
     dset = Dataset()
     df_train, df_tune, df_test = dset.get_data(save_csvs=True)
-    print('shapes', df_train.shape, df_tune.shape, df_test.shape)
+    print('successfuly processed data\nshapes:', df_train.shape, df_tune.shape, df_test.shape,
+          '\nfeatures:', list(df_train.columns))

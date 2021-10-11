@@ -15,10 +15,7 @@ Additionally, we hope to externally validate the rules under study here with dat
 
 # Still under development
 - build in more autogluon support
-- iai data_dictionary template
-- store metadata somewhere?? (can use for validation but not for predicting)  
-- iai readme template  
-- set up more automatic testing (check files + baseline functions)  
+- iai readme template
 - modeling pipeline
 - build in more vflow support
 - build in more eda support  

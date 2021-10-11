@@ -38,7 +38,19 @@ def get_project_ids():
         f for f in os.listdir(mrules.PROJECTS_PATH)
         if os.path.isdir(oj(mrules.PROJECTS_PATH, f))
            and not &#39;cache&#39; in f
-    ]</code></pre>
+    ]
+
+
+def get_feat_names_from_base_feats(feat_names: list, base_feat_names: list):
+    &#34;&#34;&#34;Generate feature names in feat_names that stem from features in base_feats
+    &#34;&#34;&#34;
+
+    feats = set()
+    for base_feat_name in base_feat_names:
+        for feat_name in feat_names:
+            if base_feat_name in feat_name:
+                feats.add(feat_name)
+    return sorted(list(feats))</code></pre>
 </details>
 </section>
 <section>
@@ -48,6 +60,27 @@ def get_project_ids():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="mrules.api.util.get_feat_names_from_base_feats"><code class="name flex">
+<span>def <span class="ident">get_feat_names_from_base_feats</span></span>(<span>feat_names: list, base_feat_names: list)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate feature names in feat_names that stem from features in base_feats</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_feat_names_from_base_feats(feat_names: list, base_feat_names: list):
+    &#34;&#34;&#34;Generate feature names in feat_names that stem from features in base_feats
+    &#34;&#34;&#34;
+
+    feats = set()
+    for base_feat_name in base_feat_names:
+        for feat_name in feat_names:
+            if base_feat_name in feat_name:
+                feats.add(feat_name)
+    return sorted(list(feats))</code></pre>
+</details>
+</dd>
 <dt id="mrules.api.util.get_project_ids"><code class="name flex">
 <span>def <span class="ident">get_project_ids</span></span>(<span>)</span>
 </code></dt>
@@ -83,6 +116,7 @@ def get_project_ids():
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="mrules.api.util.get_feat_names_from_base_feats" href="#mrules.api.util.get_feat_names_from_base_feats">get_feat_names_from_base_feats</a></code></li>
 <li><code><a title="mrules.api.util.get_project_ids" href="#mrules.api.util.get_project_ids">get_project_ids</a></code></li>
 </ul>
 </li>

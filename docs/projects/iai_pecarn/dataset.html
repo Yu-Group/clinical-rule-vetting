@@ -34,6 +34,7 @@ import pandas as pd
 from tqdm import tqdm
 
 import mrules
+import mrules.api.util
 from mrules.projects.iai_pecarn import helper
 from mrules.templates.dataset import DatasetTemplate
 
@@ -118,25 +119,21 @@ class Dataset(DatasetTemplate):
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
                       if not &#39;iai&#39; in k.lower()]
-        PECARN_FEAT_NAMES = [&#39;AbdDistention&#39;, &#39;AbdTenderDegree&#39;, &#39;AbdTrauma&#39;, &#39;AbdTrauma_or_SeatBeltSign&#39;,
-                             &#39;AbdomenPain&#39;, &#39;Costal&#39;, &#39;DecrBreathSound&#39;, &#39;DistractingPain&#39;,
-                             &#39;FemurFracture&#39;, &#39;GCSScore&#39;, &#39;Hypotension&#39;, &#39;LtCostalTender&#39;,
-                             &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
-                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
-        # PECARN_FEAT_NAMES += [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;] # extra features that could be included
-        pecarn_feats = set()
-        for pecarn_feat in PECARN_FEAT_NAMES:
-            for feat_name in feat_names:
-                if pecarn_feat in feat_name:
-                    pecarn_feats.add(feat_name)
-        pecarn_feats = sorted(list(pecarn_feats)) + [&#39;outcome&#39;]
-        return df[pecarn_feats]
+        base_feat_names = []
+        base_feat_names += [&#39;AbdDistention&#39;, &#39;AbdTenderDegree&#39;, &#39;AbdTrauma&#39;, &#39;AbdTrauma_or_SeatBeltSign&#39;,
+                            &#39;AbdomenPain&#39;, &#39;Costal&#39;, &#39;DecrBreathSound&#39;, &#39;DistractingPain&#39;,
+                            &#39;FemurFracture&#39;, &#39;GCSScore&#39;, &#39;Hypotension&#39;, &#39;LtCostalTender&#39;,
+                            &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
+                            &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
+        base_feat_names += self.get_meta_keys()
+        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names, base_feat_names=base_feat_names) + [
+            &#39;outcome&#39;]
+        return df[feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
-        # 60-20-20 split
-        return np.split(preprocessed_data.sample(frac=1, random_state=42),
-                        [int(.6 * len(preprocessed_data)),
-                         int(.8 * len(preprocessed_data))])
+        return np.split(
+            preprocessed_data.sample(frac=1, random_state=42),
+            [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
 
     def get_outcome_name(self) -&gt; str:
         return &#39;iai_intervention&#39;  # return the name of the outcome we are predicting
@@ -144,11 +141,15 @@ class Dataset(DatasetTemplate):
     def get_dataset_id(self) -&gt; str:
         return &#39;iai_pecarn&#39;  # return the name of the dataset id
 
+    def get_meta_keys(self) -&gt; list:
+        return [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;]  # keys which are useful but not used for prediction
+
 
 if __name__ == &#39;__main__&#39;:
     dset = Dataset()
     df_train, df_tune, df_test = dset.get_data(save_csvs=True)
-    print(&#39;shapes&#39;, df_train.shape, df_tune.shape, df_test.shape)</code></pre>
+    print(&#39;successfuly processed data\nshapes:&#39;, df_train.shape, df_tune.shape, df_test.shape,
+          &#39;\nfeatures:&#39;, list(df_train.columns))</code></pre>
 </details>
 </section>
 <section>
@@ -249,31 +250,30 @@ if __name__ == &#39;__main__&#39;:
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
                       if not &#39;iai&#39; in k.lower()]
-        PECARN_FEAT_NAMES = [&#39;AbdDistention&#39;, &#39;AbdTenderDegree&#39;, &#39;AbdTrauma&#39;, &#39;AbdTrauma_or_SeatBeltSign&#39;,
-                             &#39;AbdomenPain&#39;, &#39;Costal&#39;, &#39;DecrBreathSound&#39;, &#39;DistractingPain&#39;,
-                             &#39;FemurFracture&#39;, &#39;GCSScore&#39;, &#39;Hypotension&#39;, &#39;LtCostalTender&#39;,
-                             &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
-                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
-        # PECARN_FEAT_NAMES += [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;] # extra features that could be included
-        pecarn_feats = set()
-        for pecarn_feat in PECARN_FEAT_NAMES:
-            for feat_name in feat_names:
-                if pecarn_feat in feat_name:
-                    pecarn_feats.add(feat_name)
-        pecarn_feats = sorted(list(pecarn_feats)) + [&#39;outcome&#39;]
-        return df[pecarn_feats]
+        base_feat_names = []
+        base_feat_names += [&#39;AbdDistention&#39;, &#39;AbdTenderDegree&#39;, &#39;AbdTrauma&#39;, &#39;AbdTrauma_or_SeatBeltSign&#39;,
+                            &#39;AbdomenPain&#39;, &#39;Costal&#39;, &#39;DecrBreathSound&#39;, &#39;DistractingPain&#39;,
+                            &#39;FemurFracture&#39;, &#39;GCSScore&#39;, &#39;Hypotension&#39;, &#39;LtCostalTender&#39;,
+                            &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
+                            &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
+        base_feat_names += self.get_meta_keys()
+        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names, base_feat_names=base_feat_names) + [
+            &#39;outcome&#39;]
+        return df[feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
-        # 60-20-20 split
-        return np.split(preprocessed_data.sample(frac=1, random_state=42),
-                        [int(.6 * len(preprocessed_data)),
-                         int(.8 * len(preprocessed_data))])
+        return np.split(
+            preprocessed_data.sample(frac=1, random_state=42),
+            [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
 
     def get_outcome_name(self) -&gt; str:
         return &#39;iai_intervention&#39;  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -&gt; str:
-        return &#39;iai_pecarn&#39;  # return the name of the dataset id</code></pre>
+        return &#39;iai_pecarn&#39;  # return the name of the dataset id
+
+    def get_meta_keys(self) -&gt; list:
+        return [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;]  # keys which are useful but not used for prediction</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -287,6 +287,7 @@ if __name__ == &#39;__main__&#39;:
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.extract_features" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.extract_features">extract_features</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.get_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_data">get_data</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.get_dataset_id" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_dataset_id">get_dataset_id</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_meta_keys" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_meta_keys">get_meta_keys</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.get_outcome_name" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_outcome_name">get_outcome_name</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.preprocess_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.preprocess_data">preprocess_data</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.split_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.split_data">split_data</a></code></li>

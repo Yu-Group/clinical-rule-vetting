@@ -41,6 +41,7 @@ import mrules
 class DatasetTemplate:
     &#34;&#34;&#34;Classes that use this template should be called &#34;Dataset&#34;
     &#34;&#34;&#34;
+
     @abstractmethod
     def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
@@ -120,6 +121,12 @@ class DatasetTemplate:
         &#34;&#34;&#34;
         return NotImplemented
 
+    @abstractmethod
+    def get_meta_keys(self) -&gt; list:
+        &#34;&#34;&#34;Return keys which should not be used in fitting but are still useful for analysis
+        &#34;&#34;&#34;
+        return NotImplemented
+
     def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
         &#39;&#39;&#39;Runs all the processing and returns the data.
         This method does not need to be overriden.
@@ -153,9 +160,11 @@ class DatasetTemplate:
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
-            df_train.to_csv(oj(PROCESSED_PATH, &#39;train.csv&#39;))
-            df_tune.to_csv(oj(PROCESSED_PATH, &#39;tune.csv&#39;))
-            df_test.to_csv(oj(PROCESSED_PATH, &#39;test.csv&#39;))
+            for df, fname in zip([df_train, df_tune, df_test],
+                                 [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                meta_keys = mrules.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
+                df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
         return df_train, df_tune, df_test</code></pre>
 </details>
 </section>
@@ -180,6 +189,7 @@ class DatasetTemplate:
 <pre><code class="python">class DatasetTemplate:
     &#34;&#34;&#34;Classes that use this template should be called &#34;Dataset&#34;
     &#34;&#34;&#34;
+
     @abstractmethod
     def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
@@ -259,6 +269,12 @@ class DatasetTemplate:
         &#34;&#34;&#34;
         return NotImplemented
 
+    @abstractmethod
+    def get_meta_keys(self) -&gt; list:
+        &#34;&#34;&#34;Return keys which should not be used in fitting but are still useful for analysis
+        &#34;&#34;&#34;
+        return NotImplemented
+
     def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
         &#39;&#39;&#39;Runs all the processing and returns the data.
         This method does not need to be overriden.
@@ -292,9 +308,11 @@ class DatasetTemplate:
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
-            df_train.to_csv(oj(PROCESSED_PATH, &#39;train.csv&#39;))
-            df_tune.to_csv(oj(PROCESSED_PATH, &#39;tune.csv&#39;))
-            df_test.to_csv(oj(PROCESSED_PATH, &#39;test.csv&#39;))
+            for df, fname in zip([df_train, df_tune, df_test],
+                                 [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                meta_keys = mrules.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
+                df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
         return df_train, df_tune, df_test</code></pre>
 </details>
 <h3>Subclasses</h3>
@@ -435,9 +453,11 @@ Whether to skip all processing and load data directly from csvs</p>
     df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
     if save_csvs:
         os.makedirs(PROCESSED_PATH, exist_ok=True)
-        df_train.to_csv(oj(PROCESSED_PATH, &#39;train.csv&#39;))
-        df_tune.to_csv(oj(PROCESSED_PATH, &#39;tune.csv&#39;))
-        df_test.to_csv(oj(PROCESSED_PATH, &#39;test.csv&#39;))
+        for df, fname in zip([df_train, df_tune, df_test],
+                             [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+            meta_keys = mrules.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+            df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
+            df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
     return df_train, df_tune, df_test</code></pre>
 </details>
 </dd>
@@ -453,6 +473,22 @@ Whether to skip all processing and load data directly from csvs</p>
 <pre><code class="python">@abstractmethod
 def get_dataset_id(self) -&gt; str:
     &#34;&#34;&#34;Should return the name of the dataset id
+    &#34;&#34;&#34;
+    return NotImplemented</code></pre>
+</details>
+</dd>
+<dt id="mrules.templates.dataset.DatasetTemplate.get_meta_keys"><code class="name flex">
+<span>def <span class="ident">get_meta_keys</span></span>(<span>self) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return keys which should not be used in fitting but are still useful for analysis</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def get_meta_keys(self) -&gt; list:
+    &#34;&#34;&#34;Return keys which should not be used in fitting but are still useful for analysis
     &#34;&#34;&#34;
     return NotImplemented</code></pre>
 </details>
@@ -580,6 +616,7 @@ def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.extract_features" href="#mrules.templates.dataset.DatasetTemplate.extract_features">extract_features</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.get_data" href="#mrules.templates.dataset.DatasetTemplate.get_data">get_data</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.get_dataset_id" href="#mrules.templates.dataset.DatasetTemplate.get_dataset_id">get_dataset_id</a></code></li>
+<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_meta_keys" href="#mrules.templates.dataset.DatasetTemplate.get_meta_keys">get_meta_keys</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.get_outcome_name" href="#mrules.templates.dataset.DatasetTemplate.get_outcome_name">get_outcome_name</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.preprocess_data" href="#mrules.templates.dataset.DatasetTemplate.preprocess_data">preprocess_data</a></code></li>
 <li><code><a title="mrules.templates.dataset.DatasetTemplate.split_data" href="#mrules.templates.dataset.DatasetTemplate.split_data">split_data</a></code></li>
