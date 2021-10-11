@@ -41,10 +41,15 @@ class BaselineTemplate:
         """
         return NotImplemented
 
-    def __str__(self):
-        """Print the baseline model, allong with the number of patients falling into each subgroup.
+    def print_baseline(self, df_features: pd.DataFrame):
+        """Return string of the baseline model, which includes the number of patients falling into each subgroup.
         Note this should be the same as the hardcoded values used in the predict function.
         However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+
+        Params
+        ------
+        df_features: pd.DataFrame
+            Path to all data files
 
         Returns
         -------
