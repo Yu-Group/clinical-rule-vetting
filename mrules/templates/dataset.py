@@ -1,21 +1,23 @@
+import os
+import random
+from abc import abstractmethod
 from os.path import join as oj
 
 import numpy as np
-import os
 import pandas as pd
-import random
-from abc import abstractmethod
 from joblib import Memory
+from typing import Dict, List
 
 import mrules
 
 
 class DatasetTemplate:
     """Classes that use this template should be called "Dataset"
+    All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag.
     """
 
     @abstractmethod
-    def clean_data(self, data_path: str = mrules.DATA_PATH) -> pd.DataFrame:
+    def clean_data(self, data_path: str = mrules.DATA_PATH, **kwargs) -> pd.DataFrame:
         """
         Convert the raw data files into a pandas dataframe.
         Dataframe keys should be reasonable (lowercase, underscore-separated)
@@ -24,6 +26,8 @@ class DatasetTemplate:
         ------
         data_path: str, optional
             Path to all data files
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
 
         Returns
         -------
@@ -32,7 +36,7 @@ class DatasetTemplate:
         return NotImplemented
 
     @abstractmethod
-    def preprocess_data(self, cleaned_data: pd.DataFrame) -> pd.DataFrame:
+    def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Preprocess the data.
         Impute missing values.
         Should put the prediction target in a column named "outcome"
@@ -40,6 +44,8 @@ class DatasetTemplate:
         Parameters
         ----------
         cleaned_data: pd.DataFrame
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
 
         Returns
         -------
@@ -48,14 +54,16 @@ class DatasetTemplate:
         return NotImplemented
 
     @abstractmethod
-    def extract_features(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+    def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Extract features from preprocessed data
         All features should be binary
 
 
         Parameters
         ----------
-        preprocessed_data
+        preprocessed_data: pd.DataFrame
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
 
         Returns
         -------
@@ -72,6 +80,8 @@ class DatasetTemplate:
         Parameters
         ----------
         preprocessed_data
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
 
         Returns
         -------
@@ -89,18 +99,25 @@ class DatasetTemplate:
 
     @abstractmethod
     def get_dataset_id(self) -> str:
-        """Should return the name of the dataset id
+        """Should return the name of the dataset id (str)
         """
         return NotImplemented
 
     @abstractmethod
     def get_meta_keys(self) -> list:
-        """Return keys which should not be used in fitting but are still useful for analysis
+        """Return list of keys which should not be used in fitting but are still useful for analysis
+        """
+        return NotImplemented
+
+    def get_kwargs(self) -> Dict[str, list]:
+        """Return dictionary of keyword arguments for the functions in the dataset class.
+        Each key should be a string with the name of the arg.
+        Each value should be a list of values, with the default value coming first.
         """
         return NotImplemented
 
     def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
-        '''Runs all the processing and returns the data.
+        """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
         Params
@@ -117,7 +134,7 @@ class DatasetTemplate:
         df_train
         df_tune
         df_test
-        '''
+        """
         PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
         if load_csvs:
             return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
@@ -126,9 +143,12 @@ class DatasetTemplate:
         random.seed(0)
         CACHE_PATH = oj(data_path, 'joblib_cache')
         cache = Memory(CACHE_PATH, verbose=0).cache
-        cleaned_data = cache(self.clean_data)(data_path=data_path)
-        preprocessed_data = cache(self.preprocess_data)(cleaned_data)
-        extracted_features = cache(self.extract_features)(preprocessed_data)
+        kwargs = self.get_kwargs()
+        default_kwargs = {k: kwargs[k][0] for k in kwargs.keys()}
+        print('kwargs', default_kwargs)
+        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs)
+        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs)
+        extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)

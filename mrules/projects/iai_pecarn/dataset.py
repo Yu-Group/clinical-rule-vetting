@@ -1,5 +1,6 @@
 import os
 from os.path import join as oj
+from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ from mrules.templates.dataset import DatasetTemplate
 
 
 class Dataset(DatasetTemplate):
-    def clean_data(self, data_path: str = mrules.DATA_PATH) -> pd.DataFrame:
+    def clean_data(self, data_path: str = mrules.DATA_PATH, **kwargs) -> pd.DataFrame:
         RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(RAW_DATA_PATH, exist_ok=True)
 
@@ -61,12 +62,10 @@ class Dataset(DatasetTemplate):
 
         return df
 
-    def preprocess_data(self, cleaned_data: pd.DataFrame) -> pd.DataFrame:
+    def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
 
         # drop cols with vals missing this percent of the time
-        FRAC_MISSING_ALLOWED = 0.05
-        NUM_PATIENTS = 12044
-        df = cleaned_data.dropna(axis=1, thresh=(1 - FRAC_MISSING_ALLOWED) * NUM_PATIENTS)
+        df = cleaned_data.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
 
         # impute missing values
         # fill in values for some vars from unknown -> None
@@ -80,9 +79,10 @@ class Dataset(DatasetTemplate):
 
         return df
 
-    def extract_features(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+    def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         # add engineered featuures
         df = helper.derived_feats(preprocessed_data)
+
         # convert feats to dummy
         df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
 
@@ -90,7 +90,8 @@ class Dataset(DatasetTemplate):
         df = df.loc[:, (df != 0).any(axis=0)]
 
         # remove the _no columns
-        # df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
+        if kwargs['drop_negative_columns']:
+            df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
 
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
@@ -119,6 +120,15 @@ class Dataset(DatasetTemplate):
 
     def get_meta_keys(self) -> list:
         return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
+
+    def get_kwargs(self) -> Dict[str, list]:
+        return {
+            # whether to drop columns with suffix _no
+            'drop_negative_columns': [False, True],  # default value comes first
+
+            # drop cols with vals missing this percent of the time
+            'frac_missing_allowed': [0.05],
+        }
 
 
 if __name__ == '__main__':

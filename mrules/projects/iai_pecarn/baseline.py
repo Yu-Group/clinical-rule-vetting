@@ -25,7 +25,7 @@ class Baseline(BaselineTemplate):
         predicted_probabilities = pd.Series(index=df_features.index, dtype=float)
         df = df_features.copy()
         o = 'outcome'
-        str_print += f'{"Initial":<35} {df[o].sum()} / {df.shape[0]}\n'
+        str_print += f'{df[o].sum()} / {df.shape[0]} (positive class / total)\n\t\u2193 \n'
         for j, rule in enumerate(self.rules):
             query, prob = rule
             df_rhs = df.query(query)
