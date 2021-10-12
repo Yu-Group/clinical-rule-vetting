@@ -1,7 +1,7 @@
+import os
 from os.path import join as oj
 
 import numpy as np
-import os
 import pandas as pd
 from tqdm import tqdm
 
@@ -85,8 +85,12 @@ class Dataset(DatasetTemplate):
         df = helper.derived_feats(preprocessed_data)
         # convert feats to dummy
         df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
+
         # remove any col that is all 0s
         df = df.loc[:, (df != 0).any(axis=0)]
+
+        # remove the _no columns
+        # df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
 
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
@@ -98,8 +102,8 @@ class Dataset(DatasetTemplate):
                             'MOI', 'RtCostalTender', 'SeatBeltSign', 'ThoracicTender',
                             'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex']
         base_feat_names += self.get_meta_keys()
-        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names, base_feat_names=base_feat_names) + [
-            'outcome']
+        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names,
+                                                               base_feat_names=base_feat_names) + ['outcome']
         return df[feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:

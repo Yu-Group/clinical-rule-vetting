@@ -20,13 +20,13 @@ class Baseline(BaselineTemplate):
             ('GCSScore == GCSScore', 0.1),
         ]
 
-    def traverse_rule(self, df_features: pd.DataFrame):
+    def _traverse_rule(self, df_features: pd.DataFrame):
         str_print = f''
         predicted_probabilities = pd.Series(index=df_features.index, dtype=float)
         df = df_features.copy()
         o = 'outcome'
         str_print += f'{"Initial":<35} {df[o].sum()} / {df.shape[0]}\n'
-        for rule in self.rules:
+        for j, rule in enumerate(self.rules):
             query, prob = rule
             df_rhs = df.query(query)
             idxs_satisfying_rule = df_rhs.index
@@ -34,21 +34,23 @@ class Baseline(BaselineTemplate):
 
             df.drop(index=idxs_satisfying_rule, inplace=True)
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
-            str_print += f'{query:<35} {df[o].sum():>3} / {df.shape[0]:>5}\t {df_rhs[o].sum():>3} / {df_rhs.shape[0]:>4} ({computed_prob:0.1f})\n'
+            query_print = query.replace(' == 1', '')
+            if j < len(self.rules) - 1:
+                str_print += f'\033[96mIf {query_print:<35}\033[00m \u2192 {df_rhs[o].sum():>3} / {df_rhs.shape[0]:>4} ({computed_prob:0.1f}%)\n\t\u2193 \n   {df[o].sum():>3} / {df.shape[0]:>5}\t \n'
         predicted_probabilities = predicted_probabilities.values
         self.str_print = str_print
         return predicted_probabilities
 
     def predict(self, df_features: pd.DataFrame):
-        predicted_probabilities = self.traverse_rule(df_features)
+        predicted_probabilities = self._traverse_rule(df_features)
         return (predicted_probabilities > 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self.traverse_rule(df_features)
+        predicted_probabilities = self._traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_baseline(self, df_features):
-        self.traverse_rule(df_features)
+        self._traverse_rule(df_features)
         return self.str_print
 
 
@@ -59,6 +61,7 @@ if __name__ == '__main__':
     df_full = pd.concat((df_train, df_tune, df_test))
     baseline = Baseline()
     preds_proba = baseline.predict_proba(df_full)
+    print(baseline.print_baseline(df_full))
     # preds = baseline.predict(df_train)
     # print('preds_proba', preds_proba.shape, preds_proba[:5])
     # print('preds', preds.shape, preds[:5])

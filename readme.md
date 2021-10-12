@@ -13,14 +13,6 @@ This is a *collaborative* repository intended to validate and derive clinical-de
 We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices for clinical decision rules.
 Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
-# Still under development
-- build in more autogluon support
-- iai readme template
-- modeling pipeline
-- build in more vflow support
-- build in more eda support  
-    - visualization / posthoc pipeline
-
 # Datasets
 
 | Dataset id | Links | Task                                                        | Size                            |
@@ -36,7 +28,7 @@ Additionally, we hope to externally validate the rules under study here with dat
 
 Datasets must be tabular (or at least have interpretable input features),
 be reasonably large (e.g. have at least 100 positive and negative cases),
-and have a binary outcome.
+and have a binary outcome. If this goes well, might also expand to other high-stakes datasets (e.g. COMPAS, loan risk).
 
 Possible data sources: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/)
 

@@ -6,13 +6,15 @@
 - build stable rules model (e.g. using RuleFit or Corels)
 """
 
+import importlib
+import random
+
 import numpy as np
 import pandas as pd
-import random
 from autogluon.tabular import TabularDataset, TabularPredictor
 
 import mrules
-from mrules.projects.iai_pecarn.dataset import Dataset
+import mrules.api.util
 
 
 def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable: bool = True):
@@ -31,7 +33,9 @@ def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable:
     """
     train_data = TabularDataset(train_data)
     test_data = TabularDataset(tune_data)
-    predictor = TabularPredictor(label='outcome', path=mrules.AUTOGLUON_CACHE_PATH)
+    predictor = TabularPredictor(label='outcome',
+                                 path=mrules.AUTOGLUON_CACHE_PATH,
+                                 eval_metric='roc_auc')
     kwargs = dict(
         verbosity=2,
         time_limit=30,
@@ -45,9 +49,14 @@ def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable:
 
 
 if __name__ == '__main__':
-    # todo: loop over datasets (see test_datasets.py)
-    np.random.seed(0)
-    random.seed(0)
-    df_train, df_tune, df_test = Dataset().get_data()
-    predictor = fit_models(df_train, df_tune)
-    print(predictor)
+    project_ids = mrules.api.util.get_project_ids()
+    for project_id in project_ids:
+        np.random.seed(0)
+        random.seed(0)
+        print('fitting on', project_id)
+        project_module_name = f'mrules.projects.{project_id}.dataset'
+        module = importlib.import_module(project_module_name)
+        dset = module.Dataset()
+        df_train, df_tune, df_test = dset.get_data(load_csvs=True)
+        predictor = fit_models(df_train, df_tune)
+        print(predictor)
