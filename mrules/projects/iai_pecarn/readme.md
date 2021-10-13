@@ -17,3 +17,13 @@
 -  Aaaron Kornblith, UCSF Dept of Emergency Medicine and Pediatrics, Aaron.Kornblith@ucsf.edu
 
 Code for reproducing analysis evaluating the PECARN Clinical Decision rule for prediction Intra-abdominal injury requiring intervention (IAI-I).
+
+
+
+>  **Study Period:** May 2007 - January 2010
+>
+>  **Study Type:** Observational
+>
+> **Study Enrollment:** 12044
+>
+> **Consent:** Waiver of consent at some sites; verbal consent for telephone follow up at other sites

@@ -8,29 +8,28 @@
   <a href="https://github.com/Yu-Group/medical-rules/actions"><img src="https://github.com/Yu-Group/medical-rules/workflows/tests/badge.svg"></a>
   <img src="https://img.shields.io/github/checks-status/Yu-Group/medical-rules/master">
  </p>  
-
 This is a *collaborative* repository intended to validate and derive clinical-decision rules.
 We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices for clinical decision rules.
 Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
 # Datasets
 
-| Dataset id | Links | Task                                                        | Size                            |
-| ---------- | ----- | ----------------------------------------------------------- | ------------------------------- |
-| [iai_pecarn](projects/iai_pecarn) | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | Predict intra-abdominal injury requiring acute intervention | 12,044 patients, 203 with IAI-I |
-|            |                                                             |                                 |
-|            |                                                             |                                 |
+| Dataset |  Task                                                        | Size                            | References | Processed |
+| ---------- | ----- | ----------------------------------------------------------- | :-------------------------------: | :--: |
+| [iai_pecarn](mrules/projects/iai_pecarn) | Predict intra-abdominal injury requiring acute intervention before CT | 12,044 patients, 203 with IAI-I | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | ✅ |
+|[tbi_pecarn](mrules/projects/tbi_pecarn)| Predict traumatic brain injuries before CT | 42,412 patients, 376 with ciTBI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) | ❌ |
+|[csi_pecarn](mrules/projects/csi_pecarn)| Predict cervical spine injury in children | 3,314 patients, 540 with CSI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) |❌|
+|[tig_pecarn](mrules/projects/tig_pecarn)| Predict bacterial/non-bacterifal infections in febrile infants from RNA transcriptional biosignatures | 279 patients, ? with infection | [🔗](https://pecarn.org/datasets/) |❌|
 
 <p align="center">
     Research paper 📄, Data download link 🔗 
 </br>
 </p>
+Datasets must be tabular (or at least have interpretable input features), be reasonably large (e.g. have at least 100 positive and negative cases), and have a binary outcome. If this goes well, might also expand to other high-stakes datasets (e.g. COMPAS, loan risk).
 
-Datasets must be tabular (or at least have interpretable input features),
-be reasonably large (e.g. have at least 100 positive and negative cases),
-and have a binary outcome. If this goes well, might also expand to other high-stakes datasets (e.g. COMPAS, loan risk).
+To use PECARN datasets, please read an agree to the research data use agreement on the [PECARN website](https://pecarn.org/datasets/).
 
-Possible data sources: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/)
+Possible data sources: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/) | [UCI](https://archive.ics.uci.edu/ml/index.php) ([heart disease](https://archive.ics.uci.edu/ml/datasets/Heart+Disease)) | [OpenML](https://www.openml.org/home)
 
 
 

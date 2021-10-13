@@ -14,12 +14,12 @@ from mrules.templates.dataset import DatasetTemplate
 
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = mrules.DATA_PATH, **kwargs) -> pd.DataFrame:
-        RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), 'raw')
-        os.makedirs(RAW_DATA_PATH, exist_ok=True)
+        raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
+        os.makedirs(raw_data_path, exist_ok=True)
 
         # all the fnames to be loaded and searched over
         fnames = sorted([
-            fname for fname in os.listdir(RAW_DATA_PATH)
+            fname for fname in os.listdir(raw_data_path)
             if 'csv' in fname
                and not 'formats' in fname
                and not 'form6' in fname])  # remove outcome
@@ -28,9 +28,9 @@ class Dataset(DatasetTemplate):
         r = {}
         print('read all the csvs...', fnames)
         if len(fnames) == 0:
-            print('no csvs found in path', RAW_DATA_PATH)
+            print('no csvs found in path', raw_data_path)
         for fname in tqdm(fnames):
-            df = pd.read_csv(oj(RAW_DATA_PATH, fname), encoding="ISO-8859-1")
+            df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
             df.rename(columns={'SubjectID': 'id'}, inplace=True)
             df.rename(columns={'subjectid': 'id'}, inplace=True)
             assert ('id' in df.keys())
@@ -38,12 +38,8 @@ class Dataset(DatasetTemplate):
 
         # loop over the relevant forms and merge into one big df
         fnames_small = [fname for fname in fnames
-                        if 'form1' in fname
-                        or 'form2' in fname
-                        or 'form4' in fname
-                        or 'form5' in fname
-                        or 'form7' in fname
-                        ]
+                        for s in ['form1', 'form2', 'form4', 'form5', 'form7']
+                        if s in fname]
         df_features = r[fnames[0]]
         print('merge all the dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
@@ -55,7 +51,7 @@ class Dataset(DatasetTemplate):
             # don't save duplicate columns
             df_features = df_features.set_index('id').combine_first(df2.set_index('id')).reset_index()
 
-        df_outcomes = helper.get_outcomes(RAW_DATA_PATH)
+        df_outcomes = helper.get_outcomes(raw_data_path)
 
         df = pd.merge(df_features, df_outcomes, on='id', how='left')
         df = helper.rename_values(df)  # rename the features by their meaning
@@ -134,5 +130,6 @@ class Dataset(DatasetTemplate):
 if __name__ == '__main__':
     dset = Dataset()
     df_train, df_tune, df_test = dset.get_data(save_csvs=True)
-    print('successfuly processed data\nshapes:', df_train.shape, df_tune.shape, df_test.shape,
+    print('successfuly processed data\nshapes:',
+          df_train.shape, df_tune.shape, df_test.shape,
           '\nfeatures:', list(df_train.columns))
