@@ -7,7 +7,8 @@
   <img src="https://img.shields.io/badge/python-3.7-blue">
   <a href="https://github.com/Yu-Group/medical-rules/actions"><img src="https://github.com/Yu-Group/medical-rules/workflows/tests/badge.svg"></a>
   <img src="https://img.shields.io/github/checks-status/Yu-Group/medical-rules/master">
- </p>  
+</p>  
+
 This is a *collaborative* repository intended to validate and derive clinical-decision rules.
 We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices for clinical decision rules.
 Additionally, we hope to externally validate the rules under study here with data from UCSF.
@@ -16,21 +17,25 @@ Additionally, we hope to externally validate the rules under study here with dat
 
 | Dataset |  Task                                                        | Size                            | References | Processed |
 | ---------- | ----- | ----------------------------------------------------------- | :-------------------------------: | :--: |
-| [iai_pecarn](mrules/projects/iai_pecarn) | Predict intra-abdominal injury requiring acute intervention before CT | 12,044 patients, 203 with IAI-I | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | ✅ |
+|[iai_pecarn](mrules/projects/iai_pecarn)| Predict intra-abdominal injury requiring acute intervention before CT | 12,044 patients, 203 with IAI-I | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | ✅ |
 |[tbi_pecarn](mrules/projects/tbi_pecarn)| Predict traumatic brain injuries before CT | 42,412 patients, 376 with ciTBI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) | ❌ |
 |[csi_pecarn](mrules/projects/csi_pecarn)| Predict cervical spine injury in children | 3,314 patients, 540 with CSI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) |❌|
-|[tig_pecarn](mrules/projects/tig_pecarn)| Predict bacterial/non-bacterifal infections in febrile infants from RNA transcriptional biosignatures | 279 patients, ? with infection | [🔗](https://pecarn.org/datasets/) |❌|
+|[tig_pecarn](mrules/projects/tig_pecarn)| Predict bacterial/non-bacterial infections in febrile infants from RNA transcriptional biosignatures | 279 patients, ? with infection | [🔗](https://pecarn.org/datasets/) |❌|
 
 <p align="center">
     Research paper 📄, Data download link 🔗 
 </br>
 </p>
+
 Datasets must be tabular (or at least have interpretable input features), be reasonably large (e.g. have at least 100 positive and negative cases), and have a binary outcome. If this goes well, might also expand to other high-stakes datasets (e.g. COMPAS, loan risk).
 
-To use PECARN datasets, please read an agree to the research data use agreement on the [PECARN website](https://pecarn.org/datasets/).
 
-Possible data sources: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/) | [UCI](https://archive.ics.uci.edu/ml/index.php) ([heart disease](https://archive.ics.uci.edu/ml/datasets/Heart+Disease)) | [OpenML](https://www.openml.org/home)
+To use PECARN datasets, please read and agree to the research data use agreement on the [PECARN website](https://pecarn.org/datasets/).
 
+
+Possible data sources: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/) | [UCI](https://archive.ics.uci.edu/ml/index.php) | [OpenML](https://www.openml.org/home) | [MIMIC](https://physionet.org/content/mimiciv/1.0/)
+- [EXXAGERATE dataset](https://datasetsearch.research.google.com/search?query=clinical%20rule&docid=L2cvMTFxbWJ5cngxMw%3D%3D)
+- [UCI heart disease](https://archive.ics.uci.edu/ml/datasets/Heart+Disease)
 
 
 # How do I contribute?
@@ -45,9 +50,10 @@ The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecar
   - [ ] Come up with a `project_name` for the new project (e.g. iai_pecarn) 	
 - [ ] Data preprocessing
   - [ ] Download the raw data into `data/{project_name}/raw`
+    - [ ] Please don't add any very large files
   - [ ] Copy over the template files from `mrules/projects/iai_pecarn` to a new folder `mrules/projects/{project_name}`
-  - [ ] Rewrite the functions in `mrules/projects/{project_name}/dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](mrules/projects/iai_pecarn/dataset.py))
-	- Note: Notebooks / helper functions are optional
+	- [ ] Rewrite the functions in `mrules/projects/{project_name}/dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](mrules/projects/iai_pecarn/dataset.py))
+  - Note: Notebooks / helper functions are optional
     - See [the template file](mrules/templates/dataset.py) for documentation of each function
 - [ ] Data description
   - [ ] Add a `mrules/projects/{project_name}/data_dictionary.md` file that describes each feature in the processed data
@@ -71,8 +77,6 @@ The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecar
 	- predictive accuracy
 	- number of rules
 	- overlap with original rules?
-- test
-	- run on UCSF held-out data?
 - documentation is available in the [API](yu-group.github.io/medical-rules/)
 
 
@@ -95,6 +99,14 @@ pytest
 ```
 
 # Reference
+<details>
+<summary>Background reading</summary>
+<ul>
+  <li>Be familiar with the <a href="https://github.com/csinva/imodels">imodels</a>: package</li>
+  <li>See the <a href="https://www.equator-network.org/reporting-guidelines/tripod-statement/">TRIPOD</a> statement on medical reporting</li>
+  <li>See the <a href="https://www.pnas.org/content/117/8/3920">Veridical data science</a> paper</li>
+</ul>
+</details>
 <details>
 <summary>Related packages</summary>
 <ul>
