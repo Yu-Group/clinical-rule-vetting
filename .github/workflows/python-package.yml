@@ -25,4 +25,4 @@ jobs:
         pip install .
     - name: Test with pytest
       run: |
-        pytest
+        pytest --project iai_pecarn

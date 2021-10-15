@@ -62,7 +62,7 @@ The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecar
   - [ ] Implement the functions in `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (if there is no existing rule for this project, then have each method simply return None)
     - See [the template file](mrules/templates/baseline.py) for documentation of each function
 - [ ] Merging
-  - [ ] Ensure that all tests pass by running `pytest` from the repo directory
+  - [ ] Ensure that all tests pass by running `pytest --project {project_name}` from the repo directory
   - [ ] Open a pull request and it will be reviewed / merged	
 
 
@@ -95,7 +95,7 @@ pip install -e .
 Now run the automatic tests to ensure everything works.
 
 ```
-pytest
+pytest --project_name iai_pecarn
 ```
 
 # Reference
