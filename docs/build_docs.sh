@@ -1,4 +1,4 @@
-PKG=mrules
+PKG=rulevetting
 cd ../$PKG
 pdoc --html . --output-dir ../docs --template-dir .
 cp -rf ../docs/$PKG/* ../docs/

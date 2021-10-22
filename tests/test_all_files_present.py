@@ -2,10 +2,10 @@ from os.path import join as oj
 
 import os
 
-import mrules
-import mrules.api.util
+import rulevetting
+import rulevetting.api.util
 
-PROJECT_PATH = oj(os.path.dirname(os.path.abspath(__file__)), '..', 'mrules', 'projects')
+PROJECT_PATH = oj(os.path.dirname(os.path.abspath(__file__)), '..', 'rulevetting', 'projects')
 
 
 def test_all_files_present(project):
@@ -14,7 +14,7 @@ def test_all_files_present(project):
     if not project == 'None':
         project_ids = [project]
     else:
-        project_ids = mrules.api.util.get_project_ids()
+        project_ids = rulevetting.api.util.get_project_ids()
     for project_id in project_ids:
         project_dir = oj(PROJECT_PATH, project_id)
         project_files = os.listdir(project_dir)

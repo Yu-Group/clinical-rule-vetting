@@ -7,7 +7,7 @@ with open(path.join(path_to_repo, 'readme.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="mrules",
+    name="rulevetting",
     version="0.0.0",
     author="Chandan Singh, Keyan Nasseri, Bin Yu, and others",
     author_email="chandan_singh@berkeley.edu",

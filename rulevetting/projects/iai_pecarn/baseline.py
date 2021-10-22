@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from mrules.templates.baseline import BaselineTemplate
+from rulevetting.templates.baseline import BaselineTemplate
 
 
 class Baseline(BaselineTemplate):
@@ -55,7 +55,7 @@ class Baseline(BaselineTemplate):
 
 
 if __name__ == '__main__':
-    from mrules.projects.iai_pecarn.dataset import Dataset
+    from rulevetting.projects.iai_pecarn.dataset import Dataset
 
     df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
     df_full = pd.concat((df_train, df_tune, df_test))

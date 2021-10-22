@@ -8,7 +8,7 @@ import pandas as pd
 from joblib import Memory
 from typing import Dict, List
 
-import mrules
+import rulevetting
 
 
 class DatasetTemplate:
@@ -17,7 +17,7 @@ class DatasetTemplate:
     """
 
     @abstractmethod
-    def clean_data(self, data_path: str = mrules.DATA_PATH, **kwargs) -> pd.DataFrame:
+    def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
         """
         Convert the raw data files into a pandas dataframe.
         Dataframe keys should be reasonable (lowercase, underscore-separated)
@@ -116,7 +116,7 @@ class DatasetTemplate:
         """
         return NotImplemented
 
-    def get_data(self, save_csvs: bool = False, data_path: str = mrules.DATA_PATH, load_csvs: bool = False):
+    def get_data(self, save_csvs: bool = False, data_path: str = rulevetting.DATA_PATH, load_csvs: bool = False):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -154,7 +154,7 @@ class DatasetTemplate:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
             for df, fname in zip([df_train, df_tune, df_test],
                                  ['train.csv', 'tune.csv', 'test.csv']):
-                meta_keys = mrules.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
                 df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f'meta_{fname}'))
                 df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
         return df_train, df_tune, df_test

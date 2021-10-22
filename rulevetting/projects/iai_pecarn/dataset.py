@@ -6,14 +6,14 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-import mrules
-import mrules.api.util
-from mrules.projects.iai_pecarn import helper
-from mrules.templates.dataset import DatasetTemplate
+import rulevetting
+import rulevetting.api.util
+from rulevetting.projects.iai_pecarn import helper
+from rulevetting.templates.dataset import DatasetTemplate
 
 
 class Dataset(DatasetTemplate):
-    def clean_data(self, data_path: str = mrules.DATA_PATH, **kwargs) -> pd.DataFrame:
+    def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
 
@@ -99,8 +99,8 @@ class Dataset(DatasetTemplate):
                             'MOI', 'RtCostalTender', 'SeatBeltSign', 'ThoracicTender',
                             'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex']
         base_feat_names += self.get_meta_keys()
-        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names,
-                                                               base_feat_names=base_feat_names) + ['outcome']
+        feats = rulevetting.api.util.get_feat_names_from_base_feats(feat_names,
+                                                                    base_feat_names=base_feat_names) + ['outcome']
         return df[feats]
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:

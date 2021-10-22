@@ -13,8 +13,8 @@ import numpy as np
 import pandas as pd
 from autogluon.tabular import TabularDataset, TabularPredictor
 
-import mrules
-import mrules.api.util
+import rulevetting
+import rulevetting.api.util
 
 
 def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable: bool = True):
@@ -34,7 +34,7 @@ def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable:
     train_data = TabularDataset(train_data)
     test_data = TabularDataset(tune_data)
     predictor = TabularPredictor(label='outcome',
-                                 path=mrules.AUTOGLUON_CACHE_PATH,
+                                 path=rulevetting.AUTOGLUON_CACHE_PATH,
                                  eval_metric='roc_auc')
     kwargs = dict(
         verbosity=2,
@@ -49,12 +49,12 @@ def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable:
 
 
 if __name__ == '__main__':
-    project_ids = mrules.api.util.get_project_ids()
+    project_ids = rulevetting.api.util.get_project_ids()
     for project_id in project_ids:
         np.random.seed(0)
         random.seed(0)
         print('fitting on', project_id)
-        project_module_name = f'mrules.projects.{project_id}.dataset'
+        project_module_name = f'rulevetting.projects.{project_id}.dataset'
         module = importlib.import_module(project_module_name)
         dset = module.Dataset()
         df_train, df_tune, df_test = dset.get_data(load_csvs=True)

@@ -3,8 +3,8 @@ from os.path import join as oj
 import importlib
 import os
 
-import mrules
-import mrules.api.util
+import rulevetting
+import rulevetting.api.util
 
 DATA_PATH = oj(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 
@@ -15,8 +15,8 @@ def test_datasets(project):
     if not project == 'None':
         project_ids = [project]
     else:
-        project_ids = mrules.api.util.get_project_ids()
-    project_module_names = [f'mrules.projects.{project_id}.dataset'
+        project_ids = rulevetting.api.util.get_project_ids()
+    project_module_names = [f'rulevetting.projects.{project_id}.dataset'
                             for project_id in project_ids]
     for project_module_name in project_module_names:
 

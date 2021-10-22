@@ -2,13 +2,13 @@ from os.path import join as oj
 
 import os
 
-import mrules
+import rulevetting
 
 
 def get_project_ids():
     return [
-        f for f in os.listdir(mrules.PROJECTS_PATH)
-        if os.path.isdir(oj(mrules.PROJECTS_PATH, f))
+        f for f in os.listdir(rulevetting.PROJECTS_PATH)
+        if os.path.isdir(oj(rulevetting.PROJECTS_PATH, f))
            and not 'cache' in f
     ]
 

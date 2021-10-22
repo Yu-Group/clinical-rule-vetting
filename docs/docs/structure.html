@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>docs.structure API documentation</title>
+<meta name="description" content="General documentation architecture: …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>docs.structure</code></h1>
+</header>
+<section id="section-intro">
+<p>General documentation architecture:</p>
+<p>Home
+Index</p>
+<ul>
+<li>
+<p>Getting started
+Getting started with the sequential model
+Getting started with the functional api
+FAQ</p>
+</li>
+<li>
+<p>Models
+About Keras models
+explain when one should use Sequential or functional API
+explain compilation step
+explain weight saving, weight loading
+explain serialization, deserialization
+Sequential
+Model (functional API)</p>
+</li>
+<li>
+<p>Layers
+About Keras layers
+explain common layer functions: get_weights, set_weights, get_config
+explain input_shape
+explain usage on non-Keras tensors
+Core Layers
+Convolutional Layers
+Pooling Layers
+Locally-connected Layers
+Recurrent Layers
+Embedding Layers
+Merge Layers
+Advanced Activations Layers
+Normalization Layers
+Noise Layers
+Layer Wrappers
+Writing your own Keras layers</p>
+</li>
+<li>
+<p>Preprocessing
+Sequence Preprocessing
+Text Preprocessing
+Image Preprocessing</p>
+</li>
+</ul>
+<p>Losses
+Metrics
+Optimizers
+Activations
+Callbacks
+Datasets
+Applications
+Backend
+Initializers
+Regularizers
+Constraints
+Visualization
+Scikit-learn API
+Utils
+Contributing</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># -*- coding: utf-8 -*-
+&#39;&#39;&#39;
+General documentation architecture:
+
+Home
+Index
+
+- Getting started
+    Getting started with the sequential model
+    Getting started with the functional api
+    FAQ
+
+- Models
+    About Keras models
+        explain when one should use Sequential or functional API
+        explain compilation step
+        explain weight saving, weight loading
+        explain serialization, deserialization
+    Sequential
+    Model (functional API)
+
+- Layers
+    About Keras layers
+        explain common layer functions: get_weights, set_weights, get_config
+        explain input_shape
+        explain usage on non-Keras tensors
+    Core Layers
+    Convolutional Layers
+    Pooling Layers
+    Locally-connected Layers
+    Recurrent Layers
+    Embedding Layers
+    Merge Layers
+    Advanced Activations Layers
+    Normalization Layers
+    Noise Layers
+    Layer Wrappers
+    Writing your own Keras layers
+
+- Preprocessing
+    Sequence Preprocessing
+    Text Preprocessing
+    Image Preprocessing
+
+Losses
+Metrics
+Optimizers
+Activations
+Callbacks
+Datasets
+Applications
+Backend
+Initializers
+Regularizers
+Constraints
+Visualization
+Scikit-learn API
+Utils
+Contributing
+
+&#39;&#39;&#39;
+from keras import utils
+from keras import layers
+from keras.layers import advanced_activations
+from keras.layers import noise
+from keras.layers import wrappers
+from keras import initializers
+from keras import optimizers
+from keras import callbacks
+from keras import models
+from keras import losses
+from keras import metrics
+from keras import backend
+from keras import constraints
+from keras import activations
+from keras import preprocessing
+
+
+EXCLUDE = {
+    &#39;Optimizer&#39;,
+    &#39;TFOptimizer&#39;,
+    &#39;Wrapper&#39;,
+    &#39;get_session&#39;,
+    &#39;set_session&#39;,
+    &#39;CallbackList&#39;,
+    &#39;serialize&#39;,
+    &#39;deserialize&#39;,
+    &#39;get&#39;,
+    &#39;set_image_dim_ordering&#39;,
+    &#39;normalize_data_format&#39;,
+    &#39;image_dim_ordering&#39;,
+    &#39;get_variable_shape&#39;,
+    &#39;Constraint&#39;
+}
+
+# For each class to document, it is possible to:
+# 1) Document only the class: [classA, classB, ...]
+# 2) Document all its methods: [classA, (classB, &#34;*&#34;)]
+# 3) Choose which methods to document (methods listed as strings):
+# [classA, (classB, [&#34;method1&#34;, &#34;method2&#34;, ...]), ...]
+# 4) Choose which methods to document (methods listed as qualified names):
+# [classA, (classB, [module.classB.method1, module.classB.method2, ...]), ...]
+PAGES = [
+    {
+        &#39;page&#39;: &#39;models/sequential.md&#39;,
+        &#39;methods&#39;: [
+            models.Sequential.compile,
+            models.Sequential.fit,
+            models.Sequential.evaluate,
+            models.Sequential.predict,
+            models.Sequential.train_on_batch,
+            models.Sequential.test_on_batch,
+            models.Sequential.predict_on_batch,
+            models.Sequential.fit_generator,
+            models.Sequential.evaluate_generator,
+            models.Sequential.predict_generator,
+            models.Sequential.get_layer,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;models/model.md&#39;,
+        &#39;methods&#39;: [
+            models.Model.compile,
+            models.Model.fit,
+            models.Model.evaluate,
+            models.Model.predict,
+            models.Model.train_on_batch,
+            models.Model.test_on_batch,
+            models.Model.predict_on_batch,
+            models.Model.fit_generator,
+            models.Model.evaluate_generator,
+            models.Model.predict_generator,
+            models.Model.get_layer,
+        ]
+    },
+    {
+        &#39;page&#39;: &#39;layers/core.md&#39;,
+        &#39;classes&#39;: [
+            layers.Dense,
+            layers.Activation,
+            layers.Dropout,
+            layers.Flatten,
+            layers.Input,
+            layers.Reshape,
+            layers.Permute,
+            layers.RepeatVector,
+            layers.Lambda,
+            layers.ActivityRegularization,
+            layers.Masking,
+            layers.SpatialDropout1D,
+            layers.SpatialDropout2D,
+            layers.SpatialDropout3D,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;layers/convolutional.md&#39;,
+        &#39;classes&#39;: [
+            layers.Conv1D,
+            layers.Conv2D,
+            layers.SeparableConv1D,
+            layers.SeparableConv2D,
+            layers.DepthwiseConv2D,
+            layers.Conv2DTranspose,
+            layers.Conv3D,
+            layers.Conv3DTranspose,
+            layers.Cropping1D,
+            layers.Cropping2D,
+            layers.Cropping3D,
+            layers.UpSampling1D,
+            layers.UpSampling2D,
+            layers.UpSampling3D,
+            layers.ZeroPadding1D,
+            layers.ZeroPadding2D,
+            layers.ZeroPadding3D,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;layers/pooling.md&#39;,
+        &#39;classes&#39;: [
+            layers.MaxPooling1D,
+            layers.MaxPooling2D,
+            layers.MaxPooling3D,
+            layers.AveragePooling1D,
+            layers.AveragePooling2D,
+            layers.AveragePooling3D,
+            layers.GlobalMaxPooling1D,
+            layers.GlobalAveragePooling1D,
+            layers.GlobalMaxPooling2D,
+            layers.GlobalAveragePooling2D,
+            layers.GlobalMaxPooling3D,
+            layers.GlobalAveragePooling3D,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;layers/local.md&#39;,
+        &#39;classes&#39;: [
+            layers.LocallyConnected1D,
+            layers.LocallyConnected2D,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;layers/recurrent.md&#39;,
+        &#39;classes&#39;: [
+            layers.RNN,
+            layers.SimpleRNN,
+            layers.GRU,
+            layers.LSTM,
+            layers.ConvLSTM2D,
+            layers.ConvLSTM2DCell,
+            layers.SimpleRNNCell,
+            layers.GRUCell,
+            layers.LSTMCell,
+            layers.CuDNNGRU,
+            layers.CuDNNLSTM,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;layers/embeddings.md&#39;,
+        &#39;classes&#39;: [
+            layers.Embedding,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;layers/normalization.md&#39;,
+        &#39;classes&#39;: [
+            layers.BatchNormalization,
+        ],
+    },
+    {
+        &#39;page&#39;: &#39;layers/advanced-activations.md&#39;,
+        &#39;all_module_classes&#39;: [advanced_activations],
+    },
+    {
+        &#39;page&#39;: &#39;layers/noise.md&#39;,
+        &#39;all_module_classes&#39;: [noise],
+    },
+    {
+        &#39;page&#39;: &#39;layers/merge.md&#39;,
+        &#39;classes&#39;: [
+            layers.Add,
+            layers.Subtract,
+            layers.Multiply,
+            layers.Average,
+            layers.Maximum,
+            layers.Minimum,
+            layers.Concatenate,
+            layers.Dot,
+        ],
+        &#39;functions&#39;: [
+            layers.add,
+            layers.subtract,
+            layers.multiply,
+            layers.average,
+            layers.maximum,
+            layers.minimum,
+            layers.concatenate,
+            layers.dot,
+        ]
+    },
+    {
+        &#39;page&#39;: &#39;preprocessing/sequence.md&#39;,
+        &#39;functions&#39;: [
+            preprocessing.sequence.pad_sequences,
+            preprocessing.sequence.skipgrams,
+            preprocessing.sequence.make_sampling_table,
+        ],
+        &#39;classes&#39;: [
+            preprocessing.sequence.TimeseriesGenerator,
+        ]
+    },
+    {
+        &#39;page&#39;: &#39;preprocessing/image.md&#39;,
+        &#39;classes&#39;: [
+            (preprocessing.image.ImageDataGenerator, &#39;*&#39;)
+        ]
+    },
+    {
+        &#39;page&#39;: &#39;preprocessing/text.md&#39;,
+        &#39;functions&#39;: [
+            preprocessing.text.hashing_trick,
+            preprocessing.text.one_hot,
+            preprocessing.text.text_to_word_sequence,
+        ],
+        &#39;classes&#39;: [
+            preprocessing.text.Tokenizer,
+        ]
+    },
+    {
+        &#39;page&#39;: &#39;layers/wrappers.md&#39;,
+        &#39;all_module_classes&#39;: [wrappers],
+    },
+    {
+        &#39;page&#39;: &#39;metrics.md&#39;,
+        &#39;all_module_functions&#39;: [metrics],
+    },
+    {
+        &#39;page&#39;: &#39;losses.md&#39;,
+        &#39;all_module_functions&#39;: [losses],
+    },
+    {
+        &#39;page&#39;: &#39;initializers.md&#39;,
+        &#39;all_module_functions&#39;: [initializers],
+        &#39;all_module_classes&#39;: [initializers],
+    },
+    {
+        &#39;page&#39;: &#39;optimizers.md&#39;,
+        &#39;all_module_classes&#39;: [optimizers],
+    },
+    {
+        &#39;page&#39;: &#39;callbacks.md&#39;,
+        &#39;all_module_classes&#39;: [callbacks],
+    },
+    {
+        &#39;page&#39;: &#39;activations.md&#39;,
+        &#39;all_module_functions&#39;: [activations],
+    },
+    {
+        &#39;page&#39;: &#39;backend.md&#39;,
+        &#39;all_module_functions&#39;: [backend],
+    },
+    {
+        &#39;page&#39;: &#39;constraints.md&#39;,
+        &#39;all_module_classes&#39;: [constraints],
+    },
+    {
+        &#39;page&#39;: &#39;utils.md&#39;,
+        &#39;functions&#39;: [utils.to_categorical,
+                      utils.normalize,
+                      utils.get_file,
+                      utils.print_summary,
+                      utils.plot_model,
+                      utils.multi_gpu_model],
+        &#39;classes&#39;: [utils.CustomObjectScope,
+                    utils.HDF5Matrix,
+                    utils.Sequence],
+    },
+]
+
+ROOT = &#39;http://keras.io/&#39;
+
+template_np_implementation = &#34;&#34;&#34;# Numpy implementation
+
+    ```python
+{{code}}
+    ```
+&#34;&#34;&#34;
+
+template_hidden_np_implementation = &#34;&#34;&#34;# Numpy implementation
+
+    &lt;details&gt;
+    &lt;summary&gt;Show the Numpy implementation&lt;/summary&gt;
+
+    ```python
+{{code}}
+    ```
+
+    &lt;/details&gt;
+&#34;&#34;&#34;</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="docs" href="index.html">docs</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
