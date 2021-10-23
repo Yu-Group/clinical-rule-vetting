@@ -1,12 +1,12 @@
-import os
-import random
-from abc import abstractmethod
 from os.path import join as oj
 
 import numpy as np
+import os
 import pandas as pd
+import random
+from abc import abstractmethod
 from joblib import Memory
-from typing import Dict, List
+from typing import Dict
 
 import rulevetting
 
@@ -20,7 +20,8 @@ class DatasetTemplate:
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
         """
         Convert the raw data files into a pandas dataframe.
-        Dataframe keys should be reasonable (lowercase, underscore-separated)
+        Dataframe keys should be reasonable (lowercase, underscore-separated).
+        Data types should be reasonable.
 
         Params
         ------
@@ -39,6 +40,7 @@ class DatasetTemplate:
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Preprocess the data.
         Impute missing values.
+        Scale/transform values.
         Should put the prediction target in a column named "outcome"
 
         Parameters
@@ -72,9 +74,9 @@ class DatasetTemplate:
         return NotImplemented
 
     @abstractmethod
-    def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing
-        Keep in mind any natural splits (e.g. hospitals)
+        Keep in mind any natural splits (e.g. hospitals).
         Ensure that there are positive points in all splits.
 
         Parameters
@@ -109,12 +111,17 @@ class DatasetTemplate:
         """
         return NotImplemented
 
-    def get_kwargs(self) -> Dict[str, list]:
-        """Return dictionary of keyword arguments for the functions in the dataset class.
+    def get_kwargs(self) -> Dict[str, dict]:
+        """Return dictionary of keyword arguments for each functions in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
         """
-        return NotImplemented
+        return {
+            'clean_data': {},
+            'preprocess_data': {},
+            'extract_features': {},
+            'split_data': {},
+        }
 
     def get_data(self, save_csvs: bool = False, data_path: str = rulevetting.DATA_PATH, load_csvs: bool = False):
         """Runs all the processing and returns the data.
@@ -144,12 +151,18 @@ class DatasetTemplate:
         CACHE_PATH = oj(data_path, 'joblib_cache')
         cache = Memory(CACHE_PATH, verbose=0).cache
         kwargs = self.get_kwargs()
-        default_kwargs = {k: kwargs[k][0] for k in kwargs.keys()}
+        default_kwargs = {}
+        for key in kwargs.keys():
+            func_kwargs = kwargs[key]
+            # first arg in each list is default
+            default_kwargs[key] = {k: func_kwargs[k][0]
+                                   for k in func_kwargs.keys()}
+
         print('kwargs', default_kwargs)
-        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs)
-        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs)
-        extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs)
-        df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
+        extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
+        df_train, df_tune, df_test = cache(self.split_data)(extracted_features, **default_kwargs['split_data'])
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
             for df, fname in zip([df_train, df_tune, df_test],

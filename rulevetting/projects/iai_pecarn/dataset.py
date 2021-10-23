@@ -1,10 +1,10 @@
-import os
 from os.path import join as oj
-from typing import Dict
 
 import numpy as np
+import os
 import pandas as pd
 from tqdm import tqdm
+from typing import Dict
 
 import rulevetting
 import rulevetting.api.util
@@ -103,7 +103,7 @@ class Dataset(DatasetTemplate):
                                                                     base_feat_names=base_feat_names) + ['outcome']
         return df[feats]
 
-    def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         return np.split(
             preprocessed_data.sample(frac=1, random_state=42),
             [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
@@ -117,13 +117,18 @@ class Dataset(DatasetTemplate):
     def get_meta_keys(self) -> list:
         return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
 
-    def get_kwargs(self) -> Dict[str, list]:
+    def get_kwargs(self) -> Dict[str, dict]:
         return {
-            # whether to drop columns with suffix _no
-            'drop_negative_columns': [False, True],  # default value comes first
-
-            # drop cols with vals missing this percent of the time
-            'frac_missing_allowed': [0.05, 0.03, 0.10],
+            'clean_data': {},
+            'preprocess_data': {
+                # drop cols with vals missing this percent of the time
+                'frac_missing_allowed': [0.05, 0.03, 0.10],
+            },
+            'extract_features': {
+                # whether to drop columns with suffix _no
+                'drop_negative_columns': [False, True],  # default value comes first
+            },
+            'split_data': {},
         }
 
 

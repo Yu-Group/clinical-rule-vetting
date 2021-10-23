@@ -27,16 +27,14 @@ This is a *collaborative* repository intended to validate and derive clinical-de
 
 Datasets must be tabular (or at least have interpretable input features), be reasonably large (e.g. have at least 100 positive and negative cases), and have a binary outcome. To use PECARN datasets, please read and agree to the research data use agreement on the [PECARN website](https://pecarn.org/datasets/).
 
-Possible data sources: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/) | [UCI](https://archive.ics.uci.edu/ml/index.php) | [OpenML](https://www.openml.org/home) | [MIMIC](https://physionet.org/content/mimiciv/1.0/) | [UCSF De-ID](https://data.ucsf.edu/research/deid-data)
-Potential specific datasets: [EXXAGERATE dataset](https://datasetsearch.research.google.com/search?query=clinical%20rule&docid=L2cvMTFxbWJ5cngxMw%3D%3D) | [UCI heart disease](https://archive.ics.uci.edu/ml/datasets/Heart+Disease) | Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).
+**Possible data sources**: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/) | [UCI](https://archive.ics.uci.edu/ml/index.php) | [OpenML](https://www.openml.org/home) | [MIMIC](https://physionet.org/content/mimiciv/1.0/) | [UCSF De-ID](https://data.ucsf.edu/research/deid-data)
+**Potential specific datasets**: [EXXAGERATE dataset](https://datasetsearch.research.google.com/search?query=clinical%20rule&docid=L2cvMTFxbWJ5cngxMw%3D%3D) | [UCI heart disease](https://archive.ics.uci.edu/ml/datasets/Heart+Disease) | Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).
 
 
 # How do I contribute?
 
 To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps belwo.
 The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecarn](rulevetting/projects/iai_pecarn)) into a new folder and then edit that one.
-
-Useful links: [contributing.md](docs/contributing.md) | [API documentationn](yu-group.github.io/rule-vetting/)
 
 - [ ] Repo set up
   - [ ] Create a fork of this repo
@@ -49,16 +47,17 @@ Useful links: [contributing.md](docs/contributing.md) | [API documentationn](yu-
   - [ ] Copy over the template files from `mrules/projects/iai_pecarn` to a new folder `mrules/projects/{project_name}`
 	- [ ] Rewrite the functions in `mrules/projects/{project_name}/dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
   - Note: Notebooks / helper functions are optional
-    - See [the template file](rulevetting/templates/dataset.py) for documentation of each function
+    - See [the template file](rulevetting/templates/dataset.py) for documentation of each function and also the [API documentationn](https://yu-group.github.io/rule-vetting/)
 - [ ] Data description
   - [ ] Add a `mrules/projects/{project_name}/data_dictionary.md` file that describes each feature in the processed data
   - [ ] Add a `mrules/projects/{project_name}/readme.md` file that describes the data and the prediction task. This should include basic details of data collection (who, how, when, where) and why it is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
 - [ ] Modeling
   - [ ] Implement the functions in `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (if there is no existing rule for this project, then have each method simply return None)
     - See [the template file](rulevetting/templates/baseline.py) for documentation of each function
+- [ ] Lab writeup (see [instructions](docs/lab_writeup.md))    
 - [ ] Merging
   - [ ] Ensure that all tests pass by running `pytest --project {project_name}` from the repo directory
-  - [ ] Open a pull request and it will be reviewed / merged	
+  - [ ] Open a pull request and it will be reviewed / merged
 
 
 **What is included in each step.**

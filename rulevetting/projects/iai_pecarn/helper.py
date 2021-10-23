@@ -3,7 +3,8 @@ from os.path import join as oj
 import numpy as np
 import pandas as pd
 
-'''Helper functions for dataset.py
+'''Helper functions for dataset.py.
+This file is optional.
 '''
 
 
