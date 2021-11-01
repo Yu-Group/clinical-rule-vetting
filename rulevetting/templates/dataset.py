@@ -123,7 +123,9 @@ class DatasetTemplate:
             'split_data': {},
         }
 
-    def get_data(self, save_csvs: bool = False, data_path: str = rulevetting.DATA_PATH, load_csvs: bool = False):
+    def get_data(self, save_csvs: bool = False,
+                 data_path: str = rulevetting.DATA_PATH,
+                 load_csvs: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -154,8 +156,7 @@ class DatasetTemplate:
         default_kwargs = {}
         for key in kwargs.keys():
             func_kwargs = kwargs[key]
-            # first arg in each list is default
-            default_kwargs[key] = {k: func_kwargs[k][0]
+            default_kwargs[key] = {k: func_kwargs[k][0] # first arg in each list is default
                                    for k in func_kwargs.keys()}
 
         print('kwargs', default_kwargs)
