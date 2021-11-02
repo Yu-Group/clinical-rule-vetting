@@ -1,8 +1,8 @@
-*Some instructions for data-scientists on collaborating with clinicians for rule-vetting. See the [contributing checklist](https://github.com/Yu-Group/rule-vetting#contributing-checklist) for all deliverables and the [lab writeup](https://github.com/Yu-Group/rule-vetting/docs/lab_writeup.md) for guidance.*
+*Some instructions for data-scientists on collaborating with clinicians for rule-vetting. See the [contributing checklist](https://github.com/Yu-Group/rule-vetting#contributing-checklist) for all deliverables and the [lab writeup](https://github.com/Yu-Group/rule-vetting/blob/master/docs/lab_writeup.md) for guidance.*
 
 # Working with clinical experts
 
-In the course of this project, you will meet twice (once in the first week and once in the third week) with a clinical expert for domain expertise in the problem. Please take the initiative to schedule these meetings.
+In the course of this project, you will meet twice (once in the week of 11/15 and once in the week of qq/29) with a clinical expert for domain expertise in the problem. Please take the initiative to schedule these meetings.
 
 ### Meeting 1
 

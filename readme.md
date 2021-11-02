@@ -34,7 +34,7 @@ Datasets are all tabular (or at least have interpretable input features), reason
 
 To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps below. The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecarn](rulevetting/projects/iai_pecarn)) into a new folder and then edit that one.
 
-2 Helpful docs: [collaboration details](https://github.com/Yu-Group/rule-vetting/docs/collaborating_for_data_scientists.md) | [lab writeup](https://github.com/Yu-Group/rule-vetting/docs/lab_writeup.md)
+2 Helpful docs: [collaboration details](docs/collaborating_for_data_scientists.md) | [lab writeup](docs/lab_writeup.md)
 
 - [ ] Repo set up
   - [ ] Create a fork of this repo (see tutorial on forking/merging [here](https://jarv.is/notes/how-to-pull-request-fork-github/))

@@ -2,7 +2,7 @@
 
 Thank you for helping to provide us with your extremely helpful knowledge in vetting clinical decision rules! Your expertise is crucial for understanding, building, and vetting these CDRs.
 
-In the course of this project, we would like each group to meet you twice for domain expertise in the problem, once in the week of 10/15 and once in the week of 10/29 - the group will reach out to you over email to schedule these meetings.
+In the course of this project, we would like each group to meet you twice for domain expertise in the problem, once in the week of 11/15 and once in the week of 11/29 - the group will reach out to you over email to schedule these meetings.
 
 ### Background
 
