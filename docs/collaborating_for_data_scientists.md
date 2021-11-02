@@ -2,12 +2,15 @@
 
 # Working with clinical experts
 
-In the course of this project, you will meet twice (once in the week of 11/15 and once in the week of qq/29) with a clinical expert for domain expertise in the problem. Please take the initiative to schedule these meetings.
+In the course of this project, you will meet twice (once in the week of 11/15 and once in the week of 11/29) with a clinical expert for domain expertise in the problem. Please take the initiative to schedule these meetings.
 
 ### Meeting 1
 
-When cleaning the data, you will need to translate from messy data to meaningful features. You will consult with a medical expert to help decide which variables to use + how to process them.
-Come prepared to this meeting with a list of variables and questions about them. Be sure to provide as much data as possible to give the medical expert the most context (e.g. what was the exact wording used when collecting a variable?).
+When cleaning the data, you will need to translate from messy data to meaningful features.
+You will consult with a clinical expert to help decide which variables to use + how to process them.
+Please come prepared to this meeting with a list of variables and questions about them.
+Be sure to provide as much data as possible to give the medical expert the most context (e.g. what was the exact wording used when collecting a variable?).
+Sharing your questions ahead of time via e-mail can help make the meeting more productive.
 
 > **Examples**
 >
@@ -26,9 +29,9 @@ After cleaning the data and fitting models, clinical experts can again help vet 
 
 > **Examples**
 >
-> - Do the important variables in the fitted rules make sense?
-> - Are there any surprises about the stability of certain rules?
+> - Do the important variables in the fitted rules make clinical sense?
 > - Are the errors the model makes reasonable?
+> - Are there any surprises about the stability of the pipeline to certain perturbations?
 
 The analysis provided by the clinical expert should be incorporated into your final writeup.
 

@@ -34,7 +34,8 @@ After cleaning the data and fitting models, the group will again reach out to yo
 
 > **Examples**
 >
-> - Do the important variables in the fitted rules make sense?
-> - Are there any surprises about the stability of certain rules?
+> - Do the important variables in the fitted rules make clinical sense?
 > - Are the errors the model makes reasonable?
+> - Are there any surprises about the stability of the pipeline to certain perturbations?
+
 
