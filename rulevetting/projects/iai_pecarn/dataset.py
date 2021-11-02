@@ -117,7 +117,7 @@ class Dataset(DatasetTemplate):
     def get_meta_keys(self) -> list:
         return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
 
-    def get_kwargs(self) -> Dict[str, dict]:
+    def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
             'clean_data': {},
             'preprocess_data': {

@@ -111,17 +111,23 @@ class DatasetTemplate:
         """
         return NotImplemented
 
-    def get_kwargs(self) -> Dict[str, dict]:
+    def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         """Return dictionary of keyword arguments for each functions in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
-        """
+
+        Example
+        -------
         return {
             'clean_data': {},
-            'preprocess_data': {},
+            'preprocess_data': {
+                'imputation_strategy': ['mean', 'median'],  # first value is default
+            },
             'extract_features': {},
             'split_data': {},
         }
+        """
+        return NotImplemented
 
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
@@ -152,7 +158,7 @@ class DatasetTemplate:
         random.seed(0)
         CACHE_PATH = oj(data_path, 'joblib_cache')
         cache = Memory(CACHE_PATH, verbose=0).cache
-        kwargs = self.get_kwargs()
+        kwargs = self.get_judgement_calls_dictionary()
         default_kwargs = {}
         for key in kwargs.keys():
             func_kwargs = kwargs[key]

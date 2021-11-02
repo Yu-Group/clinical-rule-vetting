@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/github/checks-status/Yu-Group/rule-vetting/master">
 </p>  
 
-This is a *collaborative* repository intended to validate and derive clinical-decision rules. We hope to use a unified modeling pipeline across a variety of contributed datasets to standardize and improve previous modeling practices for clinical decision rules. Additionally, we hope to externally validate the rules under study here with data from UCSF.
+This is a *collaborative* repository intended to validate and derive clinical-decision rules. We use a unified  pipeline across a variety of contributed datasets to vet previous modeling practices for clinical decision rules. Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
 # Datasets
 
@@ -25,52 +25,44 @@ This is a *collaborative* repository intended to validate and derive clinical-de
 </br>
 </p>
 
-Datasets must be tabular (or at least have interpretable input features), be reasonably large (e.g. have at least 100 positive and negative cases), and have a binary outcome. To use PECARN datasets, please read and agree to the research data use agreement on the [PECARN website](https://pecarn.org/datasets/).
+Datasets are all tabular (or at least have interpretable input features), reasonably large (e.g. have at least 100 positive and negative cases), and have a binary outcome. For PECARN datasets, please read and agree to the research data use agreement on the [PECARN website](https://pecarn.org/datasets/).
 
 **Possible data sources**: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/) | [UCI](https://archive.ics.uci.edu/ml/index.php) | [OpenML](https://www.openml.org/home) | [MIMIC](https://physionet.org/content/mimiciv/1.0/) | [UCSF De-ID](https://data.ucsf.edu/research/deid-data)
 **Potential specific datasets**: [EXXAGERATE dataset](https://datasetsearch.research.google.com/search?query=clinical%20rule&docid=L2cvMTFxbWJ5cngxMw%3D%3D) | [UCI heart disease](https://archive.ics.uci.edu/ml/datasets/Heart+Disease) | Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).
 
+# Contributing checklist
 
-# How do I contribute?
+To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps below. The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecarn](rulevetting/projects/iai_pecarn)) into a new folder and then edit that one.
 
-To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps belwo.
-The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecarn](rulevetting/projects/iai_pecarn)) into a new folder and then edit that one.
+2 Helpful docs: [collaboration details](https://github.com/Yu-Group/rule-vetting/docs/collaborating_for_data_scientists.md) | [lab writeup](https://github.com/Yu-Group/rule-vetting/docs/lab_writeup.md)
 
 - [ ] Repo set up
-  - [ ] Create a fork of this repo
-  - [ ] Install the repo as shown above
+  - [ ] Create a fork of this repo (see tutorial on forking/merging [here](https://jarv.is/notes/how-to-pull-request-fork-github/))
+  - [ ] Install the repo as shown [below](https://github.com/Yu-Group/rule-vetting#installation)
   - [ ] Select a dataset - once you've selected, open an issue in this repo with the name of the dataset + a brief description so others don't work on the same dataset 	
-  - [ ] Come up with a `project_name` for the new project (e.g. iai_pecarn) 	
+  - [ ] Assign a `project_name` to the new project (e.g. `iai_pecarn`) 	
 - [ ] Data preprocessing
   - [ ] Download the raw data into `data/{project_name}/raw`
-    - [ ] Please don't add any very large files
-  - [ ] Copy over the template files from `mrules/projects/iai_pecarn` to a new folder `mrules/projects/{project_name}`
+    - Don't commit any very large files
+  - [ ] Copy the template files from `mrules/projects/iai_pecarn` to a new folder `mrules/projects/{project_name}`
 	- [ ] Rewrite the functions in `mrules/projects/{project_name}/dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
-  - Note: Notebooks / helper functions are optional
-    - See [the template file](rulevetting/templates/dataset.py) for documentation of each function and also the [API documentationn](https://yu-group.github.io/rule-vetting/)
+    - [ ] Document any judgement calls you aren't sure about using the `dataset.get_judgement_calls_dictionary` function
+        - See [the template file](rulevetting/templates/dataset.py) for documentation of each function or the [API documentation](https://yu-group.github.io/rule-vetting/)
+    - Notebooks / helper functions are optional
 - [ ] Data description
-  - [ ] Add a `mrules/projects/{project_name}/data_dictionary.md` file that describes each feature in the processed data
-  - [ ] Add a `mrules/projects/{project_name}/readme.md` file that describes the data and the prediction task. This should include basic details of data collection (who, how, when, where) and why it is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
+  - [ ] Describe each feature in the processed data in a file named `mrules/projects/{project_name}/data_dictionary.md`
+  - [ ] Summarize the data and the prediction task in a file named `mrules/projects/{project_name}/readme.md`. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
 - [ ] Modeling
   - [ ] Implement the functions in `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (if there is no existing rule for this project, then have each method simply return None)
     - See [the template file](rulevetting/templates/baseline.py) for documentation of each function
 - [ ] Lab writeup (see [instructions](docs/lab_writeup.md))    
-- [ ] Merging
+  - [ ] Save writeup into `mrules/projects/{project_name}/writeup.pdf` + include source files
+  - Should contain details on exploratory analysis, modeling, validation, comparisons with baseline, etc.
+- [ ] Submitting
   - [ ] Ensure that all tests pass by running `pytest --project {project_name}` from the repo directory
-  - [ ] Open a pull request and it will be reviewed / merged
-
-
-**What is included in each step.**
-
-- modeling
-	- build and test the original model
-	- run many models from imodels
-	- extract out stable rules: screen for high predictive acc, look at what is kept
-	- build stable rules model (e.g. using RuleFit or Corels)
-- validation
-	- predictive accuracy
-	- number of rules
-	- overlap with original rules?
+  - [ ] [Open a pull request](https://jarv.is/notes/how-to-pull-request-fork-github/) and it will be reviewed / merged
+- [ ] Reviewing submissions
+  - [ ] Each pull request will be reviewed by other submitters before being merged
 
 
 
