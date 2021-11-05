@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>mrules.projects.iai_pecarn.baseline API documentation</title>
+<title>rulevetting.projects.iai_pecarn.baseline API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>mrules.projects.iai_pecarn.baseline</code></h1>
+<h1 class="title">Module <code>rulevetting.projects.iai_pecarn.baseline</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -29,7 +29,7 @@
 <pre><code class="python">import numpy as np
 import pandas as pd
 
-from mrules.templates.baseline import BaselineTemplate
+from rulevetting.templates.baseline import BaselineTemplate
 
 
 class Baseline(BaselineTemplate):
@@ -48,13 +48,13 @@ class Baseline(BaselineTemplate):
             (&#39;GCSScore == GCSScore&#39;, 0.1),
         ]
 
-    def traverse_rule(self, df_features: pd.DataFrame):
+    def _traverse_rule(self, df_features: pd.DataFrame):
         str_print = f&#39;&#39;
         predicted_probabilities = pd.Series(index=df_features.index, dtype=float)
         df = df_features.copy()
         o = &#39;outcome&#39;
-        str_print += f&#39;{&#34;Initial&#34;:&lt;35} {df[o].sum()} / {df.shape[0]}\n&#39;
-        for rule in self.rules:
+        str_print += f&#39;{df[o].sum()} / {df.shape[0]} (positive class / total)\n\t\u2193 \n&#39;
+        for j, rule in enumerate(self.rules):
             query, prob = rule
             df_rhs = df.query(query)
             idxs_satisfying_rule = df_rhs.index
@@ -62,31 +62,34 @@ class Baseline(BaselineTemplate):
 
             df.drop(index=idxs_satisfying_rule, inplace=True)
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
-            str_print += f&#39;{query:&lt;35} {df[o].sum():&gt;3} / {df.shape[0]:&gt;5}\t {df_rhs[o].sum():&gt;3} / {df_rhs.shape[0]:&gt;4} ({computed_prob:0.1f})\n&#39;
+            query_print = query.replace(&#39; == 1&#39;, &#39;&#39;)
+            if j &lt; len(self.rules) - 1:
+                str_print += f&#39;\033[96mIf {query_print:&lt;35}\033[00m \u2192 {df_rhs[o].sum():&gt;3} / {df_rhs.shape[0]:&gt;4} ({computed_prob:0.1f}%)\n\t\u2193 \n   {df[o].sum():&gt;3} / {df.shape[0]:&gt;5}\t \n&#39;
         predicted_probabilities = predicted_probabilities.values
         self.str_print = str_print
         return predicted_probabilities
 
     def predict(self, df_features: pd.DataFrame):
-        predicted_probabilities = self.traverse_rule(df_features)
+        predicted_probabilities = self._traverse_rule(df_features)
         return (predicted_probabilities &gt; 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self.traverse_rule(df_features)
+        predicted_probabilities = self._traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_baseline(self, df_features):
-        self.traverse_rule(df_features)
+        self._traverse_rule(df_features)
         return self.str_print
 
 
 if __name__ == &#39;__main__&#39;:
-    from mrules.projects.iai_pecarn.dataset import Dataset
+    from rulevetting.projects.iai_pecarn.dataset import Dataset
 
     df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
     df_full = pd.concat((df_train, df_tune, df_test))
     baseline = Baseline()
     preds_proba = baseline.predict_proba(df_full)
+    print(baseline.print_baseline(df_full))
     # preds = baseline.predict(df_train)
     # print(&#39;preds_proba&#39;, preds_proba.shape, preds_proba[:5])
     # print(&#39;preds&#39;, preds.shape, preds[:5])</code></pre>
@@ -101,7 +104,7 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="mrules.projects.iai_pecarn.baseline.Baseline"><code class="flex name class">
+<dt id="rulevetting.projects.iai_pecarn.baseline.Baseline"><code class="flex name class">
 <span>class <span class="ident">Baseline</span></span>
 </code></dt>
 <dd>
@@ -127,13 +130,13 @@ Classes that use this template should be called "Baseline"</p></div>
             (&#39;GCSScore == GCSScore&#39;, 0.1),
         ]
 
-    def traverse_rule(self, df_features: pd.DataFrame):
+    def _traverse_rule(self, df_features: pd.DataFrame):
         str_print = f&#39;&#39;
         predicted_probabilities = pd.Series(index=df_features.index, dtype=float)
         df = df_features.copy()
         o = &#39;outcome&#39;
-        str_print += f&#39;{&#34;Initial&#34;:&lt;35} {df[o].sum()} / {df.shape[0]}\n&#39;
-        for rule in self.rules:
+        str_print += f&#39;{df[o].sum()} / {df.shape[0]} (positive class / total)\n\t\u2193 \n&#39;
+        for j, rule in enumerate(self.rules):
             query, prob = rule
             df_rhs = df.query(query)
             idxs_satisfying_rule = df_rhs.index
@@ -141,66 +144,36 @@ Classes that use this template should be called "Baseline"</p></div>
 
             df.drop(index=idxs_satisfying_rule, inplace=True)
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
-            str_print += f&#39;{query:&lt;35} {df[o].sum():&gt;3} / {df.shape[0]:&gt;5}\t {df_rhs[o].sum():&gt;3} / {df_rhs.shape[0]:&gt;4} ({computed_prob:0.1f})\n&#39;
+            query_print = query.replace(&#39; == 1&#39;, &#39;&#39;)
+            if j &lt; len(self.rules) - 1:
+                str_print += f&#39;\033[96mIf {query_print:&lt;35}\033[00m \u2192 {df_rhs[o].sum():&gt;3} / {df_rhs.shape[0]:&gt;4} ({computed_prob:0.1f}%)\n\t\u2193 \n   {df[o].sum():&gt;3} / {df.shape[0]:&gt;5}\t \n&#39;
         predicted_probabilities = predicted_probabilities.values
         self.str_print = str_print
         return predicted_probabilities
 
     def predict(self, df_features: pd.DataFrame):
-        predicted_probabilities = self.traverse_rule(df_features)
+        predicted_probabilities = self._traverse_rule(df_features)
         return (predicted_probabilities &gt; 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self.traverse_rule(df_features)
+        predicted_probabilities = self._traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_baseline(self, df_features):
-        self.traverse_rule(df_features)
+        self._traverse_rule(df_features)
         return self.str_print</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="mrules.templates.baseline.BaselineTemplate" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate">BaselineTemplate</a></li>
+<li><a title="rulevetting.templates.baseline.BaselineTemplate" href="../../templates/baseline.html#rulevetting.templates.baseline.BaselineTemplate">BaselineTemplate</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="mrules.projects.iai_pecarn.baseline.Baseline.traverse_rule"><code class="name flex">
-<span>def <span class="ident">traverse_rule</span></span>(<span>self, df_features: pandas.core.frame.DataFrame)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def traverse_rule(self, df_features: pd.DataFrame):
-    str_print = f&#39;&#39;
-    predicted_probabilities = pd.Series(index=df_features.index, dtype=float)
-    df = df_features.copy()
-    o = &#39;outcome&#39;
-    str_print += f&#39;{&#34;Initial&#34;:&lt;35} {df[o].sum()} / {df.shape[0]}\n&#39;
-    for rule in self.rules:
-        query, prob = rule
-        df_rhs = df.query(query)
-        idxs_satisfying_rule = df_rhs.index
-        predicted_probabilities.loc[idxs_satisfying_rule] = prob
-
-        df.drop(index=idxs_satisfying_rule, inplace=True)
-        computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
-        str_print += f&#39;{query:&lt;35} {df[o].sum():&gt;3} / {df.shape[0]:&gt;5}\t {df_rhs[o].sum():&gt;3} / {df_rhs.shape[0]:&gt;4} ({computed_prob:0.1f})\n&#39;
-    predicted_probabilities = predicted_probabilities.values
-    self.str_print = str_print
-    return predicted_probabilities</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="mrules.templates.baseline.BaselineTemplate" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate">BaselineTemplate</a></b></code>:
+<li><code><b><a title="rulevetting.templates.baseline.BaselineTemplate" href="../../templates/baseline.html#rulevetting.templates.baseline.BaselineTemplate">BaselineTemplate</a></b></code>:
 <ul class="hlist">
-<li><code><a title="mrules.templates.baseline.BaselineTemplate.predict" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate.predict">predict</a></code></li>
-<li><code><a title="mrules.templates.baseline.BaselineTemplate.predict_proba" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate.predict_proba">predict_proba</a></code></li>
-<li><code><a title="mrules.templates.baseline.BaselineTemplate.print_baseline" href="../../templates/baseline.html#mrules.templates.baseline.BaselineTemplate.print_baseline">print_baseline</a></code></li>
+<li><code><a title="rulevetting.templates.baseline.BaselineTemplate.predict" href="../../templates/baseline.html#rulevetting.templates.baseline.BaselineTemplate.predict">predict</a></code></li>
+<li><code><a title="rulevetting.templates.baseline.BaselineTemplate.predict_proba" href="../../templates/baseline.html#rulevetting.templates.baseline.BaselineTemplate.predict_proba">predict_proba</a></code></li>
+<li><code><a title="rulevetting.templates.baseline.BaselineTemplate.print_baseline" href="../../templates/baseline.html#rulevetting.templates.baseline.BaselineTemplate.print_baseline">print_baseline</a></code></li>
 </ul>
 </li>
 </ul>
@@ -216,16 +189,13 @@ Classes that use this template should be called "Baseline"</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="mrules.projects.iai_pecarn" href="index.html">mrules.projects.iai_pecarn</a></code></li>
+<li><code><a title="rulevetting.projects.iai_pecarn" href="index.html">rulevetting.projects.iai_pecarn</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="mrules.projects.iai_pecarn.baseline.Baseline" href="#mrules.projects.iai_pecarn.baseline.Baseline">Baseline</a></code></h4>
-<ul class="">
-<li><code><a title="mrules.projects.iai_pecarn.baseline.Baseline.traverse_rule" href="#mrules.projects.iai_pecarn.baseline.Baseline.traverse_rule">traverse_rule</a></code></li>
-</ul>
+<h4><code><a title="rulevetting.projects.iai_pecarn.baseline.Baseline" href="#rulevetting.projects.iai_pecarn.baseline.Baseline">Baseline</a></code></h4>
 </li>
 </ul>
 </li>

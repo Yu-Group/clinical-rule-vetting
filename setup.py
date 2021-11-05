@@ -18,7 +18,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'autogluon',
-        'imodels>=1.0.1',
+        'imodels',
         'imblearn',
         'matplotlib',
         'numpy',

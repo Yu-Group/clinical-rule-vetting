@@ -11,7 +11,7 @@
 
 This is a *collaborative* repository intended to validate and derive clinical-decision rules. We use a unified  pipeline across a variety of contributed datasets to vet previous modeling practices for clinical decision rules. Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
-# Datasets
+# Rule derivation datasets
 
 | Dataset |  Task                                                        | Size                            | References | Processed |
 | ---------- | ----- | ----------------------------------------------------------- | :-------------------------------: | :--: |
@@ -19,6 +19,10 @@ This is a *collaborative* repository intended to validate and derive clinical-de
 |[tbi_pecarn](rulevetting/projects/tbi_pecarn)| Predict traumatic brain injuries before CT | 42,412 patients, 376 with ciTBI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) | ❌ |
 |[csi_pecarn](rulevetting/projects/csi_pecarn)| Predict cervical spine injury in children | 3,314 patients, 540 with CSI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) |❌|
 |[tig_pecarn](rulevetting/projects/tig_pecarn)| Predict bacterial/non-bacterial infections in febrile infants from RNA transcriptional biosignatures | 279 patients, ? with infection | [🔗](https://pecarn.org/datasets/) |❌|
+|exxagerate| Predict 30-day mortality for acute exacerbations of chronic obstructive pulmonary disease (AECOPD) | 1,696 patients, 17 mortalities | [📄](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8354163/), [🔗](https://data.mendeley.com/datasets/3868pbf375/2) |❌|
+|heart_disease_uci| Predict heart disease presence from basic attributes / screening | 920 patients, 509 with heart disease | [📄](https://www.sciencedirect.com/science/article/abs/pii/0002914989905249), [🔗](https://archive.ics.uci.edu/ml/datasets/Heart+Disease) |❌|
+
+
 
 <p align="center">
     Research paper 📄, Data download link 🔗 
@@ -28,7 +32,7 @@ This is a *collaborative* repository intended to validate and derive clinical-de
 Datasets are all tabular (or at least have interpretable input features), reasonably large (e.g. have at least 100 positive and negative cases), and have a binary outcome. For PECARN datasets, please read and agree to the research data use agreement on the [PECARN website](https://pecarn.org/datasets/).
 
 **Possible data sources**: [PECARN datasets](https://pecarn.org/datasets/) |  [Kaggle datasets](https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22) | [MDCalc](https://www.mdcalc.com/) | [UCI](https://archive.ics.uci.edu/ml/index.php) | [OpenML](https://www.openml.org/home) | [MIMIC](https://physionet.org/content/mimiciv/1.0/) | [UCSF De-ID](https://data.ucsf.edu/research/deid-data)
-**Potential specific datasets**: [EXXAGERATE dataset](https://datasetsearch.research.google.com/search?query=clinical%20rule&docid=L2cvMTFxbWJ5cngxMw%3D%3D) | [UCI heart disease](https://archive.ics.uci.edu/ml/datasets/Heart+Disease) | Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).
+**Potential specific datasets**: Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).
 
 # Contributing checklist
 
@@ -83,6 +87,24 @@ Now run the automatic tests to ensure everything works.
 ```
 pytest --project iai_pecarn
 ```
+
+# Clinical Trial Datasets
+
+| Dataset |  Task                                                        | Size                            | References | Processed |
+| ---------- | ----- | ----------------------------------------------------------- | :-------------------------------: | :--: |
+|bronch_pecarn| Effectiveness of oral dexamethasone for acute bronchiolitisintra-abdominal injury requiring acute intervention before CT |  | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | ✅ |
+| gastro_pecarn | Impact of Emergency Department Probiotic Treatment of Pediatric Gastroenteritis | 886 patients, 376 with ciTBI | [📄](https://trialsjournal.biomedcentral.com/articles/10.1186/1745-6215-15-170), [🔗](https://pecarn.org/datasets/) | ❌ |
+|                                               |                                                              |                                 |                                                              |           |
+|                                               |                                                              |                                 |                                                              |           |
+|                                               |                                                              |                                 |                                                              |           |
+|                                               |                                                              |                                 |                                                              |           |
+
+
+
+<p align="center">
+    Research paper 📄, Data download link 🔗 
+</br>
+</p>
 
 # Reference
 <details>

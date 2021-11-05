@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>mrules.projects.iai_pecarn.dataset API documentation</title>
+<title>rulevetting.projects.iai_pecarn.dataset API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>mrules.projects.iai_pecarn.dataset</code></h1>
+<h1 class="title">Module <code>rulevetting.projects.iai_pecarn.dataset</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -32,21 +32,22 @@ import numpy as np
 import os
 import pandas as pd
 from tqdm import tqdm
+from typing import Dict
 
-import mrules
-import mrules.api.util
-from mrules.projects.iai_pecarn import helper
-from mrules.templates.dataset import DatasetTemplate
+import rulevetting
+import rulevetting.api.util
+from rulevetting.projects.iai_pecarn import helper
+from rulevetting.templates.dataset import DatasetTemplate
 
 
 class Dataset(DatasetTemplate):
-    def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
-        RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), &#39;raw&#39;)
-        os.makedirs(RAW_DATA_PATH, exist_ok=True)
+    def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -&gt; pd.DataFrame:
+        raw_data_path = oj(data_path, self.get_dataset_id(), &#39;raw&#39;)
+        os.makedirs(raw_data_path, exist_ok=True)
 
         # all the fnames to be loaded and searched over
         fnames = sorted([
-            fname for fname in os.listdir(RAW_DATA_PATH)
+            fname for fname in os.listdir(raw_data_path)
             if &#39;csv&#39; in fname
                and not &#39;formats&#39; in fname
                and not &#39;form6&#39; in fname])  # remove outcome
@@ -55,9 +56,9 @@ class Dataset(DatasetTemplate):
         r = {}
         print(&#39;read all the csvs...&#39;, fnames)
         if len(fnames) == 0:
-            print(&#39;no csvs found in path&#39;, RAW_DATA_PATH)
+            print(&#39;no csvs found in path&#39;, raw_data_path)
         for fname in tqdm(fnames):
-            df = pd.read_csv(oj(RAW_DATA_PATH, fname), encoding=&#34;ISO-8859-1&#34;)
+            df = pd.read_csv(oj(raw_data_path, fname), encoding=&#34;ISO-8859-1&#34;)
             df.rename(columns={&#39;SubjectID&#39;: &#39;id&#39;}, inplace=True)
             df.rename(columns={&#39;subjectid&#39;: &#39;id&#39;}, inplace=True)
             assert (&#39;id&#39; in df.keys())
@@ -65,12 +66,8 @@ class Dataset(DatasetTemplate):
 
         # loop over the relevant forms and merge into one big df
         fnames_small = [fname for fname in fnames
-                        if &#39;form1&#39; in fname
-                        or &#39;form2&#39; in fname
-                        or &#39;form4&#39; in fname
-                        or &#39;form5&#39; in fname
-                        or &#39;form7&#39; in fname
-                        ]
+                        for s in [&#39;form1&#39;, &#39;form2&#39;, &#39;form4&#39;, &#39;form5&#39;, &#39;form7&#39;]
+                        if s in fname]
         df_features = r[fnames[0]]
         print(&#39;merge all the dfs...&#39;)
         for i, fname in tqdm(enumerate(fnames_small)):
@@ -82,19 +79,17 @@ class Dataset(DatasetTemplate):
             # don&#39;t save duplicate columns
             df_features = df_features.set_index(&#39;id&#39;).combine_first(df2.set_index(&#39;id&#39;)).reset_index()
 
-        df_outcomes = helper.get_outcomes(RAW_DATA_PATH)
+        df_outcomes = helper.get_outcomes(raw_data_path)
 
         df = pd.merge(df_features, df_outcomes, on=&#39;id&#39;, how=&#39;left&#39;)
         df = helper.rename_values(df)  # rename the features by their meaning
 
         return df
 
-    def preprocess_data(self, cleaned_data: pd.DataFrame) -&gt; pd.DataFrame:
+    def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
 
         # drop cols with vals missing this percent of the time
-        FRAC_MISSING_ALLOWED = 0.05
-        NUM_PATIENTS = 12044
-        df = cleaned_data.dropna(axis=1, thresh=(1 - FRAC_MISSING_ALLOWED) * NUM_PATIENTS)
+        df = cleaned_data.dropna(axis=1, thresh=(1 - kwargs[&#39;frac_missing_allowed&#39;]) * cleaned_data.shape[0])
 
         # impute missing values
         # fill in values for some vars from unknown -&gt; None
@@ -108,13 +103,19 @@ class Dataset(DatasetTemplate):
 
         return df
 
-    def extract_features(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
+    def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
         # add engineered featuures
         df = helper.derived_feats(preprocessed_data)
+
         # convert feats to dummy
         df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
+
         # remove any col that is all 0s
         df = df.loc[:, (df != 0).any(axis=0)]
+
+        # remove the _no columns
+        if kwargs[&#39;drop_negative_columns&#39;]:
+            df.drop([k for k in df.keys() if k.endswith(&#39;_no&#39;)], inplace=True)
 
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
@@ -126,11 +127,11 @@ class Dataset(DatasetTemplate):
                             &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
         base_feat_names += self.get_meta_keys()
-        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names, base_feat_names=base_feat_names) + [
-            &#39;outcome&#39;]
+        feats = rulevetting.api.util.get_feat_names_from_base_feats(feat_names,
+                                                                    base_feat_names=base_feat_names) + [&#39;outcome&#39;]
         return df[feats]
 
-    def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
+    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
         return np.split(
             preprocessed_data.sample(frac=1, random_state=42),
             [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
@@ -144,11 +145,26 @@ class Dataset(DatasetTemplate):
     def get_meta_keys(self) -&gt; list:
         return [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;]  # keys which are useful but not used for prediction
 
+    def get_judgement_calls_dictionary(self) -&gt; Dict[str, Dict[str, list]]:
+        return {
+            &#39;clean_data&#39;: {},
+            &#39;preprocess_data&#39;: {
+                # drop cols with vals missing this percent of the time
+                &#39;frac_missing_allowed&#39;: [0.05, 0.03, 0.10],
+            },
+            &#39;extract_features&#39;: {
+                # whether to drop columns with suffix _no
+                &#39;drop_negative_columns&#39;: [False, True],  # default value comes first
+            },
+            &#39;split_data&#39;: {},
+        }
+
 
 if __name__ == &#39;__main__&#39;:
     dset = Dataset()
     df_train, df_tune, df_test = dset.get_data(save_csvs=True)
-    print(&#39;successfuly processed data\nshapes:&#39;, df_train.shape, df_tune.shape, df_test.shape,
+    print(&#39;successfuly processed data\nshapes:&#39;,
+          df_train.shape, df_tune.shape, df_test.shape,
           &#39;\nfeatures:&#39;, list(df_train.columns))</code></pre>
 </details>
 </section>
@@ -161,23 +177,24 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="mrules.projects.iai_pecarn.dataset.Dataset"><code class="flex name class">
+<dt id="rulevetting.projects.iai_pecarn.dataset.Dataset"><code class="flex name class">
 <span>class <span class="ident">Dataset</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Classes that use this template should be called "Dataset"</p></div>
+<div class="desc"><p>Classes that use this template should be called "Dataset"
+All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Dataset(DatasetTemplate):
-    def clean_data(self, data_path: str = mrules.DATA_PATH) -&gt; pd.DataFrame:
-        RAW_DATA_PATH = oj(data_path, self.get_dataset_id(), &#39;raw&#39;)
-        os.makedirs(RAW_DATA_PATH, exist_ok=True)
+    def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -&gt; pd.DataFrame:
+        raw_data_path = oj(data_path, self.get_dataset_id(), &#39;raw&#39;)
+        os.makedirs(raw_data_path, exist_ok=True)
 
         # all the fnames to be loaded and searched over
         fnames = sorted([
-            fname for fname in os.listdir(RAW_DATA_PATH)
+            fname for fname in os.listdir(raw_data_path)
             if &#39;csv&#39; in fname
                and not &#39;formats&#39; in fname
                and not &#39;form6&#39; in fname])  # remove outcome
@@ -186,9 +203,9 @@ if __name__ == &#39;__main__&#39;:
         r = {}
         print(&#39;read all the csvs...&#39;, fnames)
         if len(fnames) == 0:
-            print(&#39;no csvs found in path&#39;, RAW_DATA_PATH)
+            print(&#39;no csvs found in path&#39;, raw_data_path)
         for fname in tqdm(fnames):
-            df = pd.read_csv(oj(RAW_DATA_PATH, fname), encoding=&#34;ISO-8859-1&#34;)
+            df = pd.read_csv(oj(raw_data_path, fname), encoding=&#34;ISO-8859-1&#34;)
             df.rename(columns={&#39;SubjectID&#39;: &#39;id&#39;}, inplace=True)
             df.rename(columns={&#39;subjectid&#39;: &#39;id&#39;}, inplace=True)
             assert (&#39;id&#39; in df.keys())
@@ -196,12 +213,8 @@ if __name__ == &#39;__main__&#39;:
 
         # loop over the relevant forms and merge into one big df
         fnames_small = [fname for fname in fnames
-                        if &#39;form1&#39; in fname
-                        or &#39;form2&#39; in fname
-                        or &#39;form4&#39; in fname
-                        or &#39;form5&#39; in fname
-                        or &#39;form7&#39; in fname
-                        ]
+                        for s in [&#39;form1&#39;, &#39;form2&#39;, &#39;form4&#39;, &#39;form5&#39;, &#39;form7&#39;]
+                        if s in fname]
         df_features = r[fnames[0]]
         print(&#39;merge all the dfs...&#39;)
         for i, fname in tqdm(enumerate(fnames_small)):
@@ -213,19 +226,17 @@ if __name__ == &#39;__main__&#39;:
             # don&#39;t save duplicate columns
             df_features = df_features.set_index(&#39;id&#39;).combine_first(df2.set_index(&#39;id&#39;)).reset_index()
 
-        df_outcomes = helper.get_outcomes(RAW_DATA_PATH)
+        df_outcomes = helper.get_outcomes(raw_data_path)
 
         df = pd.merge(df_features, df_outcomes, on=&#39;id&#39;, how=&#39;left&#39;)
         df = helper.rename_values(df)  # rename the features by their meaning
 
         return df
 
-    def preprocess_data(self, cleaned_data: pd.DataFrame) -&gt; pd.DataFrame:
+    def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
 
         # drop cols with vals missing this percent of the time
-        FRAC_MISSING_ALLOWED = 0.05
-        NUM_PATIENTS = 12044
-        df = cleaned_data.dropna(axis=1, thresh=(1 - FRAC_MISSING_ALLOWED) * NUM_PATIENTS)
+        df = cleaned_data.dropna(axis=1, thresh=(1 - kwargs[&#39;frac_missing_allowed&#39;]) * cleaned_data.shape[0])
 
         # impute missing values
         # fill in values for some vars from unknown -&gt; None
@@ -239,13 +250,19 @@ if __name__ == &#39;__main__&#39;:
 
         return df
 
-    def extract_features(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
+    def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
         # add engineered featuures
         df = helper.derived_feats(preprocessed_data)
+
         # convert feats to dummy
         df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
+
         # remove any col that is all 0s
         df = df.loc[:, (df != 0).any(axis=0)]
+
+        # remove the _no columns
+        if kwargs[&#39;drop_negative_columns&#39;]:
+            df.drop([k for k in df.keys() if k.endswith(&#39;_no&#39;)], inplace=True)
 
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
@@ -257,11 +274,11 @@ if __name__ == &#39;__main__&#39;:
                             &#39;MOI&#39;, &#39;RtCostalTender&#39;, &#39;SeatBeltSign&#39;, &#39;ThoracicTender&#39;,
                             &#39;ThoracicTrauma&#39;, &#39;VomitWretch&#39;, &#39;Age&#39;, &#39;Sex&#39;]
         base_feat_names += self.get_meta_keys()
-        feats = mrules.api.util.get_feat_names_from_base_feats(feat_names, base_feat_names=base_feat_names) + [
-            &#39;outcome&#39;]
+        feats = rulevetting.api.util.get_feat_names_from_base_feats(feat_names,
+                                                                    base_feat_names=base_feat_names) + [&#39;outcome&#39;]
         return df[feats]
 
-    def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
+    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
         return np.split(
             preprocessed_data.sample(frac=1, random_state=42),
             [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
@@ -273,24 +290,39 @@ if __name__ == &#39;__main__&#39;:
         return &#39;iai_pecarn&#39;  # return the name of the dataset id
 
     def get_meta_keys(self) -&gt; list:
-        return [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;]  # keys which are useful but not used for prediction</code></pre>
+        return [&#39;Race&#39;, &#39;InitHeartRate&#39;, &#39;InitSysBPRange&#39;]  # keys which are useful but not used for prediction
+
+    def get_judgement_calls_dictionary(self) -&gt; Dict[str, Dict[str, list]]:
+        return {
+            &#39;clean_data&#39;: {},
+            &#39;preprocess_data&#39;: {
+                # drop cols with vals missing this percent of the time
+                &#39;frac_missing_allowed&#39;: [0.05, 0.03, 0.10],
+            },
+            &#39;extract_features&#39;: {
+                # whether to drop columns with suffix _no
+                &#39;drop_negative_columns&#39;: [False, True],  # default value comes first
+            },
+            &#39;split_data&#39;: {},
+        }</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="mrules.templates.dataset.DatasetTemplate" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate">DatasetTemplate</a></li>
+<li><a title="rulevetting.templates.dataset.DatasetTemplate" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate">DatasetTemplate</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="mrules.templates.dataset.DatasetTemplate" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate">DatasetTemplate</a></b></code>:
+<li><code><b><a title="rulevetting.templates.dataset.DatasetTemplate" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate">DatasetTemplate</a></b></code>:
 <ul class="hlist">
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.clean_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.clean_data">clean_data</a></code></li>
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.extract_features" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.extract_features">extract_features</a></code></li>
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_data">get_data</a></code></li>
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_dataset_id" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_dataset_id">get_dataset_id</a></code></li>
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_meta_keys" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_meta_keys">get_meta_keys</a></code></li>
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.get_outcome_name" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.get_outcome_name">get_outcome_name</a></code></li>
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.preprocess_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.preprocess_data">preprocess_data</a></code></li>
-<li><code><a title="mrules.templates.dataset.DatasetTemplate.split_data" href="../../templates/dataset.html#mrules.templates.dataset.DatasetTemplate.split_data">split_data</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.clean_data" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.clean_data">clean_data</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.extract_features" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.extract_features">extract_features</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.get_data" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.get_data">get_data</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.get_dataset_id" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.get_dataset_id">get_dataset_id</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.get_judgement_calls_dictionary" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.get_judgement_calls_dictionary">get_judgement_calls_dictionary</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.get_meta_keys" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.get_meta_keys">get_meta_keys</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.get_outcome_name" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.get_outcome_name">get_outcome_name</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.preprocess_data" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.preprocess_data">preprocess_data</a></code></li>
+<li><code><a title="rulevetting.templates.dataset.DatasetTemplate.split_data" href="../../templates/dataset.html#rulevetting.templates.dataset.DatasetTemplate.split_data">split_data</a></code></li>
 </ul>
 </li>
 </ul>
@@ -306,13 +338,13 @@ if __name__ == &#39;__main__&#39;:
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="mrules.projects.iai_pecarn" href="index.html">mrules.projects.iai_pecarn</a></code></li>
+<li><code><a title="rulevetting.projects.iai_pecarn" href="index.html">rulevetting.projects.iai_pecarn</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="mrules.projects.iai_pecarn.dataset.Dataset" href="#mrules.projects.iai_pecarn.dataset.Dataset">Dataset</a></code></h4>
+<h4><code><a title="rulevetting.projects.iai_pecarn.dataset.Dataset" href="#rulevetting.projects.iai_pecarn.dataset.Dataset">Dataset</a></code></h4>
 </li>
 </ul>
 </li>
