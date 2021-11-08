@@ -92,12 +92,8 @@ pytest --project iai_pecarn
 
 | Dataset |  Task                                                        | Size                            | References | Processed |
 | ---------- | ----- | ----------------------------------------------------------- | :-------------------------------: | :--: |
-|bronch_pecarn| Effectiveness of oral dexamethasone for acute bronchiolitisintra-abdominal injury requiring acute intervention before CT |  | [📄](https://pubmed.ncbi.nlm.nih.gov/23375510/), [🔗](https://pecarn.org/datasets/) | ✅ |
-| gastro_pecarn | Impact of Emergency Department Probiotic Treatment of Pediatric Gastroenteritis | 886 patients, 376 with ciTBI | [📄](https://trialsjournal.biomedcentral.com/articles/10.1186/1745-6215-15-170), [🔗](https://pecarn.org/datasets/) | ❌ |
-|                                               |                                                              |                                 |                                                              |           |
-|                                               |                                                              |                                 |                                                              |           |
-|                                               |                                                              |                                 |                                                              |           |
-|                                               |                                                              |                                 |                                                              |           |
+|bronch_pecarn| Effectiveness of oral dexamethasone for acute bronchiolitisintra-abdominal injury requiring acute intervention before CT | 600 patients, 50% control | [📄](https://pubmed.ncbi.nlm.nih.gov/17652648/), [🔗](https://pecarn.org/datasets/) | ❌ |
+| gastro_pecarn | Impact of Emergency Department Probiotic Treatment of Pediatric Gastroenteritis | 886 patients, 50% control | [📄](https://trialsjournal.biomedcentral.com/articles/10.1186/1745-6215-15-170), [🔗](https://pecarn.org/datasets/) | ❌ |
 
 
 
