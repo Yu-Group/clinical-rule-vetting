@@ -73,11 +73,11 @@ To contribute a new project (e.g. a new dataset + modeling), create a pull reque
 # Installation
 
 Note: requires python 3.7 and pytest (for running the automated tests). 
-It is best practice to create a virtualenv or pipenv for this project.
+It is best practice to create a [venv](https://docs.python.org/3/tutorial/venv.html) or pipenv for this project.
 
 ```bash
-git clone https://github.com/Yu-Group/medical-rules
-cd medical-rules
+git clone https://github.com/Yu-Group/rule-vetting
+cd rule-vetting
 python setup.py sdist
 pip install -e .
 ```
