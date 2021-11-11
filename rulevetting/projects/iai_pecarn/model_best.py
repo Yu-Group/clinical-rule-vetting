@@ -4,17 +4,13 @@ import pandas as pd
 from rulevetting.templates.model import ModelTemplate
 
 
-class Baseline(ModelTemplate):
+class Model(ModelTemplate):
     def __init__(self):
         # query for each rule + resulting predicted probability
         self.rules = [
             ('AbdTrauma_or_SeatBeltSign_yes == 1', 5.7),
             ('GCSScore < 14', 4.6),
             ('AbdTenderDegree_None == 0', 1.4),
-            ('ThoracicTrauma_yes == 1', 0.6),
-            ('AbdomenPain_yes == 1', 0.7),
-            ('DecrBreathSound_yes == 1', 2.9),
-            ('VomitWretch_yes == 1', 0.5),
 
             # final condition is just something that is always true
             ('GCSScore == GCSScore', 0.1),
@@ -46,9 +42,22 @@ class Baseline(ModelTemplate):
         return (predicted_probabilities > 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self._traverse_rule(df_features) / 100
+        predicted_probabilities = self._traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_model(self, df_features):
         self._traverse_rule(df_features)
         return self.str_print
+
+
+if __name__ == '__main__':
+    from rulevetting.projects.iai_pecarn.dataset import Dataset
+
+    df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
+    df_full = pd.concat((df_train, df_tune, df_test))
+    model = Model()
+    preds_proba = model.predict_proba(df_full)
+    print(model.print_model(df_full))
+    # preds = baseline.predict(df_train)
+    # print('preds_proba', preds_proba.shape, preds_proba[:5])
+    # print('preds', preds.shape, preds[:5])

@@ -22,13 +22,11 @@ revealOptions:
 ## logistics
 
 - deadline: dec 12
-- meeting with clinician: once week of 12/15, once week of 12/295
+- meeting with clinician: once week of 11/15, once week of 11/29
 
 
 
-# project details
-
-## helpful links
+# project overview
 
 1. [project checklist](https://github.com/Yu-Group/rule-vetting#contributing-checklist)
 2. [lab writeup details](https://github.com/Yu-Group/rule-vetting/blob/master/docs/lab_writeup.md)
@@ -36,11 +34,12 @@ revealOptions:
 
 ## understanding the problem
 
-- outcome is already selected for you
+- outcome/data are already selected for you
+- what is important to capture in a CDR for this problem?
 
 ## understanding the data
 
-- what features might be useful?
+- what features are reliable/useful/predictive?
 
 ## modeling
 
@@ -49,45 +48,98 @@ revealOptions:
 ## writeup
 
 - checking stability and judgement-calls
+- comparison with baseline model
 
-## 
 
-# data-science in python
+
+# basic setup
+
+## fork the repo
+
+make fork private + include your teammates
+
+![Screen Shot 2021-11-11 at 12.32.58 PM](assets_files/Screen%20Shot%202021-11-11%20at%2012.32.58%20PM.png)
 
 ## setting up python
 
-- `python --version` should give 3.7 or higher (might need to type `python3`)
+- `python --version` should give 3.6 or higher (might need to type `python3`)
+
 - easier if you install things by making a [venv](https://docs.python.org/3/tutorial/venv.html)
-- you can use any editor, maybe jupyterlab or [pycharm](https://www.jetbrains.com/pycharm/)
-- ![pycharm](assets_files/pycharm.png)
+
+  ```C
+  python3 -m venv rule-env  // create the env
+  source rule-env/bin/activate  // activate the env
+  ```
 
 ## installation
 
-```bash
-git clone https://github.com/Yu-Group/rule-vetting
+```python
+git clone https://github.com/Yu-Group/rule-vetting  // clone the repo
 cd rule-vetting
-python setup.py sdist
-pip install -e .
+python setup.py sdist  // install all dependencies
+pip install -e .  // make package editable
+```
+
+## editing in python
+
+you can use any editor, maybe [jupyterlab](https://jupyterlab.readthedocs.io/en/stable/) or [pycharm](https://www.jetbrains.com/pycharm/)
+
+![pycharm](assets_files/pycharm.png)
+
+# core data-science packages in python
+
+pandas, numpy, sklearn, seaborn/matplotlib
+
+## [pandas](https://pandas.pydata.org/)
+
+![pandas](assets_files/pandas.png)
+
+
+
+## [numpy](https://numpy.org/)
+
+![Screen Shot 2021-11-10 at 11.58.54 AM](assets_files/Screen%20Shot%202021-11-10%20at%2011.58.54%20AM.png)
+
+## [seaborn](https://seaborn.pydata.org/) / [matplotlib](https://matplotlib.org/)
+
+```python
+sns.lmplot(x="x", y="y", col="dataset", hue="dataset", data=df,
+           col_wrap=2, ci=None, palette="muted", height=4,
+           scatter_kws={"s": 50, "alpha": 1})
 ```
 
 
 
-## core packages
-
-- numpy
-- pandas
+![Screen Shot 2021-11-10 at 12.01.27 PM](assets_files/Screen%20Shot%202021-11-10%20at%2012.01.27%20PM.png)
 
 
+
+## [scikit-learn](https://scikit-learn.org/stable/index.html)
+
+![](https://scikit-learn.org/stable/_static/ml_map.png)
+
+
+
+## scikit-learn example
+
+```python
+from sklearn import tree
+X = [[0, 0], [1, 1]]
+Y = [0, 1]
+clf = tree.DecisionTreeClassifier()
+clf = clf.fit(X, Y)
+clf.predict([[2., 2.]])
+```
 
 # custom CDR packages
 
-## 🔎 imodels
+## 🔎 [imodels](https://github.com/csinva/imodels)
 
 ![Screen Shot 2021-11-03 at 11.29.24 AM](assets_files/Screen%20Shot%202021-11-03%20at%2011.29.24%20AM.png)
 
 
 
-## usage
+## imodels usage
 
 ```python
 from imodels import CorelsRuleListClassifier
@@ -104,3 +156,34 @@ print(model)
 
 package for facilitating PCS analysis, especially stability
 
+## vflow usage
+
+- implemented in the dataset template - will help speed things up for you
+
+# project specifics
+
+[project checklist](https://github.com/Yu-Group/rule-vetting#contributing-checklist)
+
+
+
+## quick start
+
+- look at the example project ([iai_pecarn](https://github.com/Yu-Group/rule-vetting/tree/master/rulevetting/projects/iai_pecarn))
+- look at the template files
+- probably just start with some notebooks and then implement template functions
+
+
+
+## understanding the template
+
+![Screen Shot 2021-11-11 at 11.23.43 AM](assets_files/Screen%20Shot%202021-11-11%20at%2011.23.43%20AM.png)
+
+## specifying judgement calls
+
+![Screen Shot 2021-11-11 at 11.24.35 AM](assets_files/Screen%20Shot%202021-11-11%20at%2011.24.35%20AM.png)
+
+
+
+## ex function with a judgement call
+
+![Screen Shot 2021-11-11 at 11.25.27 AM](assets_files/Screen%20Shot%202021-11-11%20at%2011.25.27%20AM.png)

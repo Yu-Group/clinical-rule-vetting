@@ -2,9 +2,9 @@ import pandas as pd
 from abc import abstractmethod
 
 
-class BaselineTemplate:
-    """Class for implementing baseline similar to sklearn model (but without fit method).
-    Classes that use this template should be called "Baseline"
+class ModelTemplate:
+    """Class for implementing model similar to sklearn model (but without fit method).
+    Classes that use this template should be called "Model" for a new model or "Baseline" for a reference model.
     """
 
     @abstractmethod
@@ -41,10 +41,10 @@ class BaselineTemplate:
         """
         return NotImplemented
 
-    def print_baseline(self, df_features: pd.DataFrame):
-        """Return string of the baseline model, which includes the number of patients falling into each subgroup.
+    def print_model(self, df_features: pd.DataFrame):
+        """Return string of the model, which includes the number of patients falling into each subgroup.
         Note this should be the same as the hardcoded values used in the predict function.
-        However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+        If the model is the baseline used in a paper, it should match it as closely as possible.
 
         Params
         ------

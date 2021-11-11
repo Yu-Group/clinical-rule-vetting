@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>rulevetting.projects.iai_pecarn.baseline API documentation</title>
+<title>rulevetting.projects.iai_pecarn.model_best API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>rulevetting.projects.iai_pecarn.baseline</code></h1>
+<h1 class="title">Module <code>rulevetting.projects.iai_pecarn.model_best</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -32,17 +32,13 @@ import pandas as pd
 from rulevetting.templates.model import ModelTemplate
 
 
-class Baseline(ModelTemplate):
+class Model(ModelTemplate):
     def __init__(self):
         # query for each rule + resulting predicted probability
         self.rules = [
             (&#39;AbdTrauma_or_SeatBeltSign_yes == 1&#39;, 5.7),
             (&#39;GCSScore &lt; 14&#39;, 4.6),
             (&#39;AbdTenderDegree_None == 0&#39;, 1.4),
-            (&#39;ThoracicTrauma_yes == 1&#39;, 0.6),
-            (&#39;AbdomenPain_yes == 1&#39;, 0.7),
-            (&#39;DecrBreathSound_yes == 1&#39;, 2.9),
-            (&#39;VomitWretch_yes == 1&#39;, 0.5),
 
             # final condition is just something that is always true
             (&#39;GCSScore == GCSScore&#39;, 0.1),
@@ -74,12 +70,25 @@ class Baseline(ModelTemplate):
         return (predicted_probabilities &gt; 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self._traverse_rule(df_features) / 100
+        predicted_probabilities = self._traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_model(self, df_features):
         self._traverse_rule(df_features)
-        return self.str_print</code></pre>
+        return self.str_print
+
+
+if __name__ == &#39;__main__&#39;:
+    from rulevetting.projects.iai_pecarn.dataset import Dataset
+
+    df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
+    df_full = pd.concat((df_train, df_tune, df_test))
+    model = Model()
+    preds_proba = model.predict_proba(df_full)
+    print(model.print_model(df_full))
+    # preds = baseline.predict(df_train)
+    # print(&#39;preds_proba&#39;, preds_proba.shape, preds_proba[:5])
+    # print(&#39;preds&#39;, preds.shape, preds[:5])</code></pre>
 </details>
 </section>
 <section>
@@ -91,8 +100,8 @@ class Baseline(ModelTemplate):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="rulevetting.projects.iai_pecarn.baseline.Baseline"><code class="flex name class">
-<span>class <span class="ident">Baseline</span></span>
+<dt id="rulevetting.projects.iai_pecarn.model_best.Model"><code class="flex name class">
+<span>class <span class="ident">Model</span></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Class for implementing model similar to sklearn model (but without fit method).
@@ -101,17 +110,13 @@ Classes that use this template should be called "Model" for a new model or "Base
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Baseline(ModelTemplate):
+<pre><code class="python">class Model(ModelTemplate):
     def __init__(self):
         # query for each rule + resulting predicted probability
         self.rules = [
             (&#39;AbdTrauma_or_SeatBeltSign_yes == 1&#39;, 5.7),
             (&#39;GCSScore &lt; 14&#39;, 4.6),
             (&#39;AbdTenderDegree_None == 0&#39;, 1.4),
-            (&#39;ThoracicTrauma_yes == 1&#39;, 0.6),
-            (&#39;AbdomenPain_yes == 1&#39;, 0.7),
-            (&#39;DecrBreathSound_yes == 1&#39;, 2.9),
-            (&#39;VomitWretch_yes == 1&#39;, 0.5),
 
             # final condition is just something that is always true
             (&#39;GCSScore == GCSScore&#39;, 0.1),
@@ -143,7 +148,7 @@ Classes that use this template should be called "Model" for a new model or "Base
         return (predicted_probabilities &gt; 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self._traverse_rule(df_features) / 100
+        predicted_probabilities = self._traverse_rule(df_features)
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_model(self, df_features):
@@ -182,7 +187,7 @@ Classes that use this template should be called "Model" for a new model or "Base
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="rulevetting.projects.iai_pecarn.baseline.Baseline" href="#rulevetting.projects.iai_pecarn.baseline.Baseline">Baseline</a></code></h4>
+<h4><code><a title="rulevetting.projects.iai_pecarn.model_best.Model" href="#rulevetting.projects.iai_pecarn.model_best.Model">Model</a></code></h4>
 </li>
 </ul>
 </li>

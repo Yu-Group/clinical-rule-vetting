@@ -11,7 +11,9 @@ Do write comments in the code - we will be checking these!
 
 **Handy links**: Bin’s data wisdom for data science [blog post](http://www.odbms.org/2015/04/data-wisdom-for-data-science/)
 
-## 1. Domain problem to solve -- Aaron
+## 1. Domain problem to solve
+
+How can we best vet and/or improve the clinical decision rule for your given problem? Most importantly, the clinical decision rule should be highly predictive and minimize the amount of missed diagnoses (i.e. have a very high sensitivity). It should also be easy-to-use, using variables that clinicians can readily have access to when making their decisions. Finally, the interpretability of the rule helps to check whether its predictions will make sense for new patients and makes it easier to apply in new settings.
 
 ## 2. Data Collection
 What are the most relevant data to collect to answer the question in (1)?

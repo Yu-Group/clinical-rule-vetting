@@ -10,7 +10,7 @@ import rulevetting.api.util
 DATA_PATH = oj(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 
 
-def test_baselines(project):
+def test_models(project):
     """Check that each baseline is implemented properly
     """
     if not project == 'None':
@@ -30,9 +30,13 @@ def test_baselines(project):
         preds_proba = baseline.predict_proba(df_tune)
         assert len(preds_proba.shape) == 2
         assert preds_proba.shape[1] == 2
+        assert preds_proba.shape[0] == df_tune.shape[0]
+        assert np.max(preds_proba) <= 1, 'predicted probabilities must be <= 1'
+        assert np.min(preds_proba) >= 0, 'predicted probabilities must be >= 0'
 
         preds = baseline.predict(df_tune)
         assert np.array_equal(preds, preds.astype(bool)), 'preds values must only be 0 or 1!'
+        assert preds.shape[0] == df_tune.shape[0]
 
-        s = baseline.print_baseline(df_tune)
+        s = baseline.print_model(df_tune)
         assert isinstance(s, str)

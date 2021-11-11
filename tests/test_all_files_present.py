@@ -22,4 +22,5 @@ def test_all_files_present(project):
         assert 'data_dictionary.md' in project_files
         assert '__init__.py' in project_files
         assert 'dataset.py' in project_files
+        assert 'model_best.py' in project_files
         assert 'baseline.py' in project_files

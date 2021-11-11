@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>rulevetting.templates.baseline API documentation</title>
+<title>rulevetting.templates.model API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>rulevetting.templates.baseline</code></h1>
+<h1 class="title">Module <code>rulevetting.templates.model</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -31,8 +31,8 @@ from abc import abstractmethod
 
 
 class ModelTemplate:
-    &#34;&#34;&#34;Class for implementing baseline similar to sklearn model (but without fit method).
-    Classes that use this template should be called &#34;Model&#34;
+    &#34;&#34;&#34;Class for implementing model similar to sklearn model (but without fit method).
+    Classes that use this template should be called &#34;Model&#34; for a new model or &#34;Baseline&#34; for a reference model.
     &#34;&#34;&#34;
 
     @abstractmethod
@@ -69,10 +69,10 @@ class ModelTemplate:
         &#34;&#34;&#34;
         return NotImplemented
 
-    def print_baseline(self, df_features: pd.DataFrame):
-        &#34;&#34;&#34;Return string of the baseline model, which includes the number of patients falling into each subgroup.
+    def print_model(self, df_features: pd.DataFrame):
+        &#34;&#34;&#34;Return string of the model, which includes the number of patients falling into each subgroup.
         Note this should be the same as the hardcoded values used in the predict function.
-        However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+        If the model is the baseline used in a paper, it should match it as closely as possible.
 
         Params
         ------
@@ -96,19 +96,19 @@ class ModelTemplate:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="rulevetting.templates.baseline.BaselineTemplate"><code class="flex name class">
+<dt id="rulevetting.templates.model.ModelTemplate"><code class="flex name class">
 <span>class <span class="ident">ModelTemplate</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Class for implementing baseline similar to sklearn model (but without fit method).
-Classes that use this template should be called "Model"</p></div>
+<div class="desc"><p>Class for implementing model similar to sklearn model (but without fit method).
+Classes that use this template should be called "Model" for a new model or "Baseline" for a reference model.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ModelTemplate:
-    &#34;&#34;&#34;Class for implementing baseline similar to sklearn model (but without fit method).
-    Classes that use this template should be called &#34;Model&#34;
+    &#34;&#34;&#34;Class for implementing model similar to sklearn model (but without fit method).
+    Classes that use this template should be called &#34;Model&#34; for a new model or &#34;Baseline&#34; for a reference model.
     &#34;&#34;&#34;
 
     @abstractmethod
@@ -145,10 +145,10 @@ Classes that use this template should be called "Model"</p></div>
         &#34;&#34;&#34;
         return NotImplemented
 
-    def print_baseline(self, df_features: pd.DataFrame):
-        &#34;&#34;&#34;Return string of the baseline model, which includes the number of patients falling into each subgroup.
+    def print_model(self, df_features: pd.DataFrame):
+        &#34;&#34;&#34;Return string of the model, which includes the number of patients falling into each subgroup.
         Note this should be the same as the hardcoded values used in the predict function.
-        However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+        If the model is the baseline used in a paper, it should match it as closely as possible.
 
         Params
         ------
@@ -164,11 +164,12 @@ Classes that use this template should be called "Model"</p></div>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="rulevetting.projects.iai_pecarn.baseline.Model" href="../projects/iai_pecarn/baseline.html#rulevetting.projects.iai_pecarn.baseline.Baseline">Model</a></li>
+<li><a title="rulevetting.projects.iai_pecarn.baseline.Baseline" href="../projects/iai_pecarn/baseline.html#rulevetting.projects.iai_pecarn.baseline.Baseline">Baseline</a></li>
+<li><a title="rulevetting.projects.iai_pecarn.model_best.Model" href="../projects/iai_pecarn/model_best.html#rulevetting.projects.iai_pecarn.model_best.Model">Model</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="rulevetting.templates.baseline.BaselineTemplate.predict"><code class="name flex">
+<dt id="rulevetting.templates.model.ModelTemplate.predict"><code class="name flex">
 <span>def <span class="ident">predict</span></span>(<span>self, df_features: pandas.core.frame.DataFrame)</span>
 </code></dt>
 <dd>
@@ -202,7 +203,7 @@ def predict(self, df_features: pd.DataFrame):
     return NotImplemented</code></pre>
 </details>
 </dd>
-<dt id="rulevetting.templates.baseline.BaselineTemplate.predict_proba"><code class="name flex">
+<dt id="rulevetting.templates.model.ModelTemplate.predict_proba"><code class="name flex">
 <span>def <span class="ident">predict_proba</span></span>(<span>self, df_features: pandas.core.frame.DataFrame)</span>
 </code></dt>
 <dd>
@@ -240,13 +241,13 @@ def predict_proba(self, df_features: pd.DataFrame):
     return NotImplemented</code></pre>
 </details>
 </dd>
-<dt id="rulevetting.templates.baseline.BaselineTemplate.print_baseline"><code class="name flex">
-<span>def <span class="ident">print_baseline</span></span>(<span>self, df_features: pandas.core.frame.DataFrame)</span>
+<dt id="rulevetting.templates.model.ModelTemplate.print_model"><code class="name flex">
+<span>def <span class="ident">print_model</span></span>(<span>self, df_features: pandas.core.frame.DataFrame)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Return string of the baseline model, which includes the number of patients falling into each subgroup.
+<div class="desc"><p>Return string of the model, which includes the number of patients falling into each subgroup.
 Note this should be the same as the hardcoded values used in the predict function.
-However, it is possible that they are slightly different, in case the data does not exactly match the original paper.</p>
+If the model is the baseline used in a paper, it should match it as closely as possible.</p>
 <h2 id="params">Params</h2>
 <p>df_features: pd.DataFrame
 Path to all data files</p>
@@ -259,10 +260,10 @@ Path to all data files</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def print_baseline(self, df_features: pd.DataFrame):
-    &#34;&#34;&#34;Return string of the baseline model, which includes the number of patients falling into each subgroup.
+<pre><code class="python">def print_model(self, df_features: pd.DataFrame):
+    &#34;&#34;&#34;Return string of the model, which includes the number of patients falling into each subgroup.
     Note this should be the same as the hardcoded values used in the predict function.
-    However, it is possible that they are slightly different, in case the data does not exactly match the original paper.
+    If the model is the baseline used in a paper, it should match it as closely as possible.
 
     Params
     ------
@@ -296,11 +297,11 @@ Path to all data files</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="rulevetting.templates.baseline.ModelTemplate" href="#rulevetting.templates.baseline.BaselineTemplate">ModelTemplate</a></code></h4>
+<h4><code><a title="rulevetting.templates.model.ModelTemplate" href="#rulevetting.templates.model.ModelTemplate">ModelTemplate</a></code></h4>
 <ul class="">
-<li><code><a title="rulevetting.templates.baseline.ModelTemplate.predict" href="#rulevetting.templates.baseline.BaselineTemplate.predict">predict</a></code></li>
-<li><code><a title="rulevetting.templates.baseline.ModelTemplate.predict_proba" href="#rulevetting.templates.baseline.BaselineTemplate.predict_proba">predict_proba</a></code></li>
-<li><code><a title="rulevetting.templates.baseline.ModelTemplate.print_baseline" href="#rulevetting.templates.baseline.BaselineTemplate.print_baseline">print_baseline</a></code></li>
+<li><code><a title="rulevetting.templates.model.ModelTemplate.predict" href="#rulevetting.templates.model.ModelTemplate.predict">predict</a></code></li>
+<li><code><a title="rulevetting.templates.model.ModelTemplate.predict_proba" href="#rulevetting.templates.model.ModelTemplate.predict_proba">predict_proba</a></code></li>
+<li><code><a title="rulevetting.templates.model.ModelTemplate.print_model" href="#rulevetting.templates.model.ModelTemplate.print_model">print_model</a></code></li>
 </ul>
 </li>
 </ul>

@@ -36,7 +36,7 @@
 </p>
 <p>This is a <em>collaborative</em> repository intended to validate and derive clinical-decision rules. We use a unified
 pipeline across a variety of contributed datasets to vet previous modeling practices for clinical decision rules. Additionally, we hope to externally validate the rules under study here with data from UCSF.</p>
-<h1 id="datasets">Datasets</h1>
+<h1 id="rule-derivation-datasets">Rule derivation datasets</h1>
 <table>
 <thead>
 <tr>
@@ -76,6 +76,20 @@ pipeline across a variety of contributed datasets to vet previous modeling pract
 <td align="center"><a href="https://pecarn.org/datasets/">🔗</a></td>
 <td align="center">❌</td>
 </tr>
+<tr>
+<td>exxagerate</td>
+<td>Predict 30-day mortality for acute exacerbations of chronic obstructive pulmonary disease (AECOPD)</td>
+<td>1,696 patients, 17 mortalities</td>
+<td align="center"><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8354163/">📄</a>, <a href="https://data.mendeley.com/datasets/3868pbf375/2">🔗</a></td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td>heart_disease_uci</td>
+<td>Predict heart disease presence from basic attributes / screening</td>
+<td>920 patients, 509 with heart disease</td>
+<td align="center"><a href="https://www.sciencedirect.com/science/article/abs/pii/0002914989905249">📄</a>, <a href="https://archive.ics.uci.edu/ml/datasets/Heart+Disease">🔗</a></td>
+<td align="center">❌</td>
+</tr>
 </tbody>
 </table>
 <p align="center">
@@ -85,7 +99,7 @@ Research paper 📄, Data download link 🔗
 <p>Datasets are all tabular (or at least have interpretable input features), reasonably large (e.g. have at least 100 positive and negative cases), and have a binary outcome. For PECARN datasets, please read and agree to the research data use agreement on the <a href="https://pecarn.org/datasets/">PECARN website</a>.</p>
 <p><strong>Possible data sources</strong>: <a href="https://pecarn.org/datasets/">PECARN datasets</a> |
 <a href="https://www.kaggle.com/search?q=healthcare+tag%3A%22healthcare%22">Kaggle datasets</a> | <a href="https://www.mdcalc.com/">MDCalc</a> | <a href="https://archive.ics.uci.edu/ml/index.php">UCI</a> | <a href="https://www.openml.org/home">OpenML</a> | <a href="https://physionet.org/content/mimiciv/1.0/">MIMIC</a> | <a href="https://data.ucsf.edu/research/deid-data">UCSF De-ID</a>
-<strong>Potential specific datasets</strong>: <a href="https://datasetsearch.research.google.com/search?query=clinical%20rule&amp;docid=L2cvMTFxbWJ5cngxMw%3D%3D">EXXAGERATE dataset</a> | <a href="https://archive.ics.uci.edu/ml/datasets/Heart+Disease">UCI heart disease</a> | Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).</p>
+<strong>Potential specific datasets</strong>: Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).</p>
 <h1 id="contributing-checklist">Contributing checklist</h1>
 <p>To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps below. The easiest way to do this is to copy-paste an existing project (e.g. <a href="rulevetting/projects/iai_pecarn">iai_pecarn</a>) into a new folder and then edit that one.</p>
 <p>2 Helpful docs: <a href="docs/collaborating_for_data_scientists.md">Collaboration details</a> | <a href="docs/lab_writeup.md">Lab writeup</a></p>
@@ -115,10 +129,11 @@ Research paper 📄, Data download link 🔗
 <li>[ ] Describe each feature in the processed data in a file named <code>mrules/projects/{project_name}/data_dictionary.md</code></li>
 <li>[ ] Summarize the data and the prediction task in a file named <code>mrules/projects/{project_name}/readme.md</code>. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.</li>
 <li>[ ] Modeling</li>
-<li>[ ] Implement the functions in <code>mrules/projects/{project_name}/baseline.py</code> for predicting given a baseline rule (if there is no existing rule for this project, then have each method simply return None)<ul>
-<li>See <a href="rulevetting/templates/baseline.py">the template file</a> for documentation of each function</li>
+<li>[ ] Baseline model - implement the functions in <code>mrules/projects/{project_name}/baseline.py</code> for predicting given a baseline rule (e.g. from the existing paper)<ul>
+<li>See <a href="rulevetting/templates/model.py">the template file</a> for documentation of each function</li>
 </ul>
 </li>
+<li>[ ] New model - implement the functions in <code>mrules/projects/{project_name}/model_best.py</code> for making predictions using your newly derived best model</li>
 <li>[ ] Lab writeup (see <a href="docs/lab_writeup.md">instructions</a>)
 </li>
 <li>[ ] Save writeup into <code>mrules/projects/{project_name}/writeup.pdf</code> + include source files</li>
@@ -127,19 +142,51 @@ Research paper 📄, Data download link 🔗
 <li>[ ] Ensure that all tests pass by running <code>pytest --project {project_name}</code> from the repo directory</li>
 <li>[ ] <a href="https://jarv.is/notes/how-to-pull-request-fork-github/">Open a pull request</a> and it will be reviewed / merged</li>
 <li>[ ] Reviewing submissions</li>
-<li>[ ] Each pull request will be reviewed by other submitters before being merged</li>
+<li>[ ] Each pull request will be reviewed by others before being merged</li>
 </ul>
 <h1 id="installation">Installation</h1>
 <p>Note: requires python 3.7 and pytest (for running the automated tests).
-It is best practice to create a virtualenv or pipenv for this project.</p>
-<pre><code class="language-bash">git clone https://github.com/Yu-Group/medical-rules
-cd medical-rules
+It is best practice to create a <a href="https://docs.python.org/3/tutorial/venv.html">venv</a> or pipenv for this project.</p>
+<pre><code class="language-bash">git clone https://github.com/Yu-Group/rule-vetting
+cd rule-vetting
 python setup.py sdist
 pip install -e .
 </code></pre>
 <p>Now run the automatic tests to ensure everything works.</p>
 <pre><code>pytest --project iai_pecarn
 </code></pre>
+<h1 id="clinical-trial-datasets">Clinical Trial Datasets</h1>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Task</th>
+<th>Size</th>
+<th align="center">References</th>
+<th align="center">Processed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bronch_pecarn</td>
+<td>Effectiveness of oral dexamethasone for acute bronchiolitisintra-abdominal injury requiring acute intervention before CT</td>
+<td>600 patients, 50% control</td>
+<td align="center"><a href="https://pubmed.ncbi.nlm.nih.gov/17652648/">📄</a>, <a href="https://pecarn.org/datasets/">🔗</a></td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td>gastro_pecarn</td>
+<td>Impact of Emergency Department Probiotic Treatment of Pediatric Gastroenteritis</td>
+<td>886 patients, 50% control</td>
+<td align="center"><a href="https://trialsjournal.biomedcentral.com/articles/10.1186/1745-6215-15-170">📄</a>, <a href="https://pecarn.org/datasets/">🔗</a></td>
+<td align="center">❌</td>
+</tr>
+</tbody>
+</table>
+<p align="center">
+Research paper 📄, Data download link 🔗
+</br>
+</p>
 <h1 id="reference">Reference</h1>
 <details>
 <summary>Background reading</summary>
@@ -220,9 +267,10 @@ AUTOGLUON_CACHE_PATH = oj(DATA_PATH, &#39;autogluon_cache&#39;)</code></pre>
 <h1>Index 🔍</h1>
 <div class="toc">
 <ul>
-<li><a href="#datasets">Datasets</a></li>
+<li><a href="#rule-derivation-datasets">Rule derivation datasets</a></li>
 <li><a href="#contributing-checklist">Contributing checklist</a></li>
 <li><a href="#installation">Installation</a></li>
+<li><a href="#clinical-trial-datasets">Clinical Trial Datasets</a></li>
 <li><a href="#reference">Reference</a></li>
 </ul>
 </div>
