@@ -1,12 +1,12 @@
-from os.path import join as oj
-
-import numpy as np
 import os
-import pandas as pd
 import random
 from abc import abstractmethod
-from joblib import Memory
+from os.path import join as oj
 from typing import Dict
+
+import numpy as np
+import pandas as pd
+from joblib import Memory
 
 import rulevetting
 
@@ -14,6 +14,7 @@ import rulevetting
 class DatasetTemplate:
     """Classes that use this template should be called "Dataset"
     All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag.
+    Please refrain from shuffling / reordering the data in any of these functions, to ensure a consistent test set.
     """
 
     @abstractmethod
@@ -73,9 +74,9 @@ class DatasetTemplate:
         """
         return NotImplemented
 
-    @abstractmethod
-    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        """Split into 3 sets: training, tuning, testing
+    def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+        """Split into 3 sets: training, tuning, testing.
+        Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
         Ensure that there are positive points in all splits.
 
@@ -91,7 +92,11 @@ class DatasetTemplate:
         df_tune
         df_test
         """
-        return NotImplemented
+        return np.split(
+            preprocessed_data.sample(frac=1, random_state=42),
+            [int(.6 * len(preprocessed_data)),  # 60% train
+             int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
+        )
 
     @abstractmethod
     def get_outcome_name(self) -> str:
@@ -112,7 +117,7 @@ class DatasetTemplate:
         return NotImplemented
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
-        """Return dictionary of keyword arguments for each functions in the dataset class.
+        """Return dictionary of keyword arguments for each function in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
 
@@ -124,7 +129,6 @@ class DatasetTemplate:
                 'imputation_strategy': ['mean', 'median'],  # first value is default
             },
             'extract_features': {},
-            'split_data': {},
         }
         """
         return NotImplemented
@@ -162,14 +166,14 @@ class DatasetTemplate:
         default_kwargs = {}
         for key in kwargs.keys():
             func_kwargs = kwargs[key]
-            default_kwargs[key] = {k: func_kwargs[k][0] # first arg in each list is default
+            default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
 
         print('kwargs', default_kwargs)
         cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
         preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
         extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-        df_train, df_tune, df_test = cache(self.split_data)(extracted_features, **default_kwargs['split_data'])
+        df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
             for df, fname in zip([df_train, df_tune, df_test],

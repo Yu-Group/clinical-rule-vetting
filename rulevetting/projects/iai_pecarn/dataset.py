@@ -103,11 +103,6 @@ class Dataset(DatasetTemplate):
                                                                     base_feat_names=base_feat_names) + ['outcome']
         return df[feats]
 
-    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        return np.split(
-            preprocessed_data.sample(frac=1, random_state=42),
-            [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
-
     def get_outcome_name(self) -> str:
         return 'iai_intervention'  # return the name of the outcome we are predicting
 
@@ -128,7 +123,6 @@ class Dataset(DatasetTemplate):
                 # whether to drop columns with suffix _no
                 'drop_negative_columns': [False, True],  # default value comes first
             },
-            'split_data': {},
         }
 
 

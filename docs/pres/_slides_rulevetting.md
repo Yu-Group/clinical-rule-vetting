@@ -180,7 +180,23 @@ package for facilitating PCS analysis, especially stability
 
 ## specifying judgement calls
 
-![Screen Shot 2021-11-11 at 11.24.35 AM](assets_files/Screen%20Shot%202021-11-11%20at%2011.24.35%20AM.png)
+```python
+def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
+  """Return dictionary of keyword arguments for each function in the dataset class.
+  Each key should be a string with the name of the arg.
+  Each value should be a list of values, with the default value coming first.
+	"""
+
+  return {
+    'clean_data': {},
+    'preprocess_data': {
+    'imputation_strategy': ['mean', 'median'],  // first value is default
+    },
+    'extract_features': {},
+  }
+```
+
+
 
 
 

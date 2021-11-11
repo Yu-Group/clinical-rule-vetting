@@ -57,9 +57,10 @@ To contribute a new project (e.g. a new dataset + modeling), create a pull reque
   - [ ] Describe each feature in the processed data in a file named `mrules/projects/{project_name}/data_dictionary.md`
   - [ ] Summarize the data and the prediction task in a file named `mrules/projects/{project_name}/readme.md`. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
 - [ ] Modeling
-  - [ ] Baseline model - implement the functions in `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (e.g. from the existing paper)
-    - See [the template file](rulevetting/templates/model.py) for documentation of each function
+  - [ ] Baseline model - `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (e.g. from the existing paper)
+    - should override the [model template](rulevetting/templates/model.py) in a class named `Baseline`
   - [ ] New model - implement the functions in `mrules/projects/{project_name}/model_best.py` for making predictions using your newly derived best model
+    - also should override the [model template](rulevetting/templates/model.py) in a class named `Model`
 - [ ] Lab writeup (see [instructions](docs/lab_writeup.md))    
   - [ ] Save writeup into `mrules/projects/{project_name}/writeup.pdf` + include source files
   - Should contain details on exploratory analysis, modeling, validation, comparisons with baseline, etc.
