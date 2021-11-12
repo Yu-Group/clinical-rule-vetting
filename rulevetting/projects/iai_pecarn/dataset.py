@@ -128,7 +128,7 @@ class Dataset(DatasetTemplate):
 
 if __name__ == '__main__':
     dset = Dataset()
-    df_train, df_tune, df_test = dset.get_data(save_csvs=True)
+    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=True)
     print('successfuly processed data\nshapes:',
           df_train.shape, df_tune.shape, df_test.shape,
           '\nfeatures:', list(df_train.columns))

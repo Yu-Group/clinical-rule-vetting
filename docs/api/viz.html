@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>rulevetting.api.validation API documentation</title>
+<title>rulevetting.api.viz API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,54 +19,90 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>rulevetting.api.validation</code></h1>
+<h1 class="title">Module <code>rulevetting.api.viz</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import warnings
-from os.path import join as oj
-
-import sys
-
-sys.path.insert(1, oj(sys.path[0], &#39;..&#39;))  # insert parent path
-import numpy as np
+<pre><code class="python">import seaborn as sns
 import matplotlib.pyplot as plt
-from tqdm import tqdm
-from sklearn import metrics
+
+cmap_div = sns.diverging_palette(10, 220, as_cmap=True)
+cb2 = &#39;#66ccff&#39;
+cb = &#39;#1f77b4&#39;
+cr = &#39;#cc0000&#39;
+cp = &#39;#cc3399&#39;
+cy = &#39;#d8b365&#39;
+cg = &#39;#5ab4ac&#39;
+cm = sns.diverging_palette(10, 240, n=1000, as_cmap=True)
+cm_rev = sns.diverging_palette(240, 10, n=1000, as_cmap=True)
 
 
-def all_stats_curve(y_test, preds_proba, plot=False, thresholds=None):
-    &#39;&#39;&#39;preds_proba should be 1d
+def jointplot_grouped(col_x: str, col_y: str, col_k: str, df,
+                      k_is_color=False, scatter_alpha=.5, add_global_hists: bool = True):
+    &#39;&#39;&#39;Jointplot of hists + densities
+    Params
+    ------
+    col_x
+        name of X var
+    col_y
+        name of Y var
+    col_k
+        name of variable to group/color by
+    add_global_hists
+        whether to plot the global hist as well
     &#39;&#39;&#39;
-    if thresholds is None:
-        thresholds = sorted(np.unique(preds_proba))
-    all_stats = {
-        s: [] for s in [&#39;sens&#39;, &#39;spec&#39;, &#39;ppv&#39;, &#39;npv&#39;, &#39;lr+&#39;, &#39;lr-&#39;, &#39;f1&#39;]
-    }
-    for threshold in tqdm(thresholds):
-        preds = preds_proba &gt; threshold
-        tn, fp, fn, tp = metrics.confusion_matrix(y_test, preds).ravel()
-        with warnings.catch_warnings():
-            warnings.simplefilter(&#34;ignore&#34;)
-            sens = tp / (tp + fn)
-            spec = tn / (tn + fp)
-            all_stats[&#39;sens&#39;].append(sens)
-            all_stats[&#39;spec&#39;].append(spec)
-            all_stats[&#39;ppv&#39;].append(tp / (tp + fp))
-            all_stats[&#39;npv&#39;].append(tn / (tn + fn))
-            all_stats[&#39;lr+&#39;].append(sens / (1 - spec))
-            all_stats[&#39;lr-&#39;].append((1 - sens) / spec)
-            all_stats[&#39;f1&#39;].append(tp / (tp + 0.5 * (fp + fn)))
 
-    if plot:
-        plt.plot(all_stats[&#39;sens&#39;], all_stats[&#39;spec&#39;], &#39;.-&#39;)
-        plt.xlabel(&#39;sensitivity&#39;)
-        plt.ylabel(&#39;specificity&#39;)
-        plt.grid()
-    return all_stats, thresholds</code></pre>
+    def colored_scatter(x, y, c=None):
+        def scatter(*args, **kwargs):
+            args = (x, y)
+            if c is not None:
+                kwargs[&#39;c&#39;] = c
+            kwargs[&#39;alpha&#39;] = scatter_alpha
+            plt.scatter(*args, **kwargs)
+
+        return scatter
+
+    g = sns.JointGrid(
+        x=col_x,
+        y=col_y,
+        data=df
+    )
+    color = None
+    legends = []
+    for name, df_group in df.groupby(col_k):
+        legends.append(name)
+        if k_is_color:
+            color = name
+        g.plot_joint(
+            colored_scatter(df_group[col_x], df_group[col_y], color),
+        )
+        sns.distplot(
+            df_group[col_x].values,
+            ax=g.ax_marg_x,
+            color=color,
+        )
+        sns.distplot(
+            df_group[col_y].values,
+            ax=g.ax_marg_y,
+            color=color,
+            vertical=True
+        )
+    if add_global_hists:
+        sns.distplot(
+            df[col_x].values,
+            ax=g.ax_marg_x,
+            color=&#39;grey&#39;
+        )
+        sns.distplot(
+            df[col_y].values.ravel(),
+            ax=g.ax_marg_y,
+            color=&#39;grey&#39;,
+            vertical=True
+        )
+    plt.legend(legends)</code></pre>
 </details>
 </section>
 <section>
@@ -76,44 +112,88 @@ def all_stats_curve(y_test, preds_proba, plot=False, thresholds=None):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="rulevetting.api.validation.all_stats_curve"><code class="name flex">
-<span>def <span class="ident">all_stats_curve</span></span>(<span>y_test, preds_proba, plot=False, thresholds=None)</span>
+<dt id="rulevetting.api.viz.jointplot_grouped"><code class="name flex">
+<span>def <span class="ident">jointplot_grouped</span></span>(<span>col_x: str, col_y: str, col_k: str, df, k_is_color=False, scatter_alpha=0.5, add_global_hists: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>preds_proba should be 1d</p></div>
+<div class="desc"><p>Jointplot of hists + densities
+Params</p>
+<hr>
+<p>col_x
+name of X var
+col_y
+name of Y var
+col_k
+name of variable to group/color by
+add_global_hists
+whether to plot the global hist as well</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def all_stats_curve(y_test, preds_proba, plot=False, thresholds=None):
-    &#39;&#39;&#39;preds_proba should be 1d
+<pre><code class="python">def jointplot_grouped(col_x: str, col_y: str, col_k: str, df,
+                      k_is_color=False, scatter_alpha=.5, add_global_hists: bool = True):
+    &#39;&#39;&#39;Jointplot of hists + densities
+    Params
+    ------
+    col_x
+        name of X var
+    col_y
+        name of Y var
+    col_k
+        name of variable to group/color by
+    add_global_hists
+        whether to plot the global hist as well
     &#39;&#39;&#39;
-    if thresholds is None:
-        thresholds = sorted(np.unique(preds_proba))
-    all_stats = {
-        s: [] for s in [&#39;sens&#39;, &#39;spec&#39;, &#39;ppv&#39;, &#39;npv&#39;, &#39;lr+&#39;, &#39;lr-&#39;, &#39;f1&#39;]
-    }
-    for threshold in tqdm(thresholds):
-        preds = preds_proba &gt; threshold
-        tn, fp, fn, tp = metrics.confusion_matrix(y_test, preds).ravel()
-        with warnings.catch_warnings():
-            warnings.simplefilter(&#34;ignore&#34;)
-            sens = tp / (tp + fn)
-            spec = tn / (tn + fp)
-            all_stats[&#39;sens&#39;].append(sens)
-            all_stats[&#39;spec&#39;].append(spec)
-            all_stats[&#39;ppv&#39;].append(tp / (tp + fp))
-            all_stats[&#39;npv&#39;].append(tn / (tn + fn))
-            all_stats[&#39;lr+&#39;].append(sens / (1 - spec))
-            all_stats[&#39;lr-&#39;].append((1 - sens) / spec)
-            all_stats[&#39;f1&#39;].append(tp / (tp + 0.5 * (fp + fn)))
 
-    if plot:
-        plt.plot(all_stats[&#39;sens&#39;], all_stats[&#39;spec&#39;], &#39;.-&#39;)
-        plt.xlabel(&#39;sensitivity&#39;)
-        plt.ylabel(&#39;specificity&#39;)
-        plt.grid()
-    return all_stats, thresholds</code></pre>
+    def colored_scatter(x, y, c=None):
+        def scatter(*args, **kwargs):
+            args = (x, y)
+            if c is not None:
+                kwargs[&#39;c&#39;] = c
+            kwargs[&#39;alpha&#39;] = scatter_alpha
+            plt.scatter(*args, **kwargs)
+
+        return scatter
+
+    g = sns.JointGrid(
+        x=col_x,
+        y=col_y,
+        data=df
+    )
+    color = None
+    legends = []
+    for name, df_group in df.groupby(col_k):
+        legends.append(name)
+        if k_is_color:
+            color = name
+        g.plot_joint(
+            colored_scatter(df_group[col_x], df_group[col_y], color),
+        )
+        sns.distplot(
+            df_group[col_x].values,
+            ax=g.ax_marg_x,
+            color=color,
+        )
+        sns.distplot(
+            df_group[col_y].values,
+            ax=g.ax_marg_y,
+            color=color,
+            vertical=True
+        )
+    if add_global_hists:
+        sns.distplot(
+            df[col_x].values,
+            ax=g.ax_marg_x,
+            color=&#39;grey&#39;
+        )
+        sns.distplot(
+            df[col_y].values.ravel(),
+            ax=g.ax_marg_y,
+            color=&#39;grey&#39;,
+            vertical=True
+        )
+    plt.legend(legends)</code></pre>
 </details>
 </dd>
 </dl>
@@ -134,7 +214,7 @@ def all_stats_curve(y_test, preds_proba, plot=False, thresholds=None):
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="rulevetting.api.validation.all_stats_curve" href="#rulevetting.api.validation.all_stats_curve">all_stats_curve</a></code></li>
+<li><code><a title="rulevetting.api.viz.jointplot_grouped" href="#rulevetting.api.viz.jointplot_grouped">jointplot_grouped</a></code></li>
 </ul>
 </li>
 </ul>

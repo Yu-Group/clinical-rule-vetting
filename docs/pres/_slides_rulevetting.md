@@ -21,10 +21,10 @@ revealOptions:
 
 ## logistics
 
-- deadline: dec 12
+- deadline: dec 12 - don't wait!!
 - meeting with clinician: once week of 11/15, once week of 11/29
-
-
+- optional group presentations after the deadline
+- will we write a paper?
 
 # project overview
 
@@ -39,7 +39,7 @@ revealOptions:
 
 ## understanding the data
 
-- what features are reliable/useful/predictive?
+what features are reliable/useful/predictive?
 
 ## modeling
 
@@ -60,20 +60,36 @@ make fork private + include your teammates
 
 ![Screen Shot 2021-11-11 at 12.32.58 PM](assets_files/Screen%20Shot%202021-11-11%20at%2012.32.58%20PM.png)
 
+## why are we using python 🐍?
+
+python is better
+
+## [R to python](https://towardsdatascience.com/essential-guide-to-translating-between-python-and-r-7cb18b786e5d)
+
+indentation matters!
+
+| python                    | R                               |
+| -- | -- |
+| `a=5`                     | `a <- 5`                        |
+| `pip install packagename` | `install.packages(packagename)` |
+| `import packagename`      | `library(packagename)`          |
+| `listname[0]` | `listname[1]` |
+
 ## setting up python
 
 - `python --version` should give 3.6 or higher (might need to type `python3`)
 
 - easier if you install things by making a [venv](https://docs.python.org/3/tutorial/venv.html)
 
-  ```C
-  python3 -m venv rule-env  // create the env
-  source rule-env/bin/activate  // activate the env
-  ```
+```C
+python3 -m venv rule-env  // create the env
+source rule-env/bin/activate  // activate the env
+```
+
 
 ## installation
 
-```python
+```bash
 git clone https://github.com/Yu-Group/rule-vetting  // clone the repo
 cd rule-vetting
 python setup.py sdist  // install all dependencies
@@ -84,7 +100,7 @@ pip install -e .  // make package editable
 
 you can use any editor, maybe [jupyterlab](https://jupyterlab.readthedocs.io/en/stable/) or [pycharm](https://www.jetbrains.com/pycharm/)
 
-![pycharm](assets_files/pycharm.png)
+![Screen Shot 2021-11-11 at 4.11.24 PM](assets_files/Screen%20Shot%202021-11-11%20at%204.11.24%20PM.png)
 
 # core data-science packages in python
 
@@ -142,8 +158,8 @@ clf.predict([[2., 2.]])
 ## imodels usage
 
 ```python
-from imodels import CorelsRuleListClassifier
-model = CorelsRuleListClassifier()
+from imodels import RuleFitClassifier
+model = RuleFitClassifier()
 model.fit(X_train, y_train)
 preds = model.predict(X_test)
 preds_proba = model.predict_proba(X_test)
@@ -180,26 +196,16 @@ package for facilitating PCS analysis, especially stability
 
 ## specifying judgement calls
 
-```python
-def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
-  """Return dictionary of keyword arguments for each function in the dataset class.
-  Each key should be a string with the name of the arg.
-  Each value should be a list of values, with the default value coming first.
-	"""
-
-  return {
-    'clean_data': {},
-    'preprocess_data': {
-    'imputation_strategy': ['mean', 'median'],  // first value is default
-    },
-    'extract_features': {},
-  }
-```
-
-
-
-
+![Screen Shot 2021-11-11 at 1.44.27 PM](assets_files/Screen%20Shot%202021-11-11%20at%201.44.27%20PM.png)
 
 ## ex function with a judgement call
 
 ![Screen Shot 2021-11-11 at 11.25.27 AM](assets_files/Screen%20Shot%202021-11-11%20at%2011.25.27%20AM.png)
+
+
+
+## tests
+
+`pytest --project <your_project_name>`
+
+e.g. `pytest --project iai_pecarn`

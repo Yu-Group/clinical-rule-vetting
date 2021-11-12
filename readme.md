@@ -38,7 +38,7 @@ Datasets are all tabular (or at least have interpretable input features), reason
 
 To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps below. The easiest way to do this is to copy-paste an existing project (e.g. [iai_pecarn](rulevetting/projects/iai_pecarn)) into a new folder and then edit that one.
 
-2 Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md) | [Lab writeup](docs/lab_writeup.md)
+Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md) | [Lab writeup](docs/lab_writeup.md) | [Slides](https://rules.csinva.io/pres/index.html#/)
 
 - [ ] Repo set up
   - [ ] Create a fork of this repo (see tutorial on forking/merging [here](https://jarv.is/notes/how-to-pull-request-fork-github/))
@@ -48,21 +48,21 @@ To contribute a new project (e.g. a new dataset + modeling), create a pull reque
 - [ ] Data preprocessing
   - [ ] Download the raw data into `data/{project_name}/raw`
     - Don't commit any very large files
-  - [ ] Copy the template files from `mrules/projects/iai_pecarn` to a new folder `mrules/projects/{project_name}`
-	- [ ] Rewrite the functions in `mrules/projects/{project_name}/dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
+  - [ ] Copy the template files from `rulevetting/projects/iai_pecarn` to a new folder `rulevetting/projects/{project_name}`
+	- [ ] Rewrite the functions in `dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
     - [ ] Document any judgement calls you aren't sure about using the `dataset.get_judgement_calls_dictionary` function
         - See [the template file](rulevetting/templates/dataset.py) for documentation of each function or the [API documentation](https://yu-group.github.io/rule-vetting/)
-    - Notebooks / helper functions are optional
+    - Notebooks / helper functions are optional, all files should be within `rulevetting/projects/{project_name}`
 - [ ] Data description
-  - [ ] Describe each feature in the processed data in a file named `mrules/projects/{project_name}/data_dictionary.md`
-  - [ ] Summarize the data and the prediction task in a file named `mrules/projects/{project_name}/readme.md`. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
+  - [ ] Describe each feature in the processed data in a file named `data_dictionary.md`
+  - [ ] Summarize the data and the prediction task in a file named `readme.md`. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
 - [ ] Modeling
-  - [ ] Baseline model - `mrules/projects/{project_name}/baseline.py` for predicting given a baseline rule (e.g. from the existing paper)
+  - [ ] Baseline model - implement `baseline.py` for predicting given a baseline rule (e.g. from the existing paper)
     - should override the [model template](rulevetting/templates/model.py) in a class named `Baseline`
-  - [ ] New model - implement the functions in `mrules/projects/{project_name}/model_best.py` for making predictions using your newly derived best model
+  - [ ] New model - implement `model_best.py` for making predictions using your newly derived best model
     - also should override the [model template](rulevetting/templates/model.py) in a class named `Model`
 - [ ] Lab writeup (see [instructions](docs/lab_writeup.md))    
-  - [ ] Save writeup into `mrules/projects/{project_name}/writeup.pdf` + include source files
+  - [ ] Save writeup into `writeup.pdf` + include source files
   - Should contain details on exploratory analysis, modeling, validation, comparisons with baseline, etc.
 - [ ] Submitting
   - [ ] Ensure that all tests pass by running `pytest --project {project_name}` from the repo directory

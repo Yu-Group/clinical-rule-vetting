@@ -102,7 +102,7 @@ Research paper 📄, Data download link 🔗
 <strong>Potential specific datasets</strong>: Maybe later will expand to other high-stakes datasets (e.g. COMPAS, loan risk).</p>
 <h1 id="contributing-checklist">Contributing checklist</h1>
 <p>To contribute a new project (e.g. a new dataset + modeling), create a pull request following the steps below. The easiest way to do this is to copy-paste an existing project (e.g. <a href="rulevetting/projects/iai_pecarn">iai_pecarn</a>) into a new folder and then edit that one.</p>
-<p>2 Helpful docs: <a href="docs/collaborating_for_data_scientists.md">Collaboration details</a> | <a href="docs/lab_writeup.md">Lab writeup</a></p>
+<p>Helpful docs: <a href="docs/collaborating_for_data_scientists.md">Collaboration details</a> | <a href="docs/lab_writeup.md">Lab writeup</a> | <a href="https://rules.csinva.io/pres/index.html#/">Slides</a></p>
 <ul>
 <li>[ ] Repo set up</li>
 <li>[ ] Create a fork of this repo (see tutorial on forking/merging <a href="https://jarv.is/notes/how-to-pull-request-fork-github/">here</a>)</li>
@@ -116,27 +116,30 @@ Research paper 📄, Data download link 🔗
 <li>Don't commit any very large files</li>
 </ul>
 </li>
-<li>[ ] Copy the template files from <code>mrules/projects/iai_pecarn</code> to a new folder <code>mrules/projects/{project_name}</code><ul>
-<li>[ ] Rewrite the functions in <code>mrules/projects/{project_name}/dataset.py</code> for processing the new dataset (e.g. see the dataset for <a href="rulevetting/projects/iai_pecarn/dataset.py">iai_pecarn</a>)</li>
+<li>[ ] Copy the template files from <code>rulevetting/projects/iai_pecarn</code> to a new folder <code>rulevetting/projects/{project_name}</code><ul>
+<li>[ ] Rewrite the functions in <code>dataset.py</code> for processing the new dataset (e.g. see the dataset for <a href="rulevetting/projects/iai_pecarn/dataset.py">iai_pecarn</a>)</li>
 <li>[ ] Document any judgement calls you aren't sure about using the <code>dataset.get_judgement_calls_dictionary</code> function<ul>
 <li>See <a href="rulevetting/templates/dataset.py">the template file</a> for documentation of each function or the <a href="https://yu-group.github.io/rule-vetting/">API documentation</a></li>
 </ul>
 </li>
-<li>Notebooks / helper functions are optional</li>
+<li>Notebooks / helper functions are optional, all files should be within <code>rulevetting/projects/{project_name}</code></li>
 </ul>
 </li>
 <li>[ ] Data description</li>
-<li>[ ] Describe each feature in the processed data in a file named <code>mrules/projects/{project_name}/data_dictionary.md</code></li>
-<li>[ ] Summarize the data and the prediction task in a file named <code>mrules/projects/{project_name}/readme.md</code>. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.</li>
+<li>[ ] Describe each feature in the processed data in a file named <code>data_dictionary.md</code></li>
+<li>[ ] Summarize the data and the prediction task in a file named <code>readme.md</code>. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.</li>
 <li>[ ] Modeling</li>
-<li>[ ] Baseline model - implement the functions in <code>mrules/projects/{project_name}/baseline.py</code> for predicting given a baseline rule (e.g. from the existing paper)<ul>
-<li>See <a href="rulevetting/templates/model.py">the template file</a> for documentation of each function</li>
+<li>[ ] Baseline model - implement <code>baseline.py</code> for predicting given a baseline rule (e.g. from the existing paper)<ul>
+<li>should override the <a href="rulevetting/templates/model.py">model template</a> in a class named <code>Baseline</code></li>
 </ul>
 </li>
-<li>[ ] New model - implement the functions in <code>mrules/projects/{project_name}/model_best.py</code> for making predictions using your newly derived best model</li>
+<li>[ ] New model - implement <code>model_best.py</code> for making predictions using your newly derived best model<ul>
+<li>also should override the <a href="rulevetting/templates/model.py">model template</a> in a class named <code>Model</code></li>
+</ul>
+</li>
 <li>[ ] Lab writeup (see <a href="docs/lab_writeup.md">instructions</a>)
 </li>
-<li>[ ] Save writeup into <code>mrules/projects/{project_name}/writeup.pdf</code> + include source files</li>
+<li>[ ] Save writeup into <code>writeup.pdf</code> + include source files</li>
 <li>Should contain details on exploratory analysis, modeling, validation, comparisons with baseline, etc.</li>
 <li>[ ] Submitting</li>
 <li>[ ] Ensure that all tests pass by running <code>pytest --project {project_name}</code> from the repo directory</li>

@@ -18,11 +18,11 @@ import rulevetting.api.util
 
 
 def fit_models(train_data: pd.DataFrame, tune_data: pd.DataFrame, interpretable: bool = True):
-    """
+    """Note: don't use this function, still depends on experimental autogluon dependencies
 
     Parameters
     ----------
-    train_data
+    train_datas
     tune_data
     interpretable: bool
         Whether to fit interpretable models or standard models

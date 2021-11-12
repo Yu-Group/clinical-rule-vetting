@@ -9,6 +9,7 @@ import pandas as pd
 from joblib import Memory
 
 import rulevetting
+from vflow import init_args, Vset, build_Vset
 
 
 class DatasetTemplate:
@@ -135,7 +136,8 @@ class DatasetTemplate:
 
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
-                 load_csvs: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 load_csvs: bool = False,
+                 run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -170,10 +172,24 @@ class DatasetTemplate:
                                    for k in func_kwargs.keys()}
 
         print('kwargs', default_kwargs)
-        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
-        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-        extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-        df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        if not run_perturbations:
+            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
+            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
+            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        elif run_perturbations:
+            data_path_arg = init_args(data_path)
+            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'])
+            # print(clean_set)
+            cleaned_data = clean_set(data_path_arg)
+            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'])
+            preprocessed_data = preprocess_set(cleaned_data)
+            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'])
+            extracted_features = extract_set(preprocessed_data)
+            split_data = build_Vset('split_data', self.split_data, {})
+            print(extracted_features)
+            dfs_train, dfs_tune, dfs_test = split_data(extracted_features)
+            print('ks', dfs_train.keys())
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
             for df, fname in zip([df_train, df_tune, df_test],

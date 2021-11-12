@@ -17,14 +17,15 @@ setuptools.setup(
     url="https://github.com/Yu-Group/medical-rules",
     packages=setuptools.find_packages(),
     install_requires=[
-        'autogluon',
+        # 'autogluon', # later can add in automatic modeling with autogluon
         'imodels',
         'imblearn',
         'matplotlib',
         'numpy',
         'pandas',
         'pytest',
-        'scikit-learn>=0.23.0',  # 0.23+ only works on py3.6+
+        'scikit-learn>=1.0.0',
+        'seaborn',
         'tqdm',
         'vflow',
 

@@ -131,11 +131,6 @@ class Dataset(DatasetTemplate):
                                                                     base_feat_names=base_feat_names) + [&#39;outcome&#39;]
         return df[feats]
 
-    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
-        return np.split(
-            preprocessed_data.sample(frac=1, random_state=42),
-            [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
-
     def get_outcome_name(self) -&gt; str:
         return &#39;iai_intervention&#39;  # return the name of the outcome we are predicting
 
@@ -156,13 +151,12 @@ class Dataset(DatasetTemplate):
                 # whether to drop columns with suffix _no
                 &#39;drop_negative_columns&#39;: [False, True],  # default value comes first
             },
-            &#39;split_data&#39;: {},
         }
 
 
 if __name__ == &#39;__main__&#39;:
     dset = Dataset()
-    df_train, df_tune, df_test = dset.get_data(save_csvs=True)
+    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=True)
     print(&#39;successfuly processed data\nshapes:&#39;,
           df_train.shape, df_tune.shape, df_test.shape,
           &#39;\nfeatures:&#39;, list(df_train.columns))</code></pre>
@@ -182,7 +176,8 @@ if __name__ == &#39;__main__&#39;:
 </code></dt>
 <dd>
 <div class="desc"><p>Classes that use this template should be called "Dataset"
-All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag.</p></div>
+All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag.
+Please refrain from shuffling / reordering the data in any of these functions, to ensure a consistent test set.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -278,11 +273,6 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
                                                                     base_feat_names=base_feat_names) + [&#39;outcome&#39;]
         return df[feats]
 
-    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
-        return np.split(
-            preprocessed_data.sample(frac=1, random_state=42),
-            [int(.6 * len(preprocessed_data)), int(.8 * len(preprocessed_data))])  # 60-20-20 split
-
     def get_outcome_name(self) -&gt; str:
         return &#39;iai_intervention&#39;  # return the name of the outcome we are predicting
 
@@ -303,7 +293,6 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
                 # whether to drop columns with suffix _no
                 &#39;drop_negative_columns&#39;: [False, True],  # default value comes first
             },
-            &#39;split_data&#39;: {},
         }</code></pre>
 </details>
 <h3>Ancestors</h3>

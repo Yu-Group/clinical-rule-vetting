@@ -26,22 +26,24 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from os.path import join as oj
-
-import numpy as np
-import os
-import pandas as pd
+<pre><code class="python">import os
 import random
 from abc import abstractmethod
-from joblib import Memory
+from os.path import join as oj
 from typing import Dict
 
+import numpy as np
+import pandas as pd
+from joblib import Memory
+
 import rulevetting
+from vflow import init_args, Vset, build_Vset
 
 
 class DatasetTemplate:
     &#34;&#34;&#34;Classes that use this template should be called &#34;Dataset&#34;
     All functions take **kwargs, so you can specify any judgement calls you aren&#39;t sure about with a kwarg flag.
+    Please refrain from shuffling / reordering the data in any of these functions, to ensure a consistent test set.
     &#34;&#34;&#34;
 
     @abstractmethod
@@ -101,9 +103,9 @@ class DatasetTemplate:
         &#34;&#34;&#34;
         return NotImplemented
 
-    @abstractmethod
-    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Split into 3 sets: training, tuning, testing
+    def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Split into 3 sets: training, tuning, testing.
+        Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
         Ensure that there are positive points in all splits.
 
@@ -119,7 +121,11 @@ class DatasetTemplate:
         df_tune
         df_test
         &#34;&#34;&#34;
-        return NotImplemented
+        return np.split(
+            preprocessed_data.sample(frac=1, random_state=42),
+            [int(.6 * len(preprocessed_data)),  # 60% train
+             int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
+        )
 
     @abstractmethod
     def get_outcome_name(self) -&gt; str:
@@ -140,7 +146,7 @@ class DatasetTemplate:
         return NotImplemented
 
     def get_judgement_calls_dictionary(self) -&gt; Dict[str, Dict[str, list]]:
-        &#34;&#34;&#34;Return dictionary of keyword arguments for each functions in the dataset class.
+        &#34;&#34;&#34;Return dictionary of keyword arguments for each function in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
 
@@ -152,14 +158,14 @@ class DatasetTemplate:
                 &#39;imputation_strategy&#39;: [&#39;mean&#39;, &#39;median&#39;],  # first value is default
             },
             &#39;extract_features&#39;: {},
-            &#39;split_data&#39;: {},
         }
         &#34;&#34;&#34;
         return NotImplemented
 
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
-                 load_csvs: bool = False) -&gt; (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 load_csvs: bool = False,
+                 run_perturbations: bool = False) -&gt; (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         &#34;&#34;&#34;Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -190,14 +196,28 @@ class DatasetTemplate:
         default_kwargs = {}
         for key in kwargs.keys():
             func_kwargs = kwargs[key]
-            default_kwargs[key] = {k: func_kwargs[k][0] # first arg in each list is default
+            default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
 
         print(&#39;kwargs&#39;, default_kwargs)
-        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs[&#39;clean_data&#39;])
-        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs[&#39;preprocess_data&#39;])
-        extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
-        df_train, df_tune, df_test = cache(self.split_data)(extracted_features, **default_kwargs[&#39;split_data&#39;])
+        if not run_perturbations:
+            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs[&#39;clean_data&#39;])
+            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs[&#39;preprocess_data&#39;])
+            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
+            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        elif run_perturbations:
+            data_path_arg = init_args(data_path)
+            clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;])
+            # print(clean_set)
+            cleaned_data = clean_set(data_path_arg)
+            preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;])
+            preprocessed_data = preprocess_set(cleaned_data)
+            extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;])
+            extracted_features = extract_set(preprocessed_data)
+            split_data = build_Vset(&#39;split_data&#39;, self.split_data, {})
+            print(extracted_features)
+            dfs_train, dfs_tune, dfs_test = split_data(extracted_features)
+            print(&#39;ks&#39;, dfs_train.keys())
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
             for df, fname in zip([df_train, df_tune, df_test],
@@ -222,7 +242,8 @@ class DatasetTemplate:
 </code></dt>
 <dd>
 <div class="desc"><p>Classes that use this template should be called "Dataset"
-All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag.</p></div>
+All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag.
+Please refrain from shuffling / reordering the data in any of these functions, to ensure a consistent test set.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -230,6 +251,7 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
 <pre><code class="python">class DatasetTemplate:
     &#34;&#34;&#34;Classes that use this template should be called &#34;Dataset&#34;
     All functions take **kwargs, so you can specify any judgement calls you aren&#39;t sure about with a kwarg flag.
+    Please refrain from shuffling / reordering the data in any of these functions, to ensure a consistent test set.
     &#34;&#34;&#34;
 
     @abstractmethod
@@ -289,9 +311,9 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
         &#34;&#34;&#34;
         return NotImplemented
 
-    @abstractmethod
-    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
-        &#34;&#34;&#34;Split into 3 sets: training, tuning, testing
+    def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
+        &#34;&#34;&#34;Split into 3 sets: training, tuning, testing.
+        Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
         Ensure that there are positive points in all splits.
 
@@ -307,7 +329,11 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
         df_tune
         df_test
         &#34;&#34;&#34;
-        return NotImplemented
+        return np.split(
+            preprocessed_data.sample(frac=1, random_state=42),
+            [int(.6 * len(preprocessed_data)),  # 60% train
+             int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
+        )
 
     @abstractmethod
     def get_outcome_name(self) -&gt; str:
@@ -328,7 +354,7 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
         return NotImplemented
 
     def get_judgement_calls_dictionary(self) -&gt; Dict[str, Dict[str, list]]:
-        &#34;&#34;&#34;Return dictionary of keyword arguments for each functions in the dataset class.
+        &#34;&#34;&#34;Return dictionary of keyword arguments for each function in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
 
@@ -340,14 +366,14 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
                 &#39;imputation_strategy&#39;: [&#39;mean&#39;, &#39;median&#39;],  # first value is default
             },
             &#39;extract_features&#39;: {},
-            &#39;split_data&#39;: {},
         }
         &#34;&#34;&#34;
         return NotImplemented
 
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
-                 load_csvs: bool = False) -&gt; (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 load_csvs: bool = False,
+                 run_perturbations: bool = False) -&gt; (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         &#34;&#34;&#34;Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -378,14 +404,28 @@ All functions take **kwargs, so you can specify any judgement calls you aren't s
         default_kwargs = {}
         for key in kwargs.keys():
             func_kwargs = kwargs[key]
-            default_kwargs[key] = {k: func_kwargs[k][0] # first arg in each list is default
+            default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
 
         print(&#39;kwargs&#39;, default_kwargs)
-        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs[&#39;clean_data&#39;])
-        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs[&#39;preprocess_data&#39;])
-        extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
-        df_train, df_tune, df_test = cache(self.split_data)(extracted_features, **default_kwargs[&#39;split_data&#39;])
+        if not run_perturbations:
+            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs[&#39;clean_data&#39;])
+            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs[&#39;preprocess_data&#39;])
+            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
+            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        elif run_perturbations:
+            data_path_arg = init_args(data_path)
+            clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;])
+            # print(clean_set)
+            cleaned_data = clean_set(data_path_arg)
+            preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;])
+            preprocessed_data = preprocess_set(cleaned_data)
+            extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;])
+            extracted_features = extract_set(preprocessed_data)
+            split_data = build_Vset(&#39;split_data&#39;, self.split_data, {})
+            print(extracted_features)
+            dfs_train, dfs_tune, dfs_test = split_data(extracted_features)
+            print(&#39;ks&#39;, dfs_train.keys())
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
             for df, fname in zip([df_train, df_tune, df_test],
@@ -485,7 +525,7 @@ def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.D
 </details>
 </dd>
 <dt id="rulevetting.templates.dataset.DatasetTemplate.get_data"><code class="name flex">
-<span>def <span class="ident">get_data</span></span>(<span>self, save_csvs: bool = False, data_path: str = '/Volumes/GoogleDrive/My Drive/research/rules/rule-vetting/data', load_csvs: bool = False) ‑> (<class 'pandas.core.frame.DataFrame'>, <class 'pandas.core.frame.DataFrame'>, <class 'pandas.core.frame.DataFrame'>)</span>
+<span>def <span class="ident">get_data</span></span>(<span>self, save_csvs: bool = False, data_path: str = '/Volumes/GoogleDrive/My Drive/research/rules/rule-vetting/data', load_csvs: bool = False, run_perturbations: bool = False) ‑> (<class 'pandas.core.frame.DataFrame'>, <class 'pandas.core.frame.DataFrame'>, <class 'pandas.core.frame.DataFrame'>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Runs all the processing and returns the data.
@@ -512,7 +552,8 @@ Whether to skip all processing and load data directly from csvs</p>
 </summary>
 <pre><code class="python">def get_data(self, save_csvs: bool = False,
              data_path: str = rulevetting.DATA_PATH,
-             load_csvs: bool = False) -&gt; (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+             load_csvs: bool = False,
+             run_perturbations: bool = False) -&gt; (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     &#34;&#34;&#34;Runs all the processing and returns the data.
     This method does not need to be overriden.
 
@@ -543,14 +584,28 @@ Whether to skip all processing and load data directly from csvs</p>
     default_kwargs = {}
     for key in kwargs.keys():
         func_kwargs = kwargs[key]
-        default_kwargs[key] = {k: func_kwargs[k][0] # first arg in each list is default
+        default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                for k in func_kwargs.keys()}
 
     print(&#39;kwargs&#39;, default_kwargs)
-    cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs[&#39;clean_data&#39;])
-    preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs[&#39;preprocess_data&#39;])
-    extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
-    df_train, df_tune, df_test = cache(self.split_data)(extracted_features, **default_kwargs[&#39;split_data&#39;])
+    if not run_perturbations:
+        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs[&#39;clean_data&#39;])
+        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs[&#39;preprocess_data&#39;])
+        extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
+        df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+    elif run_perturbations:
+        data_path_arg = init_args(data_path)
+        clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;])
+        # print(clean_set)
+        cleaned_data = clean_set(data_path_arg)
+        preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;])
+        preprocessed_data = preprocess_set(cleaned_data)
+        extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;])
+        extracted_features = extract_set(preprocessed_data)
+        split_data = build_Vset(&#39;split_data&#39;, self.split_data, {})
+        print(extracted_features)
+        dfs_train, dfs_tune, dfs_test = split_data(extracted_features)
+        print(&#39;ks&#39;, dfs_train.keys())
     if save_csvs:
         os.makedirs(PROCESSED_PATH, exist_ok=True)
         for df, fname in zip([df_train, df_tune, df_test],
@@ -581,7 +636,7 @@ def get_dataset_id(self) -&gt; str:
 <span>def <span class="ident">get_judgement_calls_dictionary</span></span>(<span>self) ‑> Dict[str, Dict[str, list]]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Return dictionary of keyword arguments for each functions in the dataset class.
+<div class="desc"><p>Return dictionary of keyword arguments for each function in the dataset class.
 Each key should be a string with the name of the arg.
 Each value should be a list of values, with the default value coming first.</p>
 <h2 id="example">Example</h2>
@@ -592,14 +647,13 @@ Each value should be a list of values, with the default value coming first.</p>
 # first value is default
 },
 'extract_features': {},
-'split_data': {},
 }</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_judgement_calls_dictionary(self) -&gt; Dict[str, Dict[str, list]]:
-    &#34;&#34;&#34;Return dictionary of keyword arguments for each functions in the dataset class.
+    &#34;&#34;&#34;Return dictionary of keyword arguments for each function in the dataset class.
     Each key should be a string with the name of the arg.
     Each value should be a list of values, with the default value coming first.
 
@@ -611,7 +665,6 @@ Each value should be a list of values, with the default value coming first.</p>
             &#39;imputation_strategy&#39;: [&#39;mean&#39;, &#39;median&#39;],  # first value is default
         },
         &#39;extract_features&#39;: {},
-        &#39;split_data&#39;: {},
     }
     &#34;&#34;&#34;
     return NotImplemented</code></pre>
@@ -694,10 +747,11 @@ def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -&gt; pd.DataFra
 </details>
 </dd>
 <dt id="rulevetting.templates.dataset.DatasetTemplate.split_data"><code class="name flex">
-<span>def <span class="ident">split_data</span></span>(<span>self, preprocessed_data: pandas.core.frame.DataFrame, **kwargs) ‑> pandas.core.frame.DataFrame</span>
+<span>def <span class="ident">split_data</span></span>(<span>self, preprocessed_data: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Split into 3 sets: training, tuning, testing
+<div class="desc"><p>Split into 3 sets: training, tuning, testing.
+Do not modify (to ensure consistent test set).
 Keep in mind any natural splits (e.g. hospitals).
 Ensure that there are positive points in all splits.</p>
 <h2 id="parameters">Parameters</h2>
@@ -720,9 +774,9 @@ Ensure that there are positive points in all splits.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@abstractmethod
-def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFrame:
-    &#34;&#34;&#34;Split into 3 sets: training, tuning, testing
+<pre><code class="python">def split_data(self, preprocessed_data: pd.DataFrame) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;Split into 3 sets: training, tuning, testing.
+    Do not modify (to ensure consistent test set).
     Keep in mind any natural splits (e.g. hospitals).
     Ensure that there are positive points in all splits.
 
@@ -738,7 +792,11 @@ def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -&gt; pd.DataFra
     df_tune
     df_test
     &#34;&#34;&#34;
-    return NotImplemented</code></pre>
+    return np.split(
+        preprocessed_data.sample(frac=1, random_state=42),
+        [int(.6 * len(preprocessed_data)),  # 60% train
+         int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
+    )</code></pre>
 </details>
 </dd>
 </dl>
