@@ -4,7 +4,7 @@
 
 The lab writeup should be inside the project folder (e.g. `rulevetting/projects/iai_pecarn/writeup.pdf`) and answer these questions in a file named `writeup.pdf`.
 The accomanying source file `writeup.Rmd` (or `writeup.md`) should also be inside the project folder.
-Figures should all be in a subdirectory named `figs`.
+Figures should all be in a subdirectory named `figs`. If you use any packages outside of the ones already installed, please include a `requirements.txt` file with the name and version number of these packages.
 
 Do write comments in the code - we will be checking these!
 
