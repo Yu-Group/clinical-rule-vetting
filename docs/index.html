@@ -150,13 +150,19 @@ Research paper 📄, Data download link 🔗
 <h1 id="installation">Installation</h1>
 <p>Note: requires python 3.7 and pytest (for running the automated tests).
 It is best practice to create a <a href="https://docs.python.org/3/tutorial/venv.html">venv</a> or pipenv for this project.</p>
+<pre><code class="language-bash">python -m venv rule-env
+source rule-env/bin/activate
+</code></pre>
+<p>Then, clone the repo and install the package and its dependencies.</p>
 <pre><code class="language-bash">git clone https://github.com/Yu-Group/rule-vetting
 cd rule-vetting
-python setup.py sdist
 pip install -e .
 </code></pre>
 <p>Now run the automatic tests to ensure everything works.</p>
-<pre><code>pytest --project iai_pecarn
+<pre><code class="language-bash">pytest --project iai_pecarn
+</code></pre>
+<p>To use with jupyter, might have to add this venv as a jupyter kernel.</p>
+<pre><code class="language-bash">python -m ipykernel install --user --name=rule-env
 </code></pre>
 <h1 id="clinical-trial-datasets">Clinical Trial Datasets</h1>
 <table>

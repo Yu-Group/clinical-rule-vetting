@@ -92,8 +92,7 @@ source rule-env/bin/activate  // activate the env
 ```bash
 git clone https://github.com/Yu-Group/rule-vetting  // clone the repo
 cd rule-vetting
-python setup.py sdist  // install all dependencies
-pip install -e .  // make package editable
+python setup.py develop
 ```
 
 ## editing in python

@@ -78,16 +78,28 @@ Note: requires python 3.7 and pytest (for running the automated tests).
 It is best practice to create a [venv](https://docs.python.org/3/tutorial/venv.html) or pipenv for this project.
 
 ```bash
+python -m venv rule-env
+source rule-env/bin/activate
+```
+
+Then, clone the repo and install the package and its dependencies.
+
+```bash
 git clone https://github.com/Yu-Group/rule-vetting
 cd rule-vetting
-python setup.py sdist
 pip install -e .
 ```
 
 Now run the automatic tests to ensure everything works.
 
-```
+```bash
 pytest --project iai_pecarn
+```
+
+To use with jupyter, might have to add this venv as a jupyter kernel.
+
+```bash
+python -m ipykernel install --user --name=rule-env
 ```
 
 # Clinical Trial Datasets
