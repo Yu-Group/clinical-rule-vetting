@@ -209,3 +209,7 @@ package for facilitating PCS analysis, especially stability
 `pytest --project <your_project_name>`
 
 e.g. `pytest --project iai_pecarn`
+
+
+
+## [ex notebooks](https://github.com/Yu-Group/rule-vetting/tree/master/rulevetting/projects/iai_pecarn/notebooks)

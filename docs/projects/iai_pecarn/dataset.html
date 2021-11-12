@@ -145,11 +145,11 @@ class Dataset(DatasetTemplate):
             &#39;clean_data&#39;: {},
             &#39;preprocess_data&#39;: {
                 # drop cols with vals missing this percent of the time
-                &#39;frac_missing_allowed&#39;: [0.05, 0.03, 0.10],
+                &#39;frac_missing_allowed&#39;: [0.05, 0.10],
             },
             &#39;extract_features&#39;: {
                 # whether to drop columns with suffix _no
-                &#39;drop_negative_columns&#39;: [False, True],  # default value comes first
+                &#39;drop_negative_columns&#39;: [False],  # default value comes first
             },
         }
 
@@ -287,11 +287,11 @@ Please refrain from shuffling / reordering the data in any of these functions, t
             &#39;clean_data&#39;: {},
             &#39;preprocess_data&#39;: {
                 # drop cols with vals missing this percent of the time
-                &#39;frac_missing_allowed&#39;: [0.05, 0.03, 0.10],
+                &#39;frac_missing_allowed&#39;: [0.05, 0.10],
             },
             &#39;extract_features&#39;: {
                 # whether to drop columns with suffix _no
-                &#39;drop_negative_columns&#39;: [False, True],  # default value comes first
+                &#39;drop_negative_columns&#39;: [False],  # default value comes first
             },
         }</code></pre>
 </details>

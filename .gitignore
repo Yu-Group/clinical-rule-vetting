@@ -34,6 +34,7 @@ dist
 
 **.gslides
 **.xml
+**perturbed_data
 
 experiments/data/
 !experiments/data/get_datasets.ipynb

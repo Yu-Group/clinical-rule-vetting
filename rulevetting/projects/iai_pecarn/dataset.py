@@ -117,11 +117,11 @@ class Dataset(DatasetTemplate):
             'clean_data': {},
             'preprocess_data': {
                 # drop cols with vals missing this percent of the time
-                'frac_missing_allowed': [0.05, 0.03, 0.10],
+                'frac_missing_allowed': [0.05, 0.10],
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
-                'drop_negative_columns': [False, True],  # default value comes first
+                'drop_negative_columns': [False],  # default value comes first
             },
         }
 

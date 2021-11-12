@@ -121,11 +121,11 @@ class DatasetTemplate:
         df_tune
         df_test
         &#34;&#34;&#34;
-        return np.split(
+        return tuple(np.split(
             preprocessed_data.sample(frac=1, random_state=42),
             [int(.6 * len(preprocessed_data)),  # 60% train
              int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
-        )
+        ))
 
     @abstractmethod
     def get_outcome_name(self) -&gt; str:
@@ -177,6 +177,8 @@ class DatasetTemplate:
             Path to all data
         load_csvs: bool, optional
             Whether to skip all processing and load data directly from csvs
+        run_perturbations: bool, optional
+            Whether to run / save data pipeline for all combinations of judgement calls
 
         Returns
         -------
@@ -206,25 +208,41 @@ class DatasetTemplate:
             extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
             df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         elif run_perturbations:
-            data_path_arg = init_args(data_path)
-            clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;])
-            # print(clean_set)
+            data_path_arg = init_args([data_path], names=[&#39;data_path&#39;])[0]
+            clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;], cache_dir=CACHE_PATH)
             cleaned_data = clean_set(data_path_arg)
-            preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;])
+            preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;],
+                                        cache_dir=CACHE_PATH)
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;])
+            extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;],
+                                     cache_dir=CACHE_PATH)
             extracted_features = extract_set(preprocessed_data)
-            split_data = build_Vset(&#39;split_data&#39;, self.split_data, {})
-            print(extracted_features)
-            dfs_train, dfs_tune, dfs_test = split_data(extracted_features)
-            print(&#39;ks&#39;, dfs_train.keys())
+            split_data = Vset(&#39;split_data&#39;, modules=[self.split_data])
+            dfs = split_data(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
-            for df, fname in zip([df_train, df_tune, df_test],
-                                 [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
-                meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
-                df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
-                df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
+
+            if not run_perturbations:
+                for df, fname in zip([df_train, df_tune, df_test],
+                                     [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                    meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                    df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
+                    df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
+            if run_perturbations:
+                for k in dfs.keys():
+                    if isinstance(k, tuple):
+                        os.makedirs(oj(PROCESSED_PATH, &#39;perturbed_data&#39;), exist_ok=True)
+                        perturbation_name = str(k).replace(&#39;, &#39;, &#39;_&#39;).replace(&#39;(&#39;, &#39;&#39;).replace(&#39;)&#39;, &#39;&#39;)
+                        perturbed_path = oj(PROCESSED_PATH, &#39;perturbed_data&#39;, perturbation_name)
+                        os.makedirs(perturbed_path, exist_ok=True)
+                        for i, fname in enumerate([&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                            df = dfs[k][i]
+                            meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(),
+                                                                                            self.get_meta_keys())
+                            df.loc[:, meta_keys].to_csv(oj(perturbed_path, f&#39;meta_{fname}&#39;))
+                            df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
+                return dfs[list(dfs.keys())[0]]
+
         return df_train, df_tune, df_test</code></pre>
 </details>
 </section>
@@ -329,11 +347,11 @@ Please refrain from shuffling / reordering the data in any of these functions, t
         df_tune
         df_test
         &#34;&#34;&#34;
-        return np.split(
+        return tuple(np.split(
             preprocessed_data.sample(frac=1, random_state=42),
             [int(.6 * len(preprocessed_data)),  # 60% train
              int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
-        )
+        ))
 
     @abstractmethod
     def get_outcome_name(self) -&gt; str:
@@ -385,6 +403,8 @@ Please refrain from shuffling / reordering the data in any of these functions, t
             Path to all data
         load_csvs: bool, optional
             Whether to skip all processing and load data directly from csvs
+        run_perturbations: bool, optional
+            Whether to run / save data pipeline for all combinations of judgement calls
 
         Returns
         -------
@@ -414,25 +434,41 @@ Please refrain from shuffling / reordering the data in any of these functions, t
             extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
             df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         elif run_perturbations:
-            data_path_arg = init_args(data_path)
-            clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;])
-            # print(clean_set)
+            data_path_arg = init_args([data_path], names=[&#39;data_path&#39;])[0]
+            clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;], cache_dir=CACHE_PATH)
             cleaned_data = clean_set(data_path_arg)
-            preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;])
+            preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;],
+                                        cache_dir=CACHE_PATH)
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;])
+            extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;],
+                                     cache_dir=CACHE_PATH)
             extracted_features = extract_set(preprocessed_data)
-            split_data = build_Vset(&#39;split_data&#39;, self.split_data, {})
-            print(extracted_features)
-            dfs_train, dfs_tune, dfs_test = split_data(extracted_features)
-            print(&#39;ks&#39;, dfs_train.keys())
+            split_data = Vset(&#39;split_data&#39;, modules=[self.split_data])
+            dfs = split_data(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
-            for df, fname in zip([df_train, df_tune, df_test],
-                                 [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
-                meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
-                df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
-                df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
+
+            if not run_perturbations:
+                for df, fname in zip([df_train, df_tune, df_test],
+                                     [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                    meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                    df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
+                    df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
+            if run_perturbations:
+                for k in dfs.keys():
+                    if isinstance(k, tuple):
+                        os.makedirs(oj(PROCESSED_PATH, &#39;perturbed_data&#39;), exist_ok=True)
+                        perturbation_name = str(k).replace(&#39;, &#39;, &#39;_&#39;).replace(&#39;(&#39;, &#39;&#39;).replace(&#39;)&#39;, &#39;&#39;)
+                        perturbed_path = oj(PROCESSED_PATH, &#39;perturbed_data&#39;, perturbation_name)
+                        os.makedirs(perturbed_path, exist_ok=True)
+                        for i, fname in enumerate([&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                            df = dfs[k][i]
+                            meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(),
+                                                                                            self.get_meta_keys())
+                            df.loc[:, meta_keys].to_csv(oj(perturbed_path, f&#39;meta_{fname}&#39;))
+                            df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
+                return dfs[list(dfs.keys())[0]]
+
         return df_train, df_tune, df_test</code></pre>
 </details>
 <h3>Subclasses</h3>
@@ -536,7 +572,9 @@ Whether to save csv files of the processed data
 data_path: str, optional
 Path to all data
 load_csvs: bool, optional
-Whether to skip all processing and load data directly from csvs</p>
+Whether to skip all processing and load data directly from csvs
+run_perturbations: bool, optional
+Whether to run / save data pipeline for all combinations of judgement calls</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>df_train</code></dt>
@@ -565,6 +603,8 @@ Whether to skip all processing and load data directly from csvs</p>
         Path to all data
     load_csvs: bool, optional
         Whether to skip all processing and load data directly from csvs
+    run_perturbations: bool, optional
+        Whether to run / save data pipeline for all combinations of judgement calls
 
     Returns
     -------
@@ -594,25 +634,41 @@ Whether to skip all processing and load data directly from csvs</p>
         extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs[&#39;extract_features&#39;])
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
     elif run_perturbations:
-        data_path_arg = init_args(data_path)
-        clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;])
-        # print(clean_set)
+        data_path_arg = init_args([data_path], names=[&#39;data_path&#39;])[0]
+        clean_set = build_Vset(&#39;clean_data&#39;, self.clean_data, param_dict=kwargs[&#39;clean_data&#39;], cache_dir=CACHE_PATH)
         cleaned_data = clean_set(data_path_arg)
-        preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;])
+        preprocess_set = build_Vset(&#39;preprocess_data&#39;, self.preprocess_data, param_dict=kwargs[&#39;preprocess_data&#39;],
+                                    cache_dir=CACHE_PATH)
         preprocessed_data = preprocess_set(cleaned_data)
-        extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;])
+        extract_set = build_Vset(&#39;extract_features&#39;, self.extract_features, param_dict=kwargs[&#39;extract_features&#39;],
+                                 cache_dir=CACHE_PATH)
         extracted_features = extract_set(preprocessed_data)
-        split_data = build_Vset(&#39;split_data&#39;, self.split_data, {})
-        print(extracted_features)
-        dfs_train, dfs_tune, dfs_test = split_data(extracted_features)
-        print(&#39;ks&#39;, dfs_train.keys())
+        split_data = Vset(&#39;split_data&#39;, modules=[self.split_data])
+        dfs = split_data(extracted_features)
     if save_csvs:
         os.makedirs(PROCESSED_PATH, exist_ok=True)
-        for df, fname in zip([df_train, df_tune, df_test],
-                             [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
-            meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
-            df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
-            df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
+
+        if not run_perturbations:
+            for df, fname in zip([df_train, df_tune, df_test],
+                                 [&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f&#39;meta_{fname}&#39;))
+                df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
+        if run_perturbations:
+            for k in dfs.keys():
+                if isinstance(k, tuple):
+                    os.makedirs(oj(PROCESSED_PATH, &#39;perturbed_data&#39;), exist_ok=True)
+                    perturbation_name = str(k).replace(&#39;, &#39;, &#39;_&#39;).replace(&#39;(&#39;, &#39;&#39;).replace(&#39;)&#39;, &#39;&#39;)
+                    perturbed_path = oj(PROCESSED_PATH, &#39;perturbed_data&#39;, perturbation_name)
+                    os.makedirs(perturbed_path, exist_ok=True)
+                    for i, fname in enumerate([&#39;train.csv&#39;, &#39;tune.csv&#39;, &#39;test.csv&#39;]):
+                        df = dfs[k][i]
+                        meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(),
+                                                                                        self.get_meta_keys())
+                        df.loc[:, meta_keys].to_csv(oj(perturbed_path, f&#39;meta_{fname}&#39;))
+                        df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
+            return dfs[list(dfs.keys())[0]]
+
     return df_train, df_tune, df_test</code></pre>
 </details>
 </dd>
@@ -792,11 +848,11 @@ Ensure that there are positive points in all splits.</p>
     df_tune
     df_test
     &#34;&#34;&#34;
-    return np.split(
+    return tuple(np.split(
         preprocessed_data.sample(frac=1, random_state=42),
         [int(.6 * len(preprocessed_data)),  # 60% train
          int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
-    )</code></pre>
+    ))</code></pre>
 </details>
 </dd>
 </dl>
