@@ -1,0 +1,201 @@
+patnum,surgleak,surgfx,surghema,surgicp,surglobe,surgtissue,surgventri,surgoth,SurgOthDescr
+199,0,0,1,0,0,0,0,0,bilateral subdural drains
+448,0,0,0,1,0,0,0,0,
+755,0,0,0,1,0,0,0,0,
+774,0,0,1,0,0,0,0,0,Right parietal craniotomy for epidural evacuation
+801,0,0,1,0,0,0,0,0,
+877,0,0,0,1,0,0,0,0,
+2045,0,0,1,0,0,0,0,1,left parietal craniotomy for evacuation of epidural hematoma
+2109,0,0,0,0,0,0,1,0,
+2440,0,0,1,0,0,0,0,0,
+2536,0,0,0,1,0,0,1,0,
+2700,0,0,0,1,0,0,1,0,
+2822,0,0,1,0,0,0,0,0,
+2928,0,0,1,0,0,0,0,0,
+3879,0,0,0,1,0,0,0,0,
+4094,0,1,0,0,0,0,0,0,
+4148,0,0,0,1,0,0,0,1,EVD
+4361,0,1,0,0,0,0,0,0,
+4688,0,0,0,1,0,0,0,0,
+4809,0,0,0,1,0,0,0,0,
+4889,0,0,1,0,0,0,0,0,
+5131,1,1,0,0,0,0,0,0,
+5287,0,0,1,0,0,0,0,1,insertion of ventrix ICP manitor /EVD and duraplasty
+5713,0,0,1,0,0,1,0,0,Craniotomy: 1) Right frontotemporal craniotomy 2) Evacuation of epidural hematoma
+5971,0,1,0,0,0,0,0,1,craniotomy for repair of skull fracture
+6083,0,0,0,1,0,0,1,0,EVD placement
+6952,0,0,1,0,0,0,0,1,craniotomy & formation of cranial bone flap
+7936,0,0,0,1,0,0,1,0,
+7944,0,0,0,1,0,0,1,0,
+8668,0,0,1,0,0,0,0,0,
+8892,1,1,0,0,0,0,0,0,
+9892,0,0,0,1,0,0,0,0,
+10176,0,0,0,1,0,0,1,0,
+10199,1,1,0,0,0,0,0,1,left frontal craniotomy
+10375,0,0,0,0,1,0,0,1,cranioplasty
+10513,0,1,1,0,0,0,0,1,right parietal craniectomy
+10639,0,0,1,0,0,0,0,0,Craniotomy to evacuate an epidural hematoma
+10645,0,0,1,0,0,0,0,0,
+10653,0,0,1,0,1,0,0,0,
+10916,0,0,1,1,0,0,1,0,
+10923,0,0,0,1,0,0,0,0,
+10961,0,0,0,0,0,0,1,0,neurosurgery placed a left EVD.
+11115,0,0,0,1,0,0,0,0,
+11369,0,1,0,0,0,0,0,1,"removal of bone, elevation of skull fx"
+11587,0,0,0,1,0,0,1,0,
+11674,0,0,1,1,1,0,0,0,
+12090,0,0,1,0,0,0,0,0,
+12308,0,0,0,0,0,0,0,1,IUD Placement
+12929,1,0,0,0,0,0,1,0,bifrontotemporal craniectormy with duraplasty/ placement of R frontal External ventricular drain
+13037,0,0,1,0,1,0,0,0,
+13100,0,1,0,0,0,1,0,0,
+13802,0,1,0,0,0,0,0,0,cranioplasty 5 CM.
+14727,0,0,1,0,0,0,0,1,(R) temporal crainotomy
+15075,0,0,1,0,0,0,0,0,
+15245,0,0,0,1,0,0,1,0,
+16052,0,0,0,1,0,0,0,0,
+17106,0,0,0,0,0,0,1,0,
+17821,0,0,0,1,0,0,0,1,decompressive craniotomy and insertion of external ventricular drain
+18246,0,0,0,1,0,0,1,0,
+18317,0,0,1,0,0,0,0,0,
+18400,0,0,1,0,0,0,0,0,
+18412,0,0,1,0,0,0,0,0,
+19180,0,1,1,1,0,0,0,0,
+19335,0,0,1,0,1,0,0,1,cranioplasty
+19690,1,0,0,1,0,1,0,0,Right frontotemporal parietal craniectomy
+19734,0,0,0,1,0,0,0,1,camino catheter placement
+19827,1,1,0,0,0,0,0,0,
+19904,0,0,0,1,0,0,1,0,
+20032,0,0,0,1,0,0,0,0,
+20212,0,0,0,1,0,0,1,0,
+20309,1,0,0,0,0,0,0,0,bifrontal or orthoplastic craniotomy w/ duraplasty
+20609,0,0,0,0,0,0,1,0,
+20734,0,0,0,1,0,0,0,0,
+20931,0,0,0,1,0,0,0,0,
+20982,0,0,1,1,0,0,0,0,
+21020,0,0,0,0,0,0,1,1,craniotomy
+21094,0,0,0,0,0,0,1,0,
+21320,0,0,1,0,0,0,0,0,
+21688,0,0,1,0,0,0,1,1,craniotomy
+21700,0,0,1,1,0,0,0,1,craniectomy
+21909,0,1,0,0,0,0,0,0,
+21924,0,1,0,0,0,0,0,0,
+21999,1,1,0,1,0,0,0,1,craniotomy with bone flap removal
+22051,0,0,1,0,1,0,0,0,
+22096,0,0,1,0,0,0,0,0,
+22631,0,0,1,0,0,0,0,0,right side craniotomy for evacuation of epidural hematoma
+22636,0,0,1,0,0,0,0,0,
+22643,0,0,0,1,0,0,0,0,
+23020,0,0,0,1,0,0,0,0,
+23063,0,0,0,1,0,0,0,1,external ventricular drain
+23119,0,1,0,0,0,0,0,0,
+23842,0,1,1,1,0,0,0,0,
+23865,0,0,0,1,0,0,0,0,
+24102,0,0,0,1,0,0,1,0,
+24624,0,0,1,0,0,0,0,0,
+24666,1,1,1,0,0,0,0,1,hemicraniectomy
+24709,0,0,1,0,1,0,1,0,
+24882,0,0,0,1,0,0,1,0,
+25272,0,0,0,0,0,0,1,0,EVD placed
+25571,0,0,0,1,0,0,1,0,
+25643,0,1,1,1,0,0,0,0,
+25708,0,0,0,1,0,0,1,1,craniextomy
+25890,0,0,1,0,0,0,0,1,craniotomy
+26317,0,1,1,0,0,0,0,0,
+26426,0,1,1,0,0,0,0,0,
+26490,0,0,0,1,1,0,0,0,
+26695,0,0,0,0,0,0,1,0,
+26715,0,0,0,1,0,0,0,0,
+26921,0,0,1,0,0,0,0,0,
+27026,0,0,1,0,0,0,0,1,"right hemicraniectomy, leaving out bone flap"
+27079,0,0,0,1,0,0,1,1,decompressice left craniectomy and intacerebral temporal clot evacuation
+27662,0,0,0,1,0,0,1,0,
+27856,0,1,0,0,0,1,0,1,"repair of cerebral meninges, suture of cranial peripheral nerves"
+28075,1,1,0,1,0,0,1,0,
+28498,0,0,0,0,0,0,1,0,
+28616,0,0,1,0,0,0,0,0,
+28635,0,0,1,0,0,0,0,0,
+28748,1,0,1,0,0,1,1,0,bifrontal craniotomy and craniectomy
+28866,0,1,1,0,0,0,0,0,
+28868,0,0,0,1,0,0,1,0,
+29127,0,0,0,1,0,0,1,0,
+29522,0,0,0,1,0,0,0,0,
+29874,0,0,0,1,0,0,0,0,
+30055,0,0,0,0,0,0,1,0,
+30305,0,0,0,1,0,0,1,0,
+30407,0,0,0,1,0,0,1,0,
+30607,0,1,1,0,0,0,0,0,
+30810,0,0,0,1,0,0,1,1,"Craniotomy, decompressive duraplasty"
+31214,0,0,1,0,0,0,0,0,
+31267,0,1,0,0,0,1,0,0,
+31284,0,0,1,0,0,0,0,0,
+31436,0,0,0,1,0,0,0,0,
+31556,0,0,1,0,0,0,0,0,
+31987,0,0,0,1,0,0,0,0,
+32111,0,1,0,0,0,0,0,0,
+32177,0,0,0,0,0,0,1,0,
+32293,0,0,0,1,0,0,0,1,extra ventricular device/ shunt replacement (EVD)
+32506,0,0,1,0,0,0,0,0,right temporoparietal craniotomy for evacuation of epidural hematoma
+32662,0,0,1,0,0,0,0,0,
+32873,0,1,0,0,0,0,0,0,
+32898,0,1,0,0,0,0,0,0,
+33085,0,1,0,0,0,0,0,1,debridement and reconstruction of cranium
+33268,0,0,0,1,0,0,0,0,
+33473,0,0,1,1,0,0,1,0,
+33581,0,0,1,1,0,0,0,0,
+34020,0,0,0,1,0,0,0,0,
+34086,1,0,0,0,0,0,1,0,Frontal Decompression Craniectomy Duraplexity
+34170,0,1,0,0,0,0,0,0,
+34182,0,0,1,0,0,0,0,0,
+34241,0,0,1,0,0,0,0,0,
+34333,0,0,1,0,0,0,1,1,"Left Frontotemporal craniotomy, subdural space exploration"
+34736,0,0,1,1,0,0,0,0,
+34893,0,1,0,0,0,0,0,0,
+34954,0,0,1,0,0,0,0,0,
+35083,0,0,1,1,0,0,1,1,Left frontoparietal craniotomy with evacuation of subdural/intraparenchymal clot
+35248,0,0,1,0,0,0,0,1,craniotomy
+35275,0,0,0,1,0,0,0,0,
+35448,0,0,1,0,0,0,0,0,
+35593,0,0,0,0,0,0,0,1,Lumbar drain for CSF leak
+35669,0,0,0,0,0,0,1,0,placement of an EVD
+35990,0,0,1,0,0,0,0,1,craniectomy - left-sided
+36212,0,0,1,0,0,0,0,0,
+36690,0,1,0,0,0,0,0,0,
+36740,0,0,0,1,0,0,0,0,
+37148,0,0,1,0,0,0,0,0,
+37624,0,1,0,0,0,0,0,0,1. Elevation of left frontal depressed skull fracture by neurosurgery and 2. cranioplasty (using bone source 1.6 x 1.1 cm)
+37696,0,0,0,1,0,0,1,0,
+38045,1,1,0,0,0,0,0,0,
+38233,0,0,1,1,0,0,0,1,insertion of left ventriculoperitoneal shunt
+38266,0,0,0,1,0,0,0,0,
+38327,0,0,1,0,0,0,0,0,
+38458,0,0,1,0,0,0,0,0,craniectomy with subdural evacuation
+39004,1,1,0,0,0,1,0,1,"surgical reconstruction of frontal bone, superior to the right orbit"
+39363,0,1,0,0,0,0,0,0,
+39431,0,0,0,1,0,0,0,0,
+39544,1,1,0,0,0,0,0,0,
+39643,0,0,0,1,0,0,0,0,
+39674,0,0,0,1,0,0,0,0,
+39829,0,0,1,1,0,0,0,1,"craniectomy with duraplasty, craniotomy"
+39855,0,1,0,0,0,0,0,0,
+40017,0,0,1,0,0,0,0,1,decompression craniotomy and subdural hematoma evacuation
+40232,0,0,0,1,0,0,0,1,EVD Placement
+40302,0,0,1,0,0,0,0,1,posterior fossa craniotomy with evacuation of posterior fossa epidural as well as supratentorial epidural hematoma
+40311,0,0,1,0,0,0,1,0,
+40355,0,0,1,0,0,0,0,0,
+40596,0,0,1,0,0,0,0,0,
+40771,0,0,0,1,0,0,1,0,
+41056,0,0,1,0,0,0,0,0,
+41202,0,0,1,0,0,0,1,0,
+41290,0,0,0,1,0,0,0,0,
+41304,0,0,1,0,0,0,0,0,
+41843,0,0,0,0,0,0,1,0,
+42081,0,0,1,0,0,0,0,1,right craniotomy
+42122,0,1,1,1,0,0,0,0,
+42138,1,1,1,0,0,0,0,0,
+42424,0,0,1,0,0,0,0,0,
+42575,0,0,0,0,0,0,0,1,Anterior Fontanelle Tap
+42610,0,0,0,1,0,0,1,0,
+42728,0,0,1,1,0,0,0,0,
+42870,0,0,0,1,0,0,0,0,
+43303,0,0,0,0,0,0,1,0,
