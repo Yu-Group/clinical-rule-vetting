@@ -1,134 +1,252 @@
-from os.path import join as oj
-
-import numpy as np
 import os
-import pandas as pd
-from tqdm import tqdm
+import random
+from abc import abstractmethod
+from os.path import join as oj
 from typing import Dict
 
+import numpy as np
+import pandas as pd
+from joblib import Memory
+
 import rulevetting
-import rulevetting.api.util
-from rulevetting.projects.iai_pecarn import helper
-from rulevetting.templates.dataset import DatasetTemplate
+from vflow import init_args, Vset, build_Vset
 
 
-class Dataset(DatasetTemplate):
+class Dataset:
+    """All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag. Please refrain from shuffling / reordering the data in any of these functions, to ensure a consistent test set.
+    """
+
+    @abstractmethod
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
+        """
+        Convert the raw data files into a pandas dataframe.
+        Dataframe keys should be reasonable (lowercase, underscore-separated).
+        Data types should be reasonable.
+
+        Params
+        ------
+        data_path: str, optional
+            Path to all data files
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
+
+        Returns
+        -------
+        cleaned_data: pd.DataFrame
+        """
+        # get the file path to the raw data frame
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
 
-        # all the fnames to be loaded and searched over
+        # all the file names are loaded and searched over
         fnames = sorted([
             fname for fname in os.listdir(raw_data_path)
-            if 'csv' in fname
-               and not 'formats' in fname
-               and not 'form6' in fname])  # remove outcome
+            if 'csv' in fname]) 
 
-        # read through each fname and save into the r dictionary
+        # take each csv path, read into dataframe, and add to dictionary r
         r = {}
-        print('read all the csvs...', fnames)
+        print('Reading the raw CSVs...', fnames)
         if len(fnames) == 0:
-            print('no csvs found in path', raw_data_path)
+            print('No CSVs in path', raw_data_path)
         for fname in tqdm(fnames):
             df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
-            df.rename(columns={'SubjectID': 'id'}, inplace=True)
-            df.rename(columns={'subjectid': 'id'}, inplace=True)
+            df.rename(columns={'PatNum': 'id'}, inplace=True)
+            df.rename(columns={'patnum': 'id'}, inplace=True)
             assert ('id' in df.keys())
-            r[fname] = df
-
-        # loop over the relevant forms and merge into one big df
-        fnames_small = [fname for fname in fnames
-                        for s in ['form1', 'form2', 'form4', 'form5', 'form7']
-                        if s in fname]
-        df_features = r[fnames[0]]
-        print('merge all the dfs...')
-        for i, fname in tqdm(enumerate(fnames_small)):
-            df2 = r[fname].copy()
 
             # if subj has multiple entries, only keep first
-            df2 = df2.drop_duplicates(subset=['id'], keep='last')
+            df = df.drop_duplicates(subset=['id'], keep='last')
 
-            # don't save duplicate columns
-            df_features = df_features.set_index('id').combine_first(df2.set_index('id')).reset_index()
+            # apply helper functions to make categorical vars and rename values
+            if fname == 'TBI PUD 10-08-2013.csv':
+                df = helper.rename_tbi_pud(df)
+            if fname == 'TBI PUD Neuro.csv':
+                df = helper.rename_tbi_neuro(df)
+            r[fname] = df
 
-        df_outcomes = helper.get_outcomes(raw_data_path)
+        # now merging all of these dataframes into one - dumb way - fix asap...
+        df = r['TBI PUD 10-08-2013.csv'].merge(r['TBI PUD Imaging.csv'],
+                                          how='right', on='id').merge(r['TBI PUD Neuro.csv'],
+                                                                      how='right', on='id')
+        df = df.fillna(value='Unknown')
+        cleaned_data = df.replace('nan', 'Unknown')
 
-        df = pd.merge(df_features, df_outcomes, on='id', how='left')
-        df = helper.rename_values(df)  # rename the features by their meaning
+        return cleaned_data
 
-        return df
-
+    @abstractmethod
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        """Preprocess the data.
+        Impute missing values.
+        Scale/transform values.
+        Should put the prediction target in a column named "outcome"
 
-        # drop cols with vals missing this percent of the time
-        df = cleaned_data.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
+        Parameters
+        ----------
+        cleaned_data: pd.DataFrame
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
 
-        # impute missing values
-        # fill in values for some vars from unknown -> None
-        df.loc[df['AbdomenTender'].isin(['no', 'unknown']), 'AbdTenderDegree'] = 'None'
+        Returns
+        -------
+        preprocessed_data: pd.DataFrame
+        """
+        return NotImplemented
 
-        # pandas impute missing values with median
-        df = df.fillna(df.median())
-        df.GCSScore = df.GCSScore.fillna(df.GCSScore.median())
-
-        df['outcome'] = df[self.get_outcome_name()]
-
-        return df
-
+    @abstractmethod
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        # add engineered featuures
-        df = helper.derived_feats(preprocessed_data)
+        """Extract features from preprocessed data
+        All features should be binary
 
-        # convert feats to dummy
-        df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
 
-        # remove any col that is all 0s
-        df = df.loc[:, (df != 0).any(axis=0)]
+        Parameters
+        ----------
+        preprocessed_data: pd.DataFrame
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
 
-        # remove the _no columns
-        if kwargs['drop_negative_columns']:
-            df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
+        Returns
+        -------
+        extracted_features: pd.DataFrame
+        """
+        return NotImplemented
 
-        # narrow to good keys
-        feat_names = [k for k in df.keys()  # features to use
-                      if not 'iai' in k.lower()]
-        base_feat_names = []
-        base_feat_names += ['AbdDistention', 'AbdTenderDegree', 'AbdTrauma', 'AbdTrauma_or_SeatBeltSign',
-                            'AbdomenPain', 'Costal', 'DecrBreathSound', 'DistractingPain',
-                            'FemurFracture', 'GCSScore', 'Hypotension', 'LtCostalTender',
-                            'MOI', 'RtCostalTender', 'SeatBeltSign', 'ThoracicTender',
-                            'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex']
-        base_feat_names += self.get_meta_keys()
-        feats = rulevetting.api.util.get_feat_names_from_base_feats(feat_names,
-                                                                    base_feat_names=base_feat_names) + ['outcome']
-        return df[feats]
+    def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+        """Split into 3 sets: training, tuning, testing.
+        Do not modify (to ensure consistent test set).
+        Keep in mind any natural splits (e.g. hospitals).
+        Ensure that there are positive points in all splits.
 
+        Parameters
+        ----------
+        preprocessed_data
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
+
+        Returns
+        -------
+        df_train
+        df_tune
+        df_test
+        """
+        return tuple(np.split(
+            preprocessed_data.sample(frac=1, random_state=42),
+            [int(.6 * len(preprocessed_data)),  # 60% train
+             int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
+        ))
+
+    @abstractmethod
     def get_outcome_name(self) -> str:
-        return 'iai_intervention'  # return the name of the outcome we are predicting
+        return 'PosIntFinal'  # return the name of the outcome we are predicting
 
+
+    @abstractmethod
     def get_dataset_id(self) -> str:
-        return 'iai_pecarn'  # return the name of the dataset id
+        return 'tbi_pecarn'  # return the name of the dataset id
 
+
+    @abstractmethod
     def get_meta_keys(self) -> list:
-        return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
+        """Return list of keys which should not be used in fitting but are still useful for analysis
+        """
+        return NotImplemented
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
+        """Return dictionary of keyword arguments for each function in the dataset class.
+        Each key should be a string with the name of the arg.
+        Each value should be a list of values, with the default value coming first.
+
+        Example
+        -------
         return {
             'clean_data': {},
             'preprocess_data': {
-                # drop cols with vals missing this percent of the time
-                'frac_missing_allowed': [0.05, 0.10],
+                'imputation_strategy': ['mean', 'median'],  # first value is default
             },
-            'extract_features': {
-                # whether to drop columns with suffix _no
-                'drop_negative_columns': [False],  # default value comes first
-            },
+            'extract_features': {},
         }
+        """
+        return NotImplemented
 
+    def get_data(self, save_csvs: bool = False,
+                 data_path: str = rulevetting.DATA_PATH,
+                 load_csvs: bool = False,
+                 run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+        """Runs all the processing and returns the data.
+        This method does not need to be overriden.
 
-if __name__ == '__main__':
-    dset = Dataset()
-    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=True)
-    print('successfuly processed data\nshapes:',
-          df_train.shape, df_tune.shape, df_test.shape,
-          '\nfeatures:', list(df_train.columns))
+        Params
+        ------
+        save_csvs: bool, optional
+            Whether to save csv files of the processed data
+        data_path: str, optional
+            Path to all data
+        load_csvs: bool, optional
+            Whether to skip all processing and load data directly from csvs
+        run_perturbations: bool, optional
+            Whether to run / save data pipeline for all combinations of judgement calls
+
+        Returns
+        -------
+        df_train
+        df_tune
+        df_test
+        """
+        PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
+        if load_csvs:
+            return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
+                          for s in ['train.csv', 'tune.csv', 'test.csv']])
+        np.random.seed(0)
+        random.seed(0)
+        CACHE_PATH = oj(data_path, 'joblib_cache')
+        cache = Memory(CACHE_PATH, verbose=0).cache
+        kwargs = self.get_judgement_calls_dictionary()
+        default_kwargs = {}
+        for key in kwargs.keys():
+            func_kwargs = kwargs[key]
+            default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
+                                   for k in func_kwargs.keys()}
+
+        print('kwargs', default_kwargs)
+        if not run_perturbations:
+            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
+            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
+            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        elif run_perturbations:
+            data_path_arg = init_args([data_path], names=['data_path'])[0]
+            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
+            cleaned_data = clean_set(data_path_arg)
+            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
+                                        cache_dir=CACHE_PATH)
+            preprocessed_data = preprocess_set(cleaned_data)
+            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
+                                     cache_dir=CACHE_PATH)
+            extracted_features = extract_set(preprocessed_data)
+            split_data = Vset('split_data', modules=[self.split_data])
+            dfs = split_data(extracted_features)
+        if save_csvs:
+            os.makedirs(PROCESSED_PATH, exist_ok=True)
+
+            if not run_perturbations:
+                for df, fname in zip([df_train, df_tune, df_test],
+                                     ['train.csv', 'tune.csv', 'test.csv']):
+                    meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
+                    df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f'meta_{fname}'))
+                    df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
+            if run_perturbations:
+                for k in dfs.keys():
+                    if isinstance(k, tuple):
+                        os.makedirs(oj(PROCESSED_PATH, 'perturbed_data'), exist_ok=True)
+                        perturbation_name = str(k).replace(', ', '_').replace('(', '').replace(')', '')
+                        perturbed_path = oj(PROCESSED_PATH, 'perturbed_data', perturbation_name)
+                        os.makedirs(perturbed_path, exist_ok=True)
+                        for i, fname in enumerate(['train.csv', 'tune.csv', 'test.csv']):
+                            df = dfs[k][i]
+                            meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(),
+                                                                                            self.get_meta_keys())
+                            df.loc[:, meta_keys].to_csv(oj(perturbed_path, f'meta_{fname}'))
+                            df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
+                return dfs[list(dfs.keys())[0]]
+
+        return df_train, df_tune, df_test
+
