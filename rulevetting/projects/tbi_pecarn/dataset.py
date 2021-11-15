@@ -3,10 +3,13 @@ import random
 from abc import abstractmethod
 from os.path import join as oj
 from typing import Dict
+from tqdm import tqdm
 
 import numpy as np
 import pandas as pd
 from joblib import Memory
+from rulevetting.projects.tbi_pecarn import helper
+
 
 import rulevetting
 from vflow import init_args, Vset, build_Vset
@@ -64,10 +67,9 @@ class Dataset:
                 df = helper.rename_tbi_neuro(df)
             r[fname] = df
 
-        # now merging all of these dataframes into one - dumb way - fix asap...
-        df = r['TBI PUD 10-08-2013.csv'].merge(r['TBI PUD Imaging.csv'],
-                                          how='right', on='id').merge(r['TBI PUD Neuro.csv'],
-                                                                      how='right', on='id')
+        # now merging all of these dataframes into one 
+        df = r['TBI PUD 10-08-2013.csv'].set_index('id').join(r['TBI PUD Imaging.csv'].set_index('id'))
+        df = df.join(r['TBI PUD Neuro.csv'].set_index('id'))
         df = df.fillna(value='Unknown')
         cleaned_data = df.replace('nan', 'Unknown')
 
@@ -90,6 +92,9 @@ class Dataset:
         -------
         preprocessed_data: pd.DataFrame
         """
+        
+        # renaming the prediction target column
+        cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace = True)
         return NotImplemented
 
     @abstractmethod
