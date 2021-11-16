@@ -29,7 +29,6 @@ venv
 
 build
 .gitmodules
-build
 dist
 
 **.gslides
@@ -39,3 +38,7 @@ dist
 experiments/data/
 !experiments/data/get_datasets.ipynb
 .hypothesis
+
+# directories
+/rule-env/
+/data/tbi_pecarn/
