@@ -93,7 +93,7 @@ class Dataset:
         preprocessed_data: pd.DataFrame
         """
         
-        # infer pissing PosIntFinal from the other outcome columns
+        # infer missing PosIntFinal from the other outcome columns
         def infer_missing_outcome(row):
             outcome = 'Unknown'
             # look at known outcome columns to infer outcome
@@ -103,12 +103,15 @@ class Dataset:
             if len(not_missing) > 0 and not_missing.count(not_missing[0]) == len(not_missing):
                 outcome = not_missing[0]
             return outcome
-        # these are the other 
+        
+        # these are the outcomes that determine PosIntFinal
         outcome_vars = ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']
-        df.loc[df['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = df[df['PosIntFinal'] == 'Unknown'][outcome_vars].apply(infer_missing_outcome, axis=1)
-        df[df['PosIntFinal'] == 'Yes']
+        cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][outcome_vars].apply(infer_missing_outcome, axis=1)
         cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
-        return NotImplemented
+        # skipping over transformations/scaling for now...
+        preprocessed_data = cleaned_data
+        
+        return preprocessed_data
 
     @abstractmethod
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
