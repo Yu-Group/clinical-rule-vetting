@@ -93,8 +93,21 @@ class Dataset:
         preprocessed_data: pd.DataFrame
         """
         
-        # renaming the prediction target column
-        cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace = True)
+        # infer pissing PosIntFinal from the other outcome columns
+        def infer_missing_outcome(row):
+            outcome = 'Unknown'
+            # look at known outcome columns to infer outcome
+            not_missing = [data for data in row if data != 'Unknown']
+
+            # if all values that are known give the same answer, use that as the outcome
+            if len(not_missing) > 0 and not_missing.count(not_missing[0]) == len(not_missing):
+                outcome = not_missing[0]
+            return outcome
+        # these are the other 
+        outcome_vars = ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']
+        df.loc[df['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = df[df['PosIntFinal'] == 'Unknown'][outcome_vars].apply(infer_missing_outcome, axis=1)
+        df[df['PosIntFinal'] == 'Yes']
+        cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
         return NotImplemented
 
     @abstractmethod
