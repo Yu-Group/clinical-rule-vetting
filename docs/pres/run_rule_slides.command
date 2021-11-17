@@ -1,4 +1,5 @@
-cd "/Volumes/GoogleDrive/My Drive/research/rules/rule-vetting/docs/pres"
+cd "/Users/chandan/rules/rule-vetting/docs/pres"
+#cd "/Volumes/GoogleDrive/My Drive/research/rules/rule-vetting/docs/pres"
 reveal-md --preprocessor preproc.js _slides_rulevetting.md --theme cs_black.css --highlight-theme atom-one-dark -w
 
 # to save, run and then save as assets.html, then rename to index.html
