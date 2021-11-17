@@ -12,6 +12,7 @@ To do:
     - what to do about unknowns/NaNs
     - maybe rename columns to Python style
 '''
+
 def rename_tbi_neuro(df):
     """Rename categorical features in the TBI Neuro df
     Returns 
@@ -252,7 +253,7 @@ def rename_tbi_pud(df):
     sfxpalp = {
         0: 'No',
         1: 'Yes',
-        2: 'Unknown',
+        2: 'Unclear',
     }
     df['SFxPalp'] = df['SFxPalp'].map(sfxpalp)
         
@@ -261,7 +262,7 @@ def rename_tbi_pud(df):
         1: 'Frontal',
         2: 'Occipital',
         3: 'Parietal/Temporal',
-        4: 'Unknown',
+        92: 'Not applicable',
     }
     df['HemaLoc'] = df['HemaLoc'].map(hema_loc)
     
@@ -270,7 +271,7 @@ def rename_tbi_pud(df):
         1: 'Small',
         2: 'Medium',
         3: 'Large',
-        92: 'Unknown',
+        92: 'Not applicable',
         np.nan: 'Unknown'
     }
     df['HemaSize'] = df['HemaSize'].map(hema_size)
@@ -326,3 +327,16 @@ def rename_tbi_pud(df):
         df[col] = df[col].astype(str)
 
     return df
+
+def one_hot_encode_df(df):
+    """Transforms categorical features in dataframe 
+    Returns 
+    -------
+    one_hot_df: pd.DataFrame - categorical vars are one-hot encoded 
+    """
+    # grab only the outcome and predictors - remove related outcomes
+    categorical_cols = [col for col in df.columns.tolist() if df[col].dtype == object]
+    one_hot_df = pd.get_dummies(df, columns=categorical_cols)
+    
+    return one_hot_df
+    

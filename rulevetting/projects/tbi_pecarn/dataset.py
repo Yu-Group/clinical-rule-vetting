@@ -67,9 +67,9 @@ class Dataset:
                 df = helper.rename_tbi_neuro(df)
             r[fname] = df
 
-        # now merging all of these dataframes into one 
-        df = r['TBI PUD 10-08-2013.csv'].set_index('id').join(r['TBI PUD Imaging.csv'].set_index('id'))
-        df = df.join(r['TBI PUD Neuro.csv'].set_index('id'))
+        # now merging all of these dataframes into one - ignoring this and focusing on first...
+        df = r['TBI PUD 10-08-2013.csv'] #.set_index('id').join(r['TBI PUD Imaging.csv'].set_index('id'))
+        #df = df.join(r['TBI PUD Neuro.csv'].set_index('id'))
         df = df.fillna(value='Unknown')
         cleaned_data = df.replace('nan', 'Unknown')
 
@@ -105,7 +105,7 @@ class Dataset:
             return outcome
         
         # these are the outcomes that determine PosIntFinal
-        outcome_vars = ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']
+        outcome_vars = self.get_related_outcome_names()
         cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][outcome_vars].apply(infer_missing_outcome, axis=1)
         cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
         # skipping over transformations/scaling for now...
@@ -159,6 +159,9 @@ class Dataset:
     def get_outcome_name(self) -> str:
         return 'PosIntFinal'  # return the name of the outcome we are predicting
 
+    @abstractmethod
+    def get_related_outcome_names(self) -> list:
+        return ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI'] # returns variables that are essentially the outcome - not useful for prediction
 
     @abstractmethod
     def get_dataset_id(self) -> str:
