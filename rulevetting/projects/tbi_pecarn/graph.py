@@ -47,7 +47,7 @@ def barplot(
     :return: matplotlib figure
     """
 
-    fig_fcn({"num": None, "dpi": 80, "facecolor": "w", "edgecolor": "r"})
+    fig_fcn({"num": None, "dpi": 80, "facecolor": "w"})
     fig = sns.barplot(series.values, series.index, palette="colorblind")
     plt.title(title)
     plt.xlabel(xlab)
