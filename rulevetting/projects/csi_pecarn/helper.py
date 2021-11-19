@@ -16,6 +16,7 @@ def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
         iai (has 761 positives)
         iai_intervention (has 203 positives)
     """
+    
     form4abdangio = pd.read_csv(oj(RAW_DATA_PATH, 'form4bother_abdangio.csv')).rename(columns={'subjectid': 'id'})
     form6b = pd.read_csv(oj(RAW_DATA_PATH, 'form6b.csv')).rename(columns={'SubjectID': 'id'})
     form6c = pd.read_csv(oj(RAW_DATA_PATH, 'form6c.csv')).rename(columns={'subjectid': 'id'})

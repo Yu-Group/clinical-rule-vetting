@@ -8,7 +8,7 @@ from typing import Dict
 
 import rulevetting
 import rulevetting.api.util
-from rulevetting.projects.iai_pecarn import helper
+from rulevetting.projects.csi_pecarn import helper
 from rulevetting.templates.dataset import DatasetTemplate
 
 
@@ -18,12 +18,9 @@ class Dataset(DatasetTemplate):
         os.makedirs(raw_data_path, exist_ok=True)
 
         # all the fnames to be loaded and searched over
-        fnames = sorted([
-            fname for fname in os.listdir(raw_data_path)
-            if 'csv' in fname
-               and not 'formats' in fname
-               and not 'form6' in fname])  # remove outcome
+        fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
 
+        print(fnames)
         # read through each fname and save into the r dictionary
         r = {}
         print('read all the csvs...', fnames)
@@ -31,14 +28,19 @@ class Dataset(DatasetTemplate):
             print('no csvs found in path', raw_data_path)
         for fname in tqdm(fnames):
             df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
-            df.rename(columns={'SubjectID': 'id'}, inplace=True)
-            df.rename(columns={'subjectid': 'id'}, inplace=True)
+            df.rename(columns={'CaseID': 'id'}, inplace=True)
+            df.rename(columns={'caseid': 'id'}, inplace=True)
+            print(df.keys())
             assert ('id' in df.keys())
             r[fname] = df
 
         # loop over the relevant forms and merge into one big df
         fnames_small = [fname for fname in fnames
-                        for s in ['form1', 'form2', 'form4', 'form5', 'form7']
+                        for s in ['analysisvariables.csv', 'clinicalpresentationfield.csv', \
+                                  'clinicalpresentationoutside.csv', 'clinicalpresentationsite.csv',\
+                                  'demographics.csv', 'injuryclassification.csv', 'injurymechanism.csv',\
+                                  'kappa.csv', 'medicalhistory.csv', 'radiologyoutside.csv',\
+                                  'radiologyreview.csv', 'radiologysite.csv']
                         if s in fname]
         df_features = r[fnames[0]]
         print('merge all the dfs...')
@@ -50,13 +52,22 @@ class Dataset(DatasetTemplate):
 
             # don't save duplicate columns
             df_features = df_features.set_index('id').combine_first(df2.set_index('id')).reset_index()
+        #print(df_features.keys())
+        #print(df_features.head())
+        #df_outcomes = helper.get_outcomes(raw_data_path)
+        
+        def outcomeFunction(s):
+            if s == 'case':
+                return 1
+            return 0
 
-        df_outcomes = helper.get_outcomes(raw_data_path)
+        df_features['outcome'] = df_features['ControlType'].apply(outcomeFunction)
 
-        df = pd.merge(df_features, df_outcomes, on='id', how='left')
-        df = helper.rename_values(df)  # rename the features by their meaning
 
-        return df
+        #df = pd.merge(df_features, df_outcomes, on='id', how='left')
+        #df = helper.rename_values(df)  # rename the features by their meaning
+
+        return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
 
@@ -104,10 +115,10 @@ class Dataset(DatasetTemplate):
         return df[feats]
 
     def get_outcome_name(self) -> str:
-        return 'iai_intervention'  # return the name of the outcome we are predicting
+        return 'csi_intervention'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
-        return 'iai_pecarn'  # return the name of the dataset id
+        return 'csi_pecarn'  # return the name of the dataset id
 
     def get_meta_keys(self) -> list:
         return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
