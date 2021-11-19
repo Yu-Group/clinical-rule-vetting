@@ -66,9 +66,9 @@ filename = "./rule-vetting-master/data/tbi_pecarn/raw/TBI PUD 10-08-2013.csv"
 data = pd.read_csv(filename)
 
 # Make plot
-missingness = pd.isnull(data).mean()
+missingness = (data == 92).mean() # pd.isnull(data).mean()
 missingness = missingness[missingness > 0]
 missingness = missingness.sort_values(ascending=False)
 barplot(
-    missingness, False, "Missingness by Variable, TBI Pecarn", "Fraction of Missingness"
+    missingness, False, "Invalidness by Variable, TBI Pecarn", "Fraction of Invalid Samples"
 )
