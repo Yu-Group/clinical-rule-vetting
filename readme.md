@@ -40,15 +40,15 @@ To contribute a new project (e.g. a new dataset + modeling), create a pull reque
 
 Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md) | [Lab writeup](docs/lab_writeup.md) | [Slides](https://rules.csinva.io/pres/index.html#/)
 
-- [x] Repo set up
+- [] Repo set up
   - [x] Create a fork of this repo (see tutorial on forking/merging [here](https://jarv.is/notes/how-to-pull-request-fork-github/))
   - [x] Install the repo as shown [below](https://github.com/Yu-Group/rule-vetting#installation)
   - [x] Select a dataset - once you've selected, open an issue in this repo with the name of the dataset + a brief description so others don't work on the same dataset 	
   - [ ] Assign a `project_name` to the new project (e.g. `iai_pecarn`) 	
 - [ ] Data preprocessing
-  - [ ] Download the raw data into `data/{project_name}/raw`
+  - [x] Download the raw data into `data/{project_name}/raw`
     - Don't commit any very large files
-  - [ ] Copy the template files from `rulevetting/projects/iai_pecarn` to a new folder `rulevetting/projects/{project_name}`
+  - [x] Copy the template files from `rulevetting/projects/iai_pecarn` to a new folder `rulevetting/projects/{project_name}`
 	- [ ] Rewrite the functions in `dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
     - [ ] Document any judgement calls you aren't sure about using the `dataset.get_judgement_calls_dictionary` function
         - See [the template file](rulevetting/templates/dataset.py) for documentation of each function or the [API documentation](https://yu-group.github.io/rule-vetting/)
