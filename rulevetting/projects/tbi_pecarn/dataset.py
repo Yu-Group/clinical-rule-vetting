@@ -105,10 +105,11 @@ class Dataset:
             return outcome
         
         # these are the outcomes that determine PosIntFinal
-        outcome_vars = self.get_related_outcome_names()
-        cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][outcome_vars].apply(infer_missing_outcome, axis=1)
+        cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
         cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
-        # skipping over transformations/scaling for now...
+        
+        # removing post-ct variables that aren't the outcome
+        cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
         preprocessed_data = cleaned_data
         
         return preprocessed_data
@@ -160,8 +161,16 @@ class Dataset:
         return 'PosIntFinal'  # return the name of the outcome we are predicting
 
     @abstractmethod
-    def get_related_outcome_names(self) -> list:
-        return ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI'] # returns variables that are essentially the outcome - not useful for prediction
+    def get_post_ct_names(self) -> list:
+        tbi_on_ct = [f'Finding{i}' for i in range(1, 15)] + [f'Finding{i}' for i in range(20, 24)] + ['PosCT']
+        ctform_vars = ['CTForm1', 'IndAge', 'IndAmnesia', 'IndAMS', 'IndClinSFx',
+                       'IndHA', 'IndHema', 'IndLOC', 'IndMech', 'IndNeuroD',
+                       'IndRqstMD', 'IndRqstParent', 'IndRqstTrauma', 'IndSeiz',
+                       'IndVomit', 'IndXraySFx', 'IndOth']
+        outcome_vars = ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']
+        other_vars = ['CTDone', 'EDCT']
+        
+        return  tbi_on_ct + ctform_vars + outcome_vars + other_vars # return name of post ct vars that aren't the outcome
 
     @abstractmethod
     def get_dataset_id(self) -> str:
