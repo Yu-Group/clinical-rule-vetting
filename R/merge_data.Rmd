@@ -4,7 +4,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 library(tidyverse)
 ```
 
@@ -12,7 +12,7 @@ library(tidyverse)
 
 
 
-```{r}
+```{r,eval=TRUE}
 # read csv files
 setwd("..")
 names <- c("analysisvariables", "clinicalpresentationfield", 
@@ -40,17 +40,17 @@ for (i in seq_along(filenames)) {
 
 
 
-```{r}
-radRev_inj <- radRev %>% 
-  select(starts_with("review")) %>% 
-  select(-reviewResultNumOfViews, -reviewResult, -reviewResultIV, -reviewResultCA) 
-injury <- ifelse(rowSums(radRev_inj) >= 1, 1, 0)
+# Important Features
+
+## AnalysisVariables
+
+```
+'ControlType', 'SubjectID', 'AlteredMentalStatus', 'LOC', 'PainNeck'
 ```
 
 
-```{r}
 
-```
+
 
 
 
