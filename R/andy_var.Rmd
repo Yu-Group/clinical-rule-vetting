@@ -1,0 +1,27 @@
+---
+title: "Andy's Variables"
+author: "Andy Shen"
+date: "11/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r}
+var_andy <- c(
+  'AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault', 
+  'AxialLoadAnyDoc', 'CaseID', 'CervicalSpineImmobilization', 
+  'ChildAbuse', 'Clotheslining', 'DxCspineInjury', 'Ethnicity', 
+  'FallDownStairs', 'FallFromElevation', 'FocalNeuroFindings', 'Gender', 
+  'HeadFirst', 'HighriskDiving','HighriskFall', 'HighriskHanging', 
+  'HighriskHitByCar', 'HighriskMVC', 'HighriskOtherMV', 
+  'InjuryPrimaryMechanism', 'IntervForCervicalStab', 'LOC', 
+  'LimitedRangeMotion','LongTermRehab', 'MVCDSC', 'MVCEFA', 'MVCHOC'
+)
+for(i in seq_along(var_andy)) {
+  print(var_andy[i])
+}
+```
+

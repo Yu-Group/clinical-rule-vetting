@@ -7,6 +7,17 @@ import pandas as pd
 This file is optional.
 '''
 
+var_andy = ['AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault', 'AxialLoadAnyDoc',
+           'CaseID', 'CervicalSpineImmobilization', 'ChildAbuse', 'Clotheslining', 
+           'DxCspineInjury', 'Ethnicity', 'FallDownStairs', 'FallFromElevation',
+            'FocalNeuroFindings', 'Gender', 'HeadFirst', 'HighriskDiving',
+            'HighriskFall', 'HighriskHanging', 'HighriskHitByCar',
+            'HighriskMVC', 'HighriskOtherMV', 'InjuryPrimaryMechanism',
+           'IntervForCervicalStab', 'LOC', 'LimitedRangeMotion','LongTermRehab',
+            'MVCDSC', 'MVCEFA', 'MVCHOC']
+
+andy_highrisk = ['AlteredMentalStatus', 'LOC']
+
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     """Read in the outcomes
@@ -72,30 +83,28 @@ def rename_values(df):
     Compute a couple new features
     set types of
     '''
-
+    
+    
     # map categorical vars values
-    ll_binary1 = {
+    
+    as_binary1 = {
         'N': 0.,
         'Y': 1.,
     }  
-    ll_binary2 = {
+    as_binary2 = {
             0:0.,
             1:1.,
-        }  
-    motorgcs={1.:0.,2.:0.,3.:0.,4.:0.,5.:0.,6.:1.}
-    for k in ['MedsGiven','MedsRecdPriorArrival']:
-        df[k]=df[k].map(ll_binary1)
-        
-    df.Predisposed=df.Predisposed.map(ll_binary2)
-    df.MotorGCS=df.MotorGCS.map(motorgcs)
-    df.PtAmbulatoryPriorArrival=\
-    df.PtAmbulatoryPriorArrival.map(ll_binary1)
-
-    df.PtCompPain=df.PtCompPain.map(ll_binary1)
-
-
-    
-    
+    } 
+    df.AVPU = df.AVPU.map(as_binary1)
+    df.ArrPtIntub = df.ArrPtIntub.map(as_binary1)
+    df.DxCspineInjury = df.DxCspineInjury.map(as_binary1)
+    df.IntervForCervicalStab = df.IntervForCervicalStab.map(as_binary1)
+    df.LongTermRehab = df.LongTermRehab.map(as_binary1)
+    # clotheslininig has more than 2 factors (Y, N, ND)
+    # FallDownStairs and FallFromElevation have weird coding(2, 3, etc)
+    # HeadFirst has more than 2 factors (Y, N, ND)
+    # LimitedRangeMotion has more than 2 factors (Y, N, ND)
+    # MVC variables have weird coding with numbers that are not just (0, 1)
     
     
     return df
@@ -128,4 +137,6 @@ def derived_feats(df):
     df.drop(columns='Race_orig', inplace=True)
 
     return df
+
+
 
