@@ -90,6 +90,7 @@ def rename_values(df):
     as_binary1 = {
         'N': 0.,
         'Y': 1.,
+        'ND': 0.,
     }  
     as_binary2 = {
             0:0.,
@@ -100,10 +101,10 @@ def rename_values(df):
     df.DxCspineInjury = df.DxCspineInjury.map(as_binary1)
     df.IntervForCervicalStab = df.IntervForCervicalStab.map(as_binary1)
     df.LongTermRehab = df.LongTermRehab.map(as_binary1)
-    # clotheslininig has more than 2 factors (Y, N, ND)
+    df.Clotheslining = df.Clotheslining.map(as_binary1)
+    df.HeadFirst = df.HeadFirst.map(as_binary1)
+    df.LimitedRangeMotion = df.LimitedRangeMotion.map(as_binary1)
     # FallDownStairs and FallFromElevation have weird coding(2, 3, etc)
-    # HeadFirst has more than 2 factors (Y, N, ND)
-    # LimitedRangeMotion has more than 2 factors (Y, N, ND)
     # MVC variables have weird coding with numbers that are not just (0, 1)
     
     
