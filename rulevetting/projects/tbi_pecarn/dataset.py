@@ -108,9 +108,27 @@ class Dataset:
         cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
         cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
         
+        # removing gcs subcategories - missing and can be inferred through total
+        gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
+        cleaned_data = cleaned_data.drop(columns=gcs_vars)
+        
         # removing post-ct variables that aren't the outcome
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
-        preprocessed_data = cleaned_data
+        
+        # removing not concrete vars - likely to change case by case
+        other_vars = ['Ethnicity', 'Race', 'AgeInMonth', 'Dizzy']
+        cleaned_data = cleaned_data.drop(columns=other_vars)
+        
+        # remapping binary variables
+        bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes']).all()]
+        for bool_col in bool_cols:
+            cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1})
+
+        # one-hot encode categorical vars w/ >2 unique values
+        cleaned_data = helper.one_hot_encode_df(cleaned_data)
+        
+        # we don't need the id anymore I think
+        preprocessed_data = cleaned_data.drop(columns=['id'])
         
         return preprocessed_data
 
@@ -167,7 +185,7 @@ class Dataset:
                        'IndHA', 'IndHema', 'IndLOC', 'IndMech', 'IndNeuroD',
                        'IndRqstMD', 'IndRqstParent', 'IndRqstTrauma', 'IndSeiz',
                        'IndVomit', 'IndXraySFx', 'IndOth']
-        outcome_vars = ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']
+        outcome_vars = ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI', 'HospHead', 'EDDisposition']
         other_vars = ['CTDone', 'EDCT']
         
         return  tbi_on_ct + ctform_vars + outcome_vars + other_vars # return name of post ct vars that aren't the outcome
@@ -175,7 +193,6 @@ class Dataset:
     @abstractmethod
     def get_dataset_id(self) -> str:
         return 'tbi_pecarn'  # return the name of the dataset id
-
 
     @abstractmethod
     def get_meta_keys(self) -> list:

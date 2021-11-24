@@ -30,7 +30,7 @@ def rename_tbi_neuro(df):
         df[bool_col] = df[bool_col].map(binary0)    
     
     # change type of categorical cols to strings
-    categorical_cols = [col for col in df.columns.tolist() if col != 'id']
+    categorical_cols = [col for col in df.columns.tolist() if col != 'id' and len(df[col].unique()) > 2]
     for col in categorical_cols:
         df[col] = df[col].astype(str)
     
@@ -42,7 +42,6 @@ def rename_tbi_pud(df):
     -------
     df: pd.DataFrame - categorical vars are strings
     """
-    # mapping employee values to names
     empl_type = {
         1: 'Nurse Practitioner',
         2: 'Physician Assistant',
@@ -53,7 +52,6 @@ def rename_tbi_pud(df):
     }
     df['EmplType'] = df['EmplType'].map(empl_type)
 
-    # mapping cert values to names
     cert_type = {
         1: 'Emergency Medicine',
         2: 'Pediatrics',
@@ -64,7 +62,6 @@ def rename_tbi_pud(df):
     }
     df['Certification'] = df['Certification'].map(cert_type)
 
-    # mapping injury mech values to names
     inj_mech = {
         1: 'Motor vehicle collision',
         2: 'Pedestrian struck by moving vehicle',
@@ -83,7 +80,6 @@ def rename_tbi_pud(df):
     }
     df['InjuryMech'] = df['InjuryMech'].map(inj_mech)
 
-    # mapping binary variables to yes, no or unknown (for not applicable)
     inj_impact_sev = {
         1: 'Low',
         2: 'Moderate',
@@ -113,7 +109,6 @@ def rename_tbi_pud(df):
     for bool_col in bool_cols1:
         df[bool_col] = df[bool_col].map(binary1)
 
-    # mapping variables to yes, no, and non/pre verbal - amnesia_verb and ha_verb
     verb = {
         0: 'No',
         1: 'Yes',
@@ -124,7 +119,6 @@ def rename_tbi_pud(df):
     for bool_col in bool_cols2:
         df[bool_col] = df[bool_col].map(verb)
 
-    # mapping history of LOC
     loc_separate = {
         0: 'No',
         1: 'Yes',
@@ -133,7 +127,6 @@ def rename_tbi_pud(df):
     }
     df['LOCSeparate'] = df['LOCSeparate'].map(loc_separate)
 
-    # length of lossed consciousness
     loc_len = {
         1: '<5 sec',
         2: '5 sec - 1 min',
@@ -144,7 +137,6 @@ def rename_tbi_pud(df):
     }
     df['LocLen'] = df['LocLen'].map(loc_len)
     
-    # mapping when seizure occured
     seiz_occur = {
         1: 'Immediately on contact',
         2: 'Within 30 minutes of injury',
@@ -154,7 +146,6 @@ def rename_tbi_pud(df):
     }
     df['SeizOccur'] = df['SeizOccur'].map(seiz_occur)
     
-    # mapping post trauma seizure length
     seiz_len = {
         1: '<1 min',
         2: '1-5 min',
@@ -165,7 +156,6 @@ def rename_tbi_pud(df):
     }
     df['SeizLen'] = df['SeizLen'].map(seiz_len)
     
-    # mapping severity of headache
     ha_severity = {
         1: 'Mild',
         2: 'Moderate',
@@ -175,7 +165,6 @@ def rename_tbi_pud(df):
     }
     df['HASeverity'] = df['HASeverity'].map(ha_severity)
     
-    # mapping headache start to values
     ha_start = {
         1: 'Before head injury',
         2: 'Within 1 hr of event',
@@ -186,7 +175,6 @@ def rename_tbi_pud(df):
     }
     df['HAStart'] = df['HAStart'].map(ha_start)
     
-    # mapping number of vomiting episodes
     vomit_nbr = {
         1: 'Once',
         2: 'Twice',
@@ -196,7 +184,6 @@ def rename_tbi_pud(df):
     }
     df['VomitNbr'] = df['VomitNbr'].map(vomit_nbr)
     
-    # mapping first vomit episode to values
     vomit_start = {
         1: 'Before head injury',
         2: 'Within 1 hr of event',
@@ -207,7 +194,6 @@ def rename_tbi_pud(df):
     }
     df['VomitStart'] = df['VomitStart'].map(vomit_start)
     
-    # mapping last vomit episode to values
     vomit_last = {
         1: '<1 hr before ED',
         2: '1-4 hrs before ED',
@@ -217,18 +203,16 @@ def rename_tbi_pud(df):
     }
     df['VomitLast'] = df['VomitLast'].map(vomit_last)
     
-    # mapping gcs eye component to values
-    gsc_eye = {
+    gcs_eye = {
         1: 'None',
         2: 'Pain',
         3: 'Verbal',
         4: 'Spontaneous',
         np.nan: 'Unknown'
     }
-    df['GCSEye'] = df['GCSEye'].map(gsc_eye)
+    df['GCSEye'] = df['GCSEye'].map(gcs_eye)
     
-    # mapping gcs verbal component to values
-    gsc_verbal = {
+    gcs_verbal = {
         1: 'None',
         2: 'Incomprehensible sounds/moans',
         3: 'Inappropriate words/cries',
@@ -236,10 +220,9 @@ def rename_tbi_pud(df):
         5: 'Oriented/coos',
         np.nan: 'Unknown'
     }
-    df['GCSVerbal'] = df['GCSVerbal'].map(gsc_verbal)
+    df['GCSVerbal'] = df['GCSVerbal'].map(gcs_verbal)
     
-    # mapping gcs motor component to values
-    gsc_motor = {
+    gcs_motor = {
         1: 'None',
         2: 'Abnormal extension posturing',
         3: 'Abnormal flexing posturing',
@@ -247,9 +230,8 @@ def rename_tbi_pud(df):
         5: 'Localizes pain',
         6: 'Follow commands',
     }
-    df['GCSMotor'] = df['GCSMotor'].map(gsc_motor)
+    df['GCSMotor'] = df['GCSMotor'].map(gcs_motor)
     
-    # map sfxpalp to values
     sfxpalp = {
         0: 'No',
         1: 'Yes',
@@ -322,7 +304,7 @@ def rename_tbi_pud(df):
 
     # make all of these columns categorical
     numeric_cols = ['id', 'GCSTotal', 'AgeInMonths', 'AgeinYears']
-    categorical_cols = [col for col in df.columns.tolist() if col not in numeric_cols]
+    categorical_cols = [col for col in df.columns.tolist() if col not in numeric_cols and len(df[col].unique()) > 2]
     for col in categorical_cols:
         df[col] = df[col].astype(str)
 
@@ -334,8 +316,8 @@ def one_hot_encode_df(df):
     -------
     one_hot_df: pd.DataFrame - categorical vars are one-hot encoded 
     """
-    # grab only the outcome and predictors - remove related outcomes
-    categorical_cols = [col for col in df.columns.tolist() if df[col].dtype == object]
+    # grab categorical cols with >2 unique features
+    categorical_cols = [col for col in df.columns.tolist() if df[col].dtype == object and len(df[col].unique()) > 2]
     one_hot_df = pd.get_dummies(df, columns=categorical_cols)
     
     return one_hot_df
