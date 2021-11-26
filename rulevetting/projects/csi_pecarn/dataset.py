@@ -18,7 +18,7 @@ class Dataset(DatasetTemplate):
         os.makedirs(raw_data_path, exist_ok=True)
 
         # all the fnames to be loaded and searched over
-        fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
+        fnames = ['analysisvariables.csv'] #sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
 
         print(fnames)
         # read through each fname and save into the r dictionary
@@ -36,11 +36,11 @@ class Dataset(DatasetTemplate):
 
         # loop over the relevant forms and merge into one big df
         fnames_small = [fname for fname in fnames
-                        for s in ['analysisvariables.csv', 'clinicalpresentationfield.csv', \
-                                  'clinicalpresentationoutside.csv', 'clinicalpresentationsite.csv',\
-                                  'demographics.csv', 'injuryclassification.csv', 'injurymechanism.csv',\
-                                  'kappa.csv', 'medicalhistory.csv', 'radiologyoutside.csv',\
-                                  'radiologyreview.csv', 'radiologysite.csv']
+                        for s in ['analysisvariables.csv'] #, 'clinicalpresentationfield.csv', \
+                                  #'clinicalpresentationoutside.csv', 'clinicalpresentationsite.csv',\
+                                  #'demographics.csv', 'injuryclassification.csv', 'injurymechanism.csv',\
+                                  #'kappa.csv', 'medicalhistory.csv', 'radiologyoutside.csv',\
+                                  #'radiologyreview.csv', 'radiologysite.csv']
                         if s in fname]
         df_features = r[fnames[0]]
         print('merge all the dfs...')
