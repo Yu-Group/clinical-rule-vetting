@@ -5,50 +5,97 @@ from rulevetting.templates.model import ModelTemplate
 
 
 class Baseline(ModelTemplate):
-    def __init__(self):
+    def __init__(self, agegroup: str):
         # query for each rule + resulting predicted probability
-        self.rules = [
-            ('AbdTrauma_or_SeatBeltSign_yes == 1', 5.7),
-            ('GCSScore < 14', 4.6),
-            ('AbdTenderDegree_None == 0', 1.4),
-            ('ThoracicTrauma_yes == 1', 0.6),
-            ('AbdomenPain_yes == 1', 0.7),
-            ('DecrBreathSound_yes == 1', 2.9),
-            ('VomitWretch_yes == 1', 0.5),
+        self.agegroup = agegroup
+        if self.agegroup == 'young':
+            self.rules = [
+                ('AMS == 1', 3.6),
+                ('HemaLoc == [2, 3]', 1.5),
+                ('LocLen == [2, 3, 4]', 1.4),
+                ('High_impact_InjSev == 3', 0.31),
+                ('SFxPalp == 1', 3.4),
+                ('ActNorm == 0', 0.28),
 
-            # final condition is just something that is always true
-            ('GCSScore == GCSScore', 0.1),
-        ]
+                # final condition is just something that is always true
+                ('GCSTotal >= 0', 0.02),
+            ]
+        if self.agegroup == 'old':
+            self.rules = [
+                ('AMS == 1', 2.6),
+                ('LOCSeparate == [1, 2]', 0.82),
+                ('Vomit == 1', 0.88),
+                ('High_impact_InjSev == 3', 0.21),
+                ('SFxBas == 1', 5.7),
+                ('HASeverity == 3', 1.0),
+
+                # final condition is just something that is always true
+                ('GCSTotal >= 0', 0.05),
+            ]
+
 
     def _traverse_rule(self, df_features: pd.DataFrame):
         str_print = f''
         predicted_probabilities = pd.Series(index=df_features.index, dtype=float)
         df = df_features.copy()
-        o = 'outcome'
+        o = 'PosIntFinal'    # outcome variable name
         str_print += f'{df[o].sum()} / {df.shape[0]} (positive class / total)\n\t\u2193 \n'
         for j, rule in enumerate(self.rules):
             query, prob = rule
             df_rhs = df.query(query)
             idxs_satisfying_rule = df_rhs.index
+            # the prob we used in rule should be the approx of computed_prob (frequency)
             predicted_probabilities.loc[idxs_satisfying_rule] = prob
-
+            # drop the rows we just assigned prob
             df.drop(index=idxs_satisfying_rule, inplace=True)
+            # compute the frequency in percent
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
-            query_print = query.replace(' == 1', '')
+            query_print = query.replace(' == 1', '') # for print purpose
             if j < len(self.rules) - 1:
                 str_print += f'\033[96mIf {query_print:<35}\033[00m \u2192 {df_rhs[o].sum():>3} / {df_rhs.shape[0]:>4} ({computed_prob:0.1f}%)\n\t\u2193 \n   {df[o].sum():>3} / {df.shape[0]:>5}\t \n'
+        # we have assigned all patients prob
         predicted_probabilities = predicted_probabilities.values
         self.str_print = str_print
         return predicted_probabilities
 
     def predict(self, df_features: pd.DataFrame):
         predicted_probabilities = self._traverse_rule(df_features)
-        return (predicted_probabilities > 0.11).astype(int)
+        # for each age group, do different prediction
+        # (based on the  prob from final condition - the one always true)
+        if self.agegroup == "young":
+            return (predicted_probabilities > 0.021).astype(int)
+        if self.agegroup == "old":
+            return (predicted_probabilities > 0.051).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
+        # convert from percent to value
         predicted_probabilities = self._traverse_rule(df_features) / 100
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_model(self, df_features):
         self._traverse_rule(df_features)
         return self.str_print
+
+if __name__ == '__main__':
+    import sys
+    import numpy as np
+    import pandas as pd
+
+    # IMPORTANT: REPLACE WITH YOUR PATH TO THE RULE-VETTING GITHUB
+    repo_path = '/Users/zhouxin/study/stat215/lab5_git/group/rule-vetting/'
+
+    sys.path.insert(1, repo_path)
+
+    tbi_df = pd.read_csv(repo_path + '/rulevetting/projects/tbi_pecarn/notebooks/clean_dataset_11_24.csv',
+                         index_col=0)
+    tbi_df.index = tbi_df.PatNum.copy()
+
+    tbi_df_young = tbi_df[tbi_df['AgeinYears'] < 2]
+    tbi_df_old = tbi_df[tbi_df['AgeinYears'] >= 2]
+
+    model_young = Baseline("young")
+    preds_proba = model_young.predict_proba(tbi_df_young)
+    print(model_young.print_model(tbi_df_young))
+
+    model_old = Baseline('old')
+    print(model_old.print_model(tbi_df_old))
