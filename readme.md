@@ -40,11 +40,11 @@ To contribute a new project (e.g. a new dataset + modeling), create a pull reque
 
 Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md) | [Lab writeup](docs/lab_writeup.md) | [Slides](https://rules.csinva.io/pres/index.html#/)
 
-- [ ] Repo set up
+- [x] Repo set up
   - [x] Create a fork of this repo (see tutorial on forking/merging [here](https://jarv.is/notes/how-to-pull-request-fork-github/))
   - [x] Install the repo as shown [below](https://github.com/Yu-Group/rule-vetting#installation)
   - [x] Select a dataset - once you've selected, open an issue in this repo with the name of the dataset + a brief description so others don't work on the same dataset 	
-  - [ ] Assign a `project_name` to the new project (e.g. `iai_pecarn`) 	
+  - [x] Assign a `project_name` to the new project (e.g. `iai_pecarn`) 	
 - [ ] Data preprocessing
   - [x] Download the raw data into `data/{project_name}/raw`
     - Don't commit any very large files
