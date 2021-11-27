@@ -8,57 +8,85 @@ from typing import Dict
 
 import rulevetting
 import rulevetting.api.util
+# TODO
 from rulevetting.projects.iai_pecarn import helper
 from rulevetting.templates.dataset import DatasetTemplate
 
 
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
+
+        # raw data path
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
 
-        # all the fnames to be loaded and searched over
+        # raw data file names to be loaded and searched over
+        # for tbi, we only have one file
         fnames = sorted([
             fname for fname in os.listdir(raw_data_path)
-            if 'csv' in fname
-               and not 'formats' in fname
-               and not 'form6' in fname])  # remove outcome
+            if 'csv' in fname])
 
-        # read through each fname and save into the r dictionary
-        r = {}
-        print('read all the csvs...', fnames)
-        if len(fnames) == 0:
-            print('no csvs found in path', raw_data_path)
+        # read raw data
         for fname in tqdm(fnames):
-            df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
-            df.rename(columns={'SubjectID': 'id'}, inplace=True)
-            df.rename(columns={'subjectid': 'id'}, inplace=True)
-            assert ('id' in df.keys())
-            r[fname] = df
-
-        # loop over the relevant forms and merge into one big df
-        fnames_small = [fname for fname in fnames
-                        for s in ['form1', 'form2', 'form4', 'form5', 'form7']
-                        if s in fname]
-        df_features = r[fnames[0]]
-        print('merge all the dfs...')
-        for i, fname in tqdm(enumerate(fnames_small)):
-            df2 = r[fname].copy()
-
-            # if subj has multiple entries, only keep first
-            df2 = df2.drop_duplicates(subset=['id'], keep='last')
-
-            # don't save duplicate columns
-            df_features = df_features.set_index('id').combine_first(df2.set_index('id')).reset_index()
-
-        df_outcomes = helper.get_outcomes(raw_data_path)
-
-        df = pd.merge(df_features, df_outcomes, on='id', how='left')
-        df = helper.rename_values(df)  # rename the features by their meaning
+            df = pd.read_csv(oj(raw_data_path, fname))
 
         return df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        tbi_df = cleaned_data.copy()
+        ################################
+        # Step 1: Remove variables which have nothing to do with our problem (uncontroversial choices)
+        ################################
+        list1 = ['EmplType', 'Certification']
+        list2 = ['InjuryMech']
+
+        # grab all of the CT/Ind variables
+        list3 = []
+        for col in tbi_df.keys():
+            if 'Ind' in col or 'CT' in col:
+                list3.append(col)
+
+        list4 = ['AgeTwoPlus', 'AgeInMonth']
+
+        # grab all of the Finding variables
+        list5 = ['Observed', 'EDDisposition']
+
+        for col in tbi_df.keys():
+            if 'Finding' in col:
+                list5.append(col)
+
+        total_rem = list1 + list2 + list3 + list4 + list5
+
+        tbi_df_step1 = tbi_df.drop(total_rem, axis=1)
+        ################################
+        # Step 2: Remove variables with really high missingness (that we don't care about)
+        ################################
+        tbi_df_step2 = tbi_df_step1.drop(['Ethnicity', 'Dizzy'], axis=1)
+
+        ################################
+        # Step 3: Remove observations with GCS < 14
+        ################################
+        tbi_df_step3 = tbi_df_step2[tbi_df_step2['GCSGroup'] == 2]
+        tbi_df_step3 = tbi_df_step3.drop(['GCSGroup'], axis=1)
+
+        ################################
+        # Step 4: Remove Missing Observations Among the Response Outcomes
+        ################################
+        tbi_df_step4 = tbi_df_step3.dropna(subset=['DeathTBI', 'Intub24Head', 'Neurosurgery', 'HospHead'])
+        tbi_df_step4['PosIntFinal'].fillna(0, inplace=True)
+
+        ################################
+        # Step 5: Make a New Column ciTBI, without the hospitalization condition
+        ################################
+        sset = tbi_df_step4[['DeathTBI', 'Intub24Head', 'Neurosurgery']]
+        new_outcome = np.zeros(len(sset))
+        new_outcome[np.sum(np.array(sset), 1) > 0] = 1
+
+        tbi_df_step5 = tbi_df_step4.assign(PosIntFinalNoHosp=new_outcome)
+
+
+
+        # TODO
 
         # drop cols with vals missing this percent of the time
         df = cleaned_data.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
@@ -76,6 +104,7 @@ class Dataset(DatasetTemplate):
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        # TODO
         # add engineered featuures
         df = helper.derived_feats(preprocessed_data)
 
@@ -104,13 +133,14 @@ class Dataset(DatasetTemplate):
         return df[feats]
 
     def get_outcome_name(self) -> str:
-        return 'iai_intervention'  # return the name of the outcome we are predicting
+        return 'PosIntFinal'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
-        return 'iai_pecarn'  # return the name of the dataset id
+        return 'tbi_pecarn'  # return the name of the dataset id
 
     def get_meta_keys(self) -> list:
-        return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
+        # TODO
+        return []  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
