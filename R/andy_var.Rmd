@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F)
+library(tidyverse)
 ```
 
 ```{r}
@@ -23,5 +24,14 @@ var_andy <- c(
 for(i in seq_along(var_andy)) {
   print(var_andy[i])
 }
+```
+
+```{r}
+df_andy <- read.csv("../rulevetting/projects/csi_pecarn/notebooks/df_andy.csv")
+impute_na <- function(column) {
+  ifelse(is.na(column), 0, column)
+}
+# df_andy %>% select(where(function(x) any(is.na(x)))) #select NA columns
+df_andy
 ```
 
