@@ -7,6 +7,16 @@ import pandas as pd
 This file is optional.
 '''
 
+def assign_binary_outcome(s):
+    '''
+    Simple function for use in creating an outcome column in pandas df
+    Returns 1 if a subject is a case (CSI injury)
+    Else 0 (no CSI injury)
+    '''
+    if s == 'case':
+        return 1
+    return 0
+
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     """Read in the outcomes
