@@ -49,7 +49,7 @@ Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md)
   - [x] Download the raw data into `data/{project_name}/raw`
     - Don't commit any very large files
   - [x] Copy the template files from `rulevetting/projects/iai_pecarn` to a new folder `rulevetting/projects/{project_name}`
-	- [ ] Rewrite the functions in `dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
+	- [x] Rewrite the functions in `dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
     - [ ] Document any judgement calls you aren't sure about using the `dataset.get_judgement_calls_dictionary` function
         - See [the template file](rulevetting/templates/dataset.py) for documentation of each function or the [API documentation](https://yu-group.github.io/rule-vetting/)
     - Notebooks / helper functions are optional, all files should be within `rulevetting/projects/{project_name}`
