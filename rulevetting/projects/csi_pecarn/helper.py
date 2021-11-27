@@ -17,6 +17,31 @@ def assign_binary_outcome(s):
         return 1
     return 0
 
+def extract_numeric_data(input_df):
+    '''
+    This function returns a dataframe with all character columns dropped.
+    Character variables which can be converted to binary such as 'Y'/'N' are mutated and kept
+    '''
+    numeric_data = input_df.select_dtypes([np.number]) # separate data that is already numeric
+    char_data = input_df.select_dtypes([np.object]) # gets columns encoded as strings
+    binary_data = pd.DataFrame(index=input_df.index) # study subject ID
+    
+    for column in char_data:
+        char_column = char_data[column] # select column
+        unique_values = pd.unique(char_column) # get unique entries
+        
+        # encode yes as 1, no as 0
+        if (('Y' in unique_values)|('A' in unique_values)) & ('N' in unique_values):
+            conditions  = [char_column == 'Y',char_column == 'A',char_column == 'N']
+            encodings = [1,1,0]
+            binary_encoded = np.select(conditions, encodings, default=np.nan)
+            col_name = column+"_binary"
+            binary_data[col_name] = binary_encoded
+         
+    numeric_df = pd.merge(numeric_data,binary_data,left_on=numeric_data.index,right_on=binary_data.index)
+    
+    return numeric_df
+
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     """Read in the outcomes
