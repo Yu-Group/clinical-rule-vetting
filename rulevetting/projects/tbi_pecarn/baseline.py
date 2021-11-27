@@ -77,16 +77,10 @@ class Baseline(ModelTemplate):
         return self.str_print
 
 if __name__ == '__main__':
-    import sys
     import numpy as np
     import pandas as pd
 
-    # IMPORTANT: REPLACE WITH YOUR PATH TO THE RULE-VETTING GITHUB
-    repo_path = '/Users/zhouxin/study/stat215/lab5_git/group/rule-vetting/'
-
-    sys.path.insert(1, repo_path)
-
-    tbi_df = pd.read_csv(repo_path + '/rulevetting/projects/tbi_pecarn/notebooks/clean_dataset_11_24.csv',
+    tbi_df = pd.read_csv('./data/tbi_pecarn/processed/clean_dataset_11_24.csv',
                          index_col=0)
     tbi_df.index = tbi_df.PatNum.copy()
 
