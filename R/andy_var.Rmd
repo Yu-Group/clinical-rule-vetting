@@ -33,5 +33,6 @@ impute_na <- function(column) {
 }
 # df_andy %>% select(where(function(x) any(is.na(x)))) #select NA columns
 df_andy
+unique(df_andy$outcome)
 ```
 
