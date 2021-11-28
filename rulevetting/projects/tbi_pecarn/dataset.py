@@ -8,13 +8,28 @@ from typing import Dict
 
 import rulevetting
 import rulevetting.api.util
-# TODO ?
 from rulevetting.projects.iai_pecarn import helper
 from rulevetting.templates.dataset import DatasetTemplate
 
 
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
+        """
+        Convert the raw data files into a pandas dataframe.
+        Dataframe keys should be reasonable (lowercase, underscore-separated).
+        Data types should be reasonable.
+
+        Params
+        ------
+        data_path: str, optional
+            Path to all data files
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
+
+        Returns
+        -------
+        cleaned_data: pd.DataFrame
+        """
 
         # raw data path
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
@@ -33,6 +48,21 @@ class Dataset(DatasetTemplate):
         return df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        """Preprocess the data.
+        Impute missing values.
+        Scale/transform values.
+        Should put the prediction target in a column named "outcome"
+
+        Parameters
+        ----------
+        cleaned_data: pd.DataFrame
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
+
+        Returns
+        -------
+        preprocessed_data: pd.DataFrame
+        """
 
         tbi_df = cleaned_data.copy()
 
@@ -78,6 +108,7 @@ class Dataset(DatasetTemplate):
         # Step 4: Remove Missing Observations Among the Response Outcomes
         ################################
 
+        #FIXME:
         tbi_df = tbi_df.dropna(subset=['DeathTBI', 'Intub24Head', 'Neurosurgery', 'HospHead'])
         tbi_df['PosIntFinal'].fillna(0, inplace=True)
 
@@ -92,7 +123,7 @@ class Dataset(DatasetTemplate):
         tbi_df = tbi_df.assign(PosIntFinalNoHosp=new_outcome)
 
         ################################
-        # Step 6: Impute/drop GCS Verbal/Motor/Eye Scores 
+        # Step 6: Impute/drop GCS Verbal/Motor/Eye Scores
         ################################
 
         tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) & (
@@ -224,7 +255,20 @@ class Dataset(DatasetTemplate):
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        """Extract features from preprocessed data
+        All features should be binary
 
+
+        Parameters
+        ----------
+        preprocessed_data: pd.DataFrame
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
+
+        Returns
+        -------
+        extracted_features: pd.DataFrame
+        """
         # put PatNum to the index
         df = preprocessed_data.copy()
         df.index = df.PatNum
@@ -250,10 +294,25 @@ class Dataset(DatasetTemplate):
         return 'tbi_pecarn'  # return the name of the dataset id
 
     def get_meta_keys(self) -> list:
-        # TODO
+        # TODO gender race
         return []  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
+        """Returns a dictionary of keyword arguments for each function in the dataset class.
+        Each key should be a string with the name of the arg.
+        Each value should be a list of values, with the default value coming first.
+
+        Example
+        -------
+        return {
+            'clean_data': {},
+            'preprocess_data': {
+                'imputation_strategy': ['mean', 'median'],  # first value is default
+            },
+            'extract_features': {},
+        }
+        """
+
         # TODO
         return {
             'clean_data': {},
@@ -293,6 +352,8 @@ class Dataset(DatasetTemplate):
     #     df_tune
     #     df_test
     #     """
+
+
 if __name__ == '__main__':
     dset = Dataset()
     df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
