@@ -8,6 +8,35 @@ This file is optional.
 '''
 
 
+def union_var(df: pd.DataFrame, colnames: list, new_name: str, NA_eq_1: bool = False):
+    """
+    Performs a union of the colnames and stores it into new_name,
+    i.e. presence of any indicates presence overall.
+
+    Parameters
+    ----------
+    df : pd.Dataframe
+    colnames : list
+    new_name : str
+    NA_eq_1 : bool, optional
+        Treat NAs as PRESENCE, i.e. 1
+        The default is False.
+
+    Returns
+    -------
+    df : pd.DataFrame
+    """
+
+    # be careful about N/A!
+    df.loc[:, new_name] = df.loc[:, colnames].any(axis = 1, skipna = not NA_eq_1).\
+        astype(int)
+    df.drop(colnames, axis= 1, inplace=True)
+    return df
+
+
+###############################################################################
+# TODO: remove & replace these from iai, here just as a showcase
+
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     """Read in the outcomes
     Returns

@@ -1,18 +1,21 @@
-from os.path import join as oj
-
-import numpy as np
 import os
-import pandas as pd
-from tqdm import tqdm
+from os.path import join as oj
 from typing import Dict
 
-import rulevetting
+import inspect
+
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
+# TODO: fix _init_.py so these are easily accessible
 import rulevetting.api.util
-from rulevetting.projects.iai_pecarn import helper
 from rulevetting.templates.dataset import DatasetTemplate
+import rulevetting.projects.tbi_pecarn.helper as hp
 
 
 class Dataset(DatasetTemplate):
+
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
         """
         Convert the raw data files into a pandas dataframe.
@@ -42,13 +45,16 @@ class Dataset(DatasetTemplate):
             if 'csv' in fname])
 
         # read raw data
+        df = pd.DataFrame()
         for fname in tqdm(fnames):
-            df = pd.read_csv(oj(raw_data_path, fname))
+            df = df.append(pd.read_csv(oj(raw_data_path, fname)))
 
         return df
 
+    # TODO:     - unioning
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        """Preprocess the data.
+        """
+        Preprocess the data.
         Impute missing values.
         Scale/transform values.
         Should put the prediction target in a column named "outcome"
@@ -65,32 +71,37 @@ class Dataset(DatasetTemplate):
         """
 
         tbi_df = cleaned_data.copy()
+        judg_calls = self.get_judgement_calls_current()
 
         ################################
         # Step 1: Remove variables which have nothing to do with our problem (uncontroversial choices)
         ################################
 
         list1 = ['EmplType', 'Certification']
-        list2 = ['InjuryMech']
+
+        # NOTE: this is the only judgement call here
+        if not judg_calls["step1_injMech"]:
+            list1.append('InjuryMech')
 
         # grab all of the CT/Ind variables
-        list3 = []
+        list2 = []
         for col in tbi_df.keys():
             if 'Ind' in col or 'CT' in col:
-                list3.append(col)
+                list2.append(col)
 
-        list4 = ['AgeTwoPlus', 'AgeInMonth']
+        list3 = ['AgeTwoPlus', 'AgeInMonth']
 
         # grab all of the Finding variables
-        list5 = ['Observed', 'EDDisposition']
+        list4 = ['Observed', 'EDDisposition']
 
         for col in tbi_df.keys():
             if 'Finding' in col:
-                list5.append(col)
+                list4.append(col)
 
-        total_rem = list1 + list2 + list3 + list4 + list5
+        total_rem = list1 + list2 + list3 + list4
 
         tbi_df = tbi_df.drop(total_rem, axis=1)
+
         ################################
         # Step 2: Remove variables with really high missingness (that we don't care about)
         ################################
@@ -105,30 +116,21 @@ class Dataset(DatasetTemplate):
         tbi_df = tbi_df.drop(['GCSGroup'], axis=1)
 
         ################################
-        # Step 4: Remove Missing Observations Among the Response Outcomes
+        # Step 4: Generate an unified response variables
         ################################
+        # NOTE: PosIntFinalNoHosp is too wordy IMO, just call it ciTBI
 
-        #FIXME:
-        tbi_df = tbi_df.dropna(subset=['DeathTBI', 'Intub24Head', 'Neurosurgery', 'HospHead'])
-        tbi_df['PosIntFinal'].fillna(0, inplace=True)
+        tbi_df = hp.union_var(tbi_df, ['DeathTBI', 'Intub24Head', 'Neurosurgery',
+                                       'HospHead', 'PosIntFinal'], "ciTBI")
 
-        ################################
-        # Step 5: Make a New Column ciTBI, without the hospitalization condition
-        ################################
-
-        sset = tbi_df[['DeathTBI', 'Intub24Head', 'Neurosurgery']]
-        new_outcome = np.zeros(len(sset))
-        new_outcome[np.sum(np.array(sset), 1) > 0] = 1
-
-        tbi_df = tbi_df.assign(PosIntFinalNoHosp=new_outcome)
 
         ################################
-        # Step 6: Impute/drop GCS Verbal/Motor/Eye Scores
+        # Step 5: Impute/drop GCS Verbal/Motor/Eye Scores
         ################################
 
         tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) & (
-                    (tbi_df['GCSVerbal'].isnull()) | (tbi_df['GCSMotor'].isnull()) | (
-                tbi_df['GCSEye'].isnull()))].index, inplace=True)
+                (tbi_df['GCSVerbal'].isnull()) | (tbi_df['GCSMotor'].isnull()) | (
+            tbi_df['GCSEye'].isnull()))].index, inplace=True)
 
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSVerbal'].isnull(), 'GCSVerbal'] = 5
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSMotor'].isnull(), 'GCSMotor'] = 6
@@ -167,7 +169,6 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 10: Impute/drop based on Hema variables
         ################################
-
 
         tbi_df.drop(tbi_df.loc[(tbi_df['Hema'].isnull()) | (tbi_df['HemaLoc'].isnull()) | (
             tbi_df['HemaSize'].isnull())].index, inplace=True)
@@ -244,7 +245,7 @@ class Dataset(DatasetTemplate):
         # Step 20: Drop the Drugs Column
         ################################
 
-        tbi_df = tbi_df.drop('Drugs', axis = 1)
+        tbi_df = tbi_df.drop('Drugs', axis=1)
 
         ################################
         # Result
@@ -254,9 +255,15 @@ class Dataset(DatasetTemplate):
 
         return df
 
+
+    # TODO: - check
+    #       - binarization of categoricals
+    #       - flattening of umbrellas
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        """Extract features from preprocessed data
-        All features should be binary
+
+        """
+        Binarizes the categoricals
+        Flattens depending on the
 
 
         Parameters
@@ -269,6 +276,10 @@ class Dataset(DatasetTemplate):
         -------
         extracted_features: pd.DataFrame
         """
+
+        # TODO: implement consistent binarization
+        judg_calls = self.get_judgement_calls_current()
+
         # put PatNum to the index
         df = preprocessed_data.copy()
         df.index = df.PatNum
@@ -298,7 +309,8 @@ class Dataset(DatasetTemplate):
         return []  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
-        """Returns a dictionary of keyword arguments for each function in the dataset class.
+        """
+        Returns a dictionary of keyword arguments for each function in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
 
@@ -313,20 +325,43 @@ class Dataset(DatasetTemplate):
         }
         """
 
-        # TODO
-        return {
-            'clean_data': {},
-            'preprocess_data': {
+        judg_calls =\
+        {
+            'clean_data'      : {},
+            'preprocess_data' : {
                 # drop cols with vals missing this percent of the time
-                'frac_missing_allowed': [0.05, 0.10],
+                # 'frac_missing_allowed': [0.05, 0.10],
+
+                # include injury mechanic
+                "step1_injMech" : [False, True],
+
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
-                'drop_negative_columns': [False],  # default value comes first
+                # 'drop_negative_columns': [False],  # default value comes first
             },
         }
 
-    #NOTE: for quick reference - this is what's inherited and gets run:
+        return judg_calls
+
+    # NOTE: the format might change
+    def get_judgement_calls_current(self) -> Dict[str, list]:
+        """
+         Returns the sub-dictionary of judgement calls for the calling function
+         via inspection.
+
+        Returns
+        -------
+        Dict[str, list]
+            DESCRIPTION.
+
+        """
+
+        calling_func = inspect.currentframe().f_back.f_code.co_name
+        return self.get_judgement_calls_dictionary()[calling_func]
+
+    # NOTE: for quick reference - this is what's inherited and gets run:
+    # NOTE: can actually override it if extra judgement call functionality needed!
 
     # def get_data(self, save_csvs: bool = False,
     #              data_path: str = rulevetting.DATA_PATH,
@@ -357,6 +392,9 @@ class Dataset(DatasetTemplate):
 if __name__ == '__main__':
     dset = Dataset()
     df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
-    print('successfuly processed data\nshapes:',
-          df_train.shape, df_tune.shape, df_test.shape,
-          '\nfeatures:', list(df_train.columns))
+
+    # dset.preprocess_data(df_train)
+
+    # print('successfuly processed data\nshapes:',
+    #       df_train.shape, df_tune.shape, df_test.shape,
+    #       '\nfeatures:', list(df_train.columns))
