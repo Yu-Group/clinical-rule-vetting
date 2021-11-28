@@ -99,6 +99,7 @@ class Dataset(DatasetTemplate):
         
         # impute missing values
         # TODO: iclude Yaxuan's code
+        df = helper.impute_missing(df, n = 5) # drop some observations and impute other missing values 
         
 
         # pandas impute missing values with median

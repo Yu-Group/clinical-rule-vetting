@@ -238,3 +238,31 @@ def derived_feats(df):
     df.drop(columns='Race_orig', inplace=True)
 
     return df
+
+def impute_missing(df, n = 5):
+    
+    '''
+    1. drop observations with missing rate higer than n%;
+    2. change some binary variable label: e.g. Ambulatory -> NonAmbulatory;
+    3. fill other NaN by "0";
+    '''
+    
+    # drop observations
+    an_names = ['AlteredMentalStatus', 'LOC', 'ambulatory', 'FocalNeuroFindings',
+       'PainNeck', 'PosMidNeckTenderness', 'TenderNeck', 'Torticollis',
+       'SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk',
+       'Predisposed', 'HighriskDiving', 'HighriskFall', 'HighriskHanging',
+       'HighriskHitByCar', 'HighriskMVC', 'HighriskOtherMV', 'AxialLoadAnyDoc',
+       'axialloadtop', 'Clotheslining']
+    df['missing_rate'] = df[an_names].isna().sum(axis = 1)/len(an_names) # calculate missing
+    df = df[df['missing_rate'] > n/100] # drop observations with missing rate higer than n%
+    df.drop('missing_rate', inplace=True)
+    
+    # change some binary variable label
+    df['NonAmbulatory'] = df['ambulatory'].replace([1,0],[0,1])
+    df.drop('ambulatory', inplace=True)
+    
+    # fill other NaN by "0"
+    df.fillna(0, inplace=True)
+    
+    return df
