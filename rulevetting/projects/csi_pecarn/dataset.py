@@ -69,6 +69,10 @@ class Dataset(DatasetTemplate):
             df_features.columns[df_features.columns.str.contains('Outcome')])
         df_features.drop(posthoc_columns, axis=1, inplace=True)
         
+        # change binary variable label so that 1 is negative result
+        df_features.loc[:,'NonAmbulatory'] = df_features.loc[:,'ambulatory'].replace([1,0],[0,1])
+        df_features.drop(['ambulatory'], axis=1, inplace=True)
+        
         # judgement call to get analysis variable columns that end with 2 (more robust)
         # first standardize column names
         df_features.columns = [re.sub('subinj_','SubInj_',x) for x in df_features.columns]
@@ -89,11 +93,7 @@ class Dataset(DatasetTemplate):
             kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
             # replace with kappa data at relavent locations
             df_features.loc[kappa_data.index,kappa_data.columns] = kappa_data
-            
-        # drop uniformative columns which only contains a single value
-        no_information_columns = df_features.columns[df_features.nunique() <= 1]
-        df_features.drop(no_information_columns, axis=1, inplace=True)
-        
+
         return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -110,6 +110,11 @@ class Dataset(DatasetTemplate):
         #df.GCSScore = df.GCSScore.fillna(df.GCSScore.median())
 
         #df['outcome'] = df[self.get_outcome_name()]
+        
+        # drop uniformative columns which only contains a single value
+        no_information_columns = df.columns[df.nunique() <= 1]
+        df.drop(no_information_columns, axis=1, inplace=True)
+        
 
         return df
 

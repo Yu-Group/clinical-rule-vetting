@@ -243,12 +243,11 @@ def impute_missing(df, n = 0.05):
     
     '''
     1. drop observations with missing rate higer than n% in analysis variables;
-    2. change some binary variable label: e.g. Ambulatory -> NonAmbulatory;
-    3. fill other NaN by "0";
+    2. fill other NaN by "0";
     '''
     
     # drop observations
-    an_names = ['AlteredMentalStatus', 'LOC', 'ambulatory', 'FocalNeuroFindings',
+    an_names = ['AlteredMentalStatus', 'LOC', 'NonAmbulatory', 'FocalNeuroFindings',
        'PainNeck', 'PosMidNeckTenderness', 'TenderNeck', 'Torticollis',
        'SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk',
        'Predisposed', 'HighriskDiving', 'HighriskFall', 'HighriskHanging',
@@ -256,15 +255,9 @@ def impute_missing(df, n = 0.05):
        'axialloadtop', 'Clotheslining']
     robust_an_names = [covar_name if covar_name in df.columns else covar_name+'2' for covar_name in an_names]
 
-    df.loc[:,'missing_rate'] = df[robust_an_names].isna().sum(axis = 1)/len(robust_an_names) # calculate missing
-    print(df.shape)
-    df = df[df.loc[:,'missing_rate'] > n] # drop observations with missing rate higer than n%
-    print(df.shape)
+    df.loc[:,'missing_rate'] = df[robust_an_names].isna().sum(axis = 1)/len(robust_an_names) # calculate missing fraction
+    df = df[df.loc[:,'missing_rate'] < n] # drop observations with missing rate higer than n-fraction
     df.drop('missing_rate', axis=1, inplace=True)
-    
-    # change some binary variable label
-    df.loc[:,'NonAmbulatory'] = df.loc[:,'ambulatory'].replace([1,0],[0,1])
-    df.drop('ambulatory', axis=1, inplace=True)
     
     # fill other NaN by "0"
     df.fillna(0, inplace=True)
