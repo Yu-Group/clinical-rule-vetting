@@ -22,9 +22,11 @@ def extract_numeric_data(input_df):
     This function returns a dataframe with all character columns dropped.
     Character variables which can be converted to binary such as 'Y'/'N' are mutated and kept
     '''
+    ident_data = input_df.loc[:,['CaseID','ControlType']]
     numeric_data = input_df.select_dtypes([np.number]) # separate data that is already numeric
     char_data = input_df.select_dtypes([np.object]) # gets columns encoded as strings
-    binary_data = pd.DataFrame(index=input_df.index) # study subject ID
+    
+    binary_data = pd.DataFrame(index=input_df.index) # init with study subject ID as index
     
     for column in char_data:
         char_column = char_data[column] # select column
@@ -41,6 +43,9 @@ def extract_numeric_data(input_df):
     # fix indexing
     numeric_df.rename(columns={'key_0':'id'}, inplace=True)
     numeric_df.set_index('id' , inplace=True)
+    
+    # add identifiying information back in
+    numeric_df.loc[:,['CaseID','ControlType']] = ident_data 
 
     return numeric_df
 

@@ -40,18 +40,15 @@ class Dataset(DatasetTemplate):
         # Get filenames we consider in our covariate analysis
         # We do not consider radiology data or injury classification because this data is not
         # available at decision time in the ED.
-        # . We will use this as a robustness check
-        # to be implemented (TODO)
         fnames_small = [fname for fname in fnames
                         if not 'radiology' in fname
                         and not 'injuryclassification' in fname
                         and not 'kappa' in fname]
         
-        
         df_features = r[fnames[0]] # keep `site`, `case id`, and `control type` covar from first df
         
         
-        print('merge all the dfs...')
+        print('merge all of them dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
             df2 = r[fname].copy()
 
