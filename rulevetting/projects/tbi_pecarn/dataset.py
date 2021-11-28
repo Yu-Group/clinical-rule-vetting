@@ -116,14 +116,59 @@ class Dataset:
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
         
         # removing not concrete vars - likely to change case by case
-        other_vars = ['Ethnicity', 'Race', 'AgeInMonth', 'Dizzy']
+        # We first only consider AgeTwoPlus
+        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
+                      'AgeInMonth', 'AgeinYears']
         cleaned_data = cleaned_data.drop(columns=other_vars)
         
-        # remapping binary variables
-        bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes']).all()]
-        for bool_col in bool_cols:
-            cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1})
+        # Impute Unknown values with most normal value
+        
+        cleaned_data.loc[cleaned_data['InjuryMech'] == 'Unknown', 'InjuryMech'] = 'Other mechanism'
+        cleaned_data.loc[cleaned_data['High_impact_InjSev'] == 'Unknown', 'High_impact_InjSev'] = 'No'
+        cleaned_data.loc[cleaned_data['Amnesia_verb'] == 'Unknown', 'Amnesia_verb'] = 'No'
+        cleaned_data.loc[cleaned_data['LOCSeparate'] == 'Unknown', 'LOCSeparate'] = 'No'
+        cleaned_data.loc[cleaned_data['LocLen'] == 'Unknown', 'LocLen'] = 'Not applicable'
+        cleaned_data.loc[cleaned_data['SeizLen'] == 'Not applicable', 'SeizLen'] = 'No'
+        cleaned_data.loc[cleaned_data['SeizLen'] == 'Unknown', 'SeizLen'] = 'No'  
+        cleaned_data.loc[cleaned_data['SeizOccur'] == 'Not applicable', 'SeizOccur'] = 'No'
+        cleaned_data.loc[cleaned_data['SeizOccur'] == 'Unknown', 'SeizOccur'] = 'No'
+        
+        
+        cleaned_data.loc[cleaned_data['ActNorm'] == 'Unknown', 'ActNorm'] = 'No'
+        
+        cleaned_data.loc[cleaned_data['HA_verb'] == 'Unknown', 'HA_verb'] = 'No'
+        cleaned_data.loc[cleaned_data['HASeverity'] == 'Not applicable', 'HASeverity'] = 'No'
+        cleaned_data.loc[cleaned_data['HASeverity'] == 'Unknown', 'HASeverity'] = 'No'
+        cleaned_data.loc[cleaned_data['HAStart'] == 'Not applicable', 'HAStart'] = 'No'
+        cleaned_data.loc[cleaned_data['HAStart'] == 'Unknown', 'HAStart'] = 'No'     
 
+        cleaned_data.loc[cleaned_data['VomitNbr'] == 'Not applicable', 'VomitNbr'] = 'No'
+        cleaned_data.loc[cleaned_data['VomitNbr'] == 'Unknown', 'VomitNbr'] = 'No' 
+        cleaned_data.loc[cleaned_data['VomitStart'] == 'Not applicable', 'VomitStart'] = 'No'
+        cleaned_data.loc[cleaned_data['VomitStart'] == 'Unknown', 'VomitStart'] = 'No'   
+        cleaned_data.loc[cleaned_data['VomitLast'] == 'Not applicable', 'VomitLast'] = 'No'
+        cleaned_data.loc[cleaned_data['VomitLast'] == 'Unknown', 'VomitLast'] = 'No' 
+        
+        cleaned_data.loc[cleaned_data['SFxPalp'] == 'Unknown', 'SFxPalp'] = 'No'       
+        
+        cleaned_data.loc[cleaned_data['FontBulg'] == 'Unknown', 'FontBulg'] = 'No'
+        cleaned_data.loc[cleaned_data['FontBulg'] == 'No/Closed', 'FontBulg'] = 'No'
+                
+        cleaned_data.loc[cleaned_data['HemaLoc'] == 'Unknown', 'HemaLoc'] = 'No'
+        cleaned_data.loc[cleaned_data['HemaSize'] == 'Not applicable', 'HemaSize'] = 'No'
+        cleaned_data.loc[cleaned_data['HemaSize'] == 'Unknown', 'HemaSize'] = 'No'
+        
+        # NEED TO CHANGE : Missing gender to Male  (Only 3)
+        cleaned_data.loc[cleaned_data['Gender'] == 'Unknown', 'Gender'] = 'Male'
+        cleaned_data.loc[cleaned_data['Gender'] == 'Male', 'Gender'] = 1
+        cleaned_data.loc[cleaned_data['Gender'] == 'Female', 'Gender'] = 2
+
+        
+        # remapping binary + 92 (not applicable) variables
+        bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes', 'Unknown', 'Not applicable']).all()]
+        for bool_col in bool_cols:
+            cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1, 'Not applicable': 0, 'Unknown': 0 })
+            
         # one-hot encode categorical vars w/ >2 unique values
         cleaned_data = helper.one_hot_encode_df(cleaned_data)
         
@@ -183,10 +228,11 @@ class Dataset:
         tbi_on_ct = [f'Finding{i}' for i in range(1, 15)] + [f'Finding{i}' for i in range(20, 24)] + ['PosCT']
         ctform_vars = ['CTForm1', 'IndAge', 'IndAmnesia', 'IndAMS', 'IndClinSFx',
                        'IndHA', 'IndHema', 'IndLOC', 'IndMech', 'IndNeuroD',
-                       'IndRqstMD', 'IndRqstParent', 'IndRqstTrauma', 'IndSeiz',
-                       'IndVomit', 'IndXraySFx', 'IndOth']
-        outcome_vars = ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI', 'HospHead', 'EDDisposition']
-        other_vars = ['CTDone', 'EDCT']
+                       'IndRqstMD', 'IndRqstParent', 'IndRqstTrauma', 'IndSeiz', 'IndVomit',
+                       'IndXraySFx', 'IndOth', 'CTSed', 'CTSedAgitate', 'CTSedAge', 
+                       'CTSedRqst', 'CTSedOth']
+        outcome_vars = ['HospHeadPosCT', 'DeathTBI', 'HospHead', 'Intub24Head', 'Neurosurgery']
+        other_vars = ['CTDone', 'EDCT', 'EDDisposition', 'Observed']
         
         return  tbi_on_ct + ctform_vars + outcome_vars + other_vars # return name of post ct vars that aren't the outcome
 
