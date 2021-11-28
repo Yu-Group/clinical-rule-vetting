@@ -7,14 +7,17 @@ import pandas as pd
 This file is optional.
 '''
 
-var_andy = ['AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault', 'AxialLoadAnyDoc',
-           'CaseID', 'CervicalSpineImmobilization', 'ChildAbuse', 'Clotheslining', 
+var_use = ['AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault', 'AxialLoadAnyDoc',
+           'CaseID', 'CervicalSpineImmobilization', 'ChildAbuse', 'ControlType',
            'DxCspineInjury', 'Ethnicity', 'FallDownStairs', 'FallFromElevation',
             'FocalNeuroFindings', 'Gender', 'HeadFirst', 'HighriskDiving',
             'HighriskFall', 'HighriskHanging', 'HighriskHitByCar',
             'HighriskMVC', 'HighriskOtherMV', 'InjuryPrimaryMechanism',
            'IntervForCervicalStab', 'LOC', 'LimitedRangeMotion','LongTermRehab',
-            'MVCDSC', 'MVCEFA', 'MVCHOC']
+           'Predisposed', "MedsGiven", "MedsRecdPriorArrival", "MotorGCS", "PainNeck",\
+          "PainNeck2", "PassRestraint", "PosMidNeckTenderness", \
+        'PosMidNeckTenderness2',"PtAmbulatoryPriorArrival", \
+        "PtCompPain"]
 
 andy_highrisk = ['AlteredMentalStatus', 'LOC']
 
@@ -87,6 +90,7 @@ def rename_values(df):
     
     # map categorical vars values
     
+    
     as_binary1 = {
         'N': 0.,
         'Y': 1.,
@@ -96,19 +100,73 @@ def rename_values(df):
             0:0.,
             1:1.,
     } 
+    ll_binary1 = {
+        'N': 0.,
+        'Y': 1.,
+        'ND':0.,
+    }  
+    ll_binary2 = {
+            0:0.,
+            1:1.,
+    }  
+    
+    ambulatory = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        '3': 0.,
+    }
+    
+    comppain = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        'YND': 1.,
+        'S': 1.,
+        'P': 0.,
+    }
+    
+    rangemotion = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        '3': 1.,
+        '4': 1.,
+    }
+    
+    outcome = {
+        "case": 1.,
+        "ems": 0.,  
+        "moi": 0.,  
+        "ran": 0., 
+    }    
+    
+    motorgcs={1.:0.,2.:0.,3.:0.,4.:0.,5.:0.,6.:1.}
+
+    df.MedsGiven=df.MedsGiven.map(ll_binary1)
+    df.MedsRecdPriorArrival=df.MedsRecdPriorArrival.map(ll_binary1)
+    df.Predisposed=df.Predisposed.map(ll_binary2)
+    df.MotorGCS=df.MotorGCS.map(motorgcs)
+    df.PtAmbulatoryPriorArrival=df.PtAmbulatoryPriorArrival.map(ambulatory)
+    df.PtCompPain=df.PtCompPain.map(comppain)
     df.AVPU = df.AVPU.map(as_binary1)
+    
+    df.ControlType = df.ControlType.map(outcome)
+    
     df.ArrPtIntub = df.ArrPtIntub.map(as_binary1)
     df.DxCspineInjury = df.DxCspineInjury.map(as_binary1)
     df.IntervForCervicalStab = df.IntervForCervicalStab.map(as_binary1)
     df.LongTermRehab = df.LongTermRehab.map(as_binary1)
-    df.Clotheslining = df.Clotheslining.map(as_binary1)
+    #df.Clotheslining = df.Clotheslining.map(as_binary1)
     df.HeadFirst = df.HeadFirst.map(as_binary1)
-    df.LimitedRangeMotion = df.LimitedRangeMotion.map(as_binary1)
+    df.LimitedRangeMotion = df.LimitedRangeMotion.map(rangemotion)
     # FallDownStairs and FallFromElevation have weird coding(2, 3, etc)
     # MVC variables have weird coding with numbers that are not just (0, 1)
     
     
     return df
+
+
 
 
 def derived_feats(df):

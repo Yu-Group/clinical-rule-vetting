@@ -8,6 +8,19 @@ This file is optional.
 '''
 
 
+var_andy = ['AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault', 'AxialLoadAnyDoc',
+           'CaseID', 'CervicalSpineImmobilization', 'ChildAbuse', 'ControlType',
+           'DxCspineInjury', 'Ethnicity', 'FallDownStairs', 'FallFromElevation',
+            'FocalNeuroFindings', 'Gender', 'HeadFirst', 'HighriskDiving',
+            'HighriskFall', 'HighriskHanging', 'HighriskHitByCar',
+            'HighriskMVC', 'HighriskOtherMV', 'InjuryPrimaryMechanism',
+           'IntervForCervicalStab', 'LOC', 'LimitedRangeMotion','LongTermRehab',
+           'Predisposed', "MedsGiven", "MedsRecdPriorArrival", "MotorGCS", "PainNeck",\
+          "PainNeck2", "PassRestraint", "PosMidNeckTenderness", \
+        'PosMidNeckTenderness2',"PtAmbulatoryPriorArrival", \
+        "PtCompPain"]
+
+
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     """Read in the outcomes
     Returns
@@ -72,100 +85,87 @@ def rename_values(df):
     Compute a couple new features
     set types of
     '''
-
+    
+    
     # map categorical vars values
-    race = {
-        1: 'American Indian or Alaska Native',
-        2: 'Asian',
-        3: 'Black or African American',
-        4: 'Native Hawaiian or other Pacific Islander',
-        5: 'White',
-        6: 'unknown',  # stated as unknown
-        7: 'unknown'  # other
+    
+    
+    as_binary1 = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+    }  
+    as_binary2 = {
+            0:0.,
+            1:1.,
+    } 
+    ll_binary1 = {
+        'N': 0.,
+        'Y': 1.,
+        'ND':0.,
+    }  
+    ll_binary2 = {
+            0:0.,
+            1:1.,
+    }  
+    
+    ambulatory = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        '3': 0.,
     }
-    df.RACE = df.RACE.map(race)
-    moi = {
-        1: 'Motor vehicle collision',
-        2: 'Fall from an elevation',
-        3: 'Fall down stairs',
-        4: 'Pedestrian/bicyclist struck by moving vehicle',
-        5: 'Bike collision/fall',
-        6: 'Motorcycle/ATV/Scooter collision',
-        7: 'Object struck abdomen',
-        8: 'unknown',  # unknown mechanism,
-        9: 'unknown',  # other mechanism
-        10: 'unknown'  # physician did not answer
+    
+    comppain = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        'YND': 1.,
+        'S': 1.,
+        'P': 0.,
     }
-    df.loc[:, 'MOI'] = df.RecodedMOI.map(moi)
-
-    df.drop(columns=['RecodedMOI'], inplace=True)
-    abdTenderDegree = {
-        1: 'Mild',
-        2: 'Moderate',
-        3: 'Severe',
-        4: 'unknown',
-        np.nan: 'unknown'
+    
+    rangemotion = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        '3': 1.,
+        '4': 1.,
     }
+    
+    outcome = {
+        "case": 1.,
+        "ems": 0.,  
+        "moi": 0.,  
+        "ran": 0., 
+    }    
+    
+    motorgcs={1.:0.,2.:0.,3.:0.,4.:0.,5.:0.,6.:1.}
 
-    # combine aggregate gcs into total gcs
-    idxs_to_replace = ~df['AggregateGCS'].isna() & df['GCSScore'].isna()
-    df.loc[idxs_to_replace, 'GCSScore'] = df['AggregateGCS'][idxs_to_replace]
-
-    # print(np.unique(df['AbdTenderDegree'], return_counts=True))
-    df['AbdTenderDegree'] = df.AbdTenderDegree.map(abdTenderDegree)
-
-    # print(np.unique(df['AbdTenderDegree'], return_counts=True))
-    binary = {
-        0: 'no',
-        1: 'yes',
-        False: 'no',
-        True: 'yes',
-        'unknown': 'unknown'
-    }
-    df['HISPANIC_ETHNICITY'] = (df['HISPANIC_ETHNICITY'] == '-1').map(
-        binary)  # note: -1 is Hispanic (0 is not, 1 is unknown)
-
-    # rename variables
-    df = df.rename(columns={'RACE': 'Race_orig',
-                            'SEX': 'Sex',
-                            'HISPANIC_ETHNICITY': 'Hispanic',
-                            'ageinyrs': 'Age'
-                            })
-
-    # set types of these variables to categorical
-    ks_categorical = ['Sex', 'Race_orig', 'Hispanic',
-                      'VomitWretch', 'MOI', 'ThoracicTender', 'ThoracicTrauma',
-                      'DecrBreathSound', 'AbdDistention', 'AbdTenderDegree',
-                      'AbdTrauma', 'SeatBeltSign', 'DistractingPain',
-                      'AbdomenPain', 'AbdomenTender']
-    for k in ks_categorical:
-        df[k] = df[k].astype(str)
-
-    df['AbdomenPain'] = df['AbdomenPain'].replace('3.0', 'other')
-    df['CTScan'] = (df['AbdCTScan'] == 1.0).astype(int)
-
-    # remap values which take on values 0....4
-    ks_remap = ['VomitWretch',
-                'ThoracicTender', 'ThoracicTrauma',
-                'DecrBreathSound', 'AbdDistention',
-                'AbdTrauma', 'SeatBeltSign',
-                'DistractingPain', 'AbdomenPain', 'AbdomenTender']
-    for k in ks_remap:
-        vals = df[k].values
-        is_na = df[k].isna()
-        uniques = np.unique(vals).astype(str)
-        contains_nan = np.sum(is_na) > 0
-        if contains_nan and uniques.size in [4, 5] or ~contains_nan and uniques.size in [3, 4]:
-            if '1' in uniques and '2' in uniques and ('3' in uniques or 'other' in uniques):
-                df[k] = df[k].map({
-                    '1': 'yes',
-                    '2': 'no',
-                    '3': 'unknown',
-                    '4': 'unknown',
-                    'other': 'other',
-                    np.nan: 'unknown',
-                })
+    df.MedsGiven=df.MedsGiven.map(ll_binary1)
+    df.MedsRecdPriorArrival=df.MedsRecdPriorArrival.map(ll_binary1)
+    df.Predisposed=df.Predisposed.map(ll_binary2)
+    df.MotorGCS=df.MotorGCS.map(motorgcs)
+    df.PtAmbulatoryPriorArrival=df.PtAmbulatoryPriorArrival.map(ambulatory)
+    df.PtCompPain=df.PtCompPain.map(comppain)
+    df.AVPU = df.AVPU.map(as_binary1)
+    
+    df.ControlType = df.ControlType.map(outcome)
+    
+    df.ArrPtIntub = df.ArrPtIntub.map(as_binary1)
+    df.DxCspineInjury = df.DxCspineInjury.map(as_binary1)
+    df.IntervForCervicalStab = df.IntervForCervicalStab.map(as_binary1)
+    df.LongTermRehab = df.LongTermRehab.map(as_binary1)
+    #df.Clotheslining = df.Clotheslining.map(as_binary1)
+    df.HeadFirst = df.HeadFirst.map(as_binary1)
+    df.LimitedRangeMotion = df.LimitedRangeMotion.map(rangemotion)
+    # FallDownStairs and FallFromElevation have weird coding(2, 3, etc)
+    # MVC variables have weird coding with numbers that are not just (0, 1)
+    
+    
     return df
+
+
 
 
 def derived_feats(df):
