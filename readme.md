@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-mit-blue.svg">
-  <img src="https://img.shields.io/badge/python-3.7-blue">
+  <img src="https://img.shields.io/badge/python-3.8-blue">
   <a href="https://github.com/Yu-Group/rule-vetting/actions"><img src="https://github.com/Yu-Group/rule-vetting/workflows/tests/badge.svg"></a>
   <img src="https://img.shields.io/github/checks-status/Yu-Group/rule-vetting/master">
 </p>  
