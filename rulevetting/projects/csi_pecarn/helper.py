@@ -22,7 +22,6 @@ def extract_numeric_data(input_df):
     This function returns a dataframe with all character columns dropped.
     Character variables which can be converted to binary such as 'Y'/'N' are mutated and kept
     '''
-    ident_data = input_df.loc[:,['CaseID','ControlType']]
     numeric_data = input_df.select_dtypes([np.number]) # separate data that is already numeric
     char_data = input_df.select_dtypes([np.object]) # gets columns encoded as strings
     
@@ -38,16 +37,12 @@ def extract_numeric_data(input_df):
             encodings = [1,1,0]
             binary_encoded = np.select(conditions, encodings, default=np.nan)
             col_name = column+"_binary"
-            binary_data[col_name] = binary_encoded
-    numeric_df = pd.merge(numeric_data,binary_data,left_on=numeric_data.index,right_on=binary_data.index)
-    # fix indexing
-    numeric_df.rename(columns={'key_0':'id'}, inplace=True)
-    numeric_df.set_index('id' , inplace=True)
-    
-    # add identifiying information back in
-    numeric_df.loc[:,['CaseID','ControlType']] = ident_data 
+            binary_data.loc[:,col_name] = binary_encoded.copy()
+            
+    # add in newly created binary columns        
+    numeric_data.loc[:, binary_data.columns] = binary_data.copy()
 
-    return numeric_df
+    return numeric_data
 
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):

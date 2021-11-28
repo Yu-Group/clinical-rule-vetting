@@ -19,7 +19,7 @@ class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
-
+        
         # all the fnames to be loaded and searched over        
         fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
         
@@ -48,7 +48,7 @@ class Dataset(DatasetTemplate):
         df_features = r[fnames[0]] # keep `site`, `case id`, and `control type` covar from first df
         
         
-        print('merge all of them dfs...')
+        print('merging all of the dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
             df2 = r[fname].copy()
 
@@ -57,11 +57,18 @@ class Dataset(DatasetTemplate):
             df2_features = df2.iloc[:,3:]
             # don't save duplicate columns
             df_features = df_features.set_index('id').combine_first(df2_features.set_index('id')).reset_index()
-         
-        df_features = df_features.set_index('id') # set_index commands merge but do not actually set index to `id`
-        
-        # add a binary outcome variable for CSI injury    
-        df_features['csi_injury'] = df_features['ControlType'].apply(helper.assign_binary_outcome)
+        pass
+        # set_index commands merge but do not properly set index
+        # use a multi-indexing for easily work with binary features
+        df_features.columns = [re.sub('SITE','site',x) for x in df_features.columns]
+        df_features.columns = [re.sub('CaseID','case_id',x) for x in df_features.columns]
+        df_features.columns = [re.sub('ControlType','control_type',x,flags=re.IGNORECASE) for x in df_features.columns]
+        df_features = df_features.set_index(['id','case_id','site','control_type'])
+
+        # add a binary outcome variable for CSI injury 
+        #print(df_features.index.get_level_values('control_type'))
+        df_features.loc[:,'csi_injury'] = df_features.index.get_level_values('control_type').\
+            map(helper.assign_binary_outcome)
         
         # remove variables collected after the intervention
         posthoc_columns = df_features.columns[df_features.columns.str.startswith('Interv')].union( \
@@ -100,7 +107,8 @@ class Dataset(DatasetTemplate):
         numeric_df = helper.extract_numeric_data(cleaned_data)
         # drop cols with vals missing this percent of the time
         df = numeric_df #.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
-        
+        pass
+        pass
         # impute missing values
         df = helper.impute_missing(df, n=kwargs['frac_missing_allowed']) # drop some observations and impute other missing values 
         
