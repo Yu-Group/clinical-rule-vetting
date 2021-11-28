@@ -2,9 +2,12 @@ from os.path import join as oj
 
 import numpy as np
 import os
+import random
 import pandas as pd
+import re
 from tqdm import tqdm
 from typing import Dict
+from joblib import Memory
 
 import rulevetting
 import rulevetting.api.util
@@ -31,14 +34,13 @@ class Dataset(DatasetTemplate):
             df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
             df.rename(columns={'StudySubjectID': 'id'}, inplace=True)
             df.rename(columns={'studysubjectid': 'id'}, inplace=True)
-            df.set_index(["id"]) # index data by id
             assert ('id' in df.keys())
             r[fname] = df
 
         # Get filenames we consider in our covariate analysis
         # We do not consider radiology data or injury classification because this data is not
         # available at decision time in the ED.
-        # Kappa data is re-abstracted by an indepedent doctor on a subset of data. We will use this as a robustness check
+        # . We will use this as a robustness check
         # to be implemented (TODO)
         fnames_small = [fname for fname in fnames
                         if not 'radiology' in fname
@@ -47,6 +49,7 @@ class Dataset(DatasetTemplate):
         
         
         df_features = r[fnames[0]] # keep `site`, `case id`, and `control type` covar from first df
+        
         
         print('merge all the dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
@@ -57,19 +60,46 @@ class Dataset(DatasetTemplate):
             df2_features = df2.iloc[:,3:]
             # don't save duplicate columns
             df_features = df_features.set_index('id').combine_first(df2_features.set_index('id')).reset_index()
-            
+         
+        df_features = df_features.set_index('id') # set_index commands merge but do not actually set index to `id`
+        
         # add a binary outcome variable for CSI injury    
         df_features['csi_injury'] = df_features['ControlType'].apply(helper.assign_binary_outcome)
-
+        
+        # remove variables collected after the intervention
+        posthoc_columns = df_features.columns[df_features.columns.str.startswith('Interv')].union( \
+            df_features.columns[df_features.columns.str.contains('LongTerm')]).union( \
+            df_features.columns[df_features.columns.str.contains('Outcome')])
+        df_features.drop(posthoc_columns, axis=1, inplace=True)
+        
+        # judgement call to get analysis variable columns that end with 2 (more robust)
+        # first standardize column names
+        df_features.columns = [re.sub('subinj_','SubInj_',x) for x in df_features.columns]
+        # then get relavent columns
+        robust_av_columns = df_features.columns[df_features.columns.str.endswith('2')]\
+            .drop(['PtTenderNeckLevelC2','ICD9Location2','ICD9MechInjury2']) # endswith 2 regex is too strong
+        nonrobust_av_columns = [col_name[:-1] for col_name in robust_av_columns] 
+        # drop columns for jdugement call
+        if kwargs['use_robust_av']: df_features.drop(nonrobust_av_columns, axis=1, inplace=True)
+        else: df_features.drop(robust_av_columns, axis=1, inplace=True)
+            
+        # judgement call to use kappa variables where appropriate
+        if kwargs['use_kappa']:
+            kappa_data = r['kappa.csv']
+            kappa_data = kappa_data.set_index('id')
+            # drop kappa columns not in full dataset
+            to_drop_kappa_cols = kappa_data.columns.difference(df_features.columns)
+            kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
+            # replace with kappa data at relavent locations
+            df_features.loc[kappa_data.index,kappa_data.columns] = kappa_data
+        
         return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-
         numeric_df = helper.extract_numeric_data(cleaned_data)
-        
         # drop cols with vals missing this percent of the time
         df = numeric_df #.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
-
+        
         # impute missing values
         # TODO: iclude Yaxuan's code
         
@@ -145,7 +175,16 @@ class Dataset(DatasetTemplate):
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
-            'clean_data': {},
+            'clean_data': {
+                # Kappa data is re-abstracted by an indepedent doctor on a subset of `ClinicalPresentationSite.csv` data 
+                # If true, use this data for relavent units
+                'use_kappa':[False, True],
+                
+                # some variables from `AnaylsisVariables.csv` end with a 2
+                # using positive findings from field or outside hospital documentation these have 
+                # the response to YES from NO or MISSING. The Leonard (2011) study considers them more robust
+                'use_robust_av':[True, False],
+            },
             'preprocess_data': {
                 # drop cols with vals missing this percent of the time
                 'frac_missing_allowed': [0.05, 0.10],
@@ -153,7 +192,7 @@ class Dataset(DatasetTemplate):
             'extract_features': {
                 # whether to drop columns with suffix _no
                 'drop_negative_columns': [False],  # default value comes first
-            },
+            }
         }
     
     def get_data(self, save_csvs: bool = False,
@@ -200,8 +239,8 @@ class Dataset(DatasetTemplate):
         if not run_perturbations:
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+            #extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
+            #df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
             clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
@@ -238,7 +277,7 @@ class Dataset(DatasetTemplate):
                             df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
                 return dfs[list(dfs.keys())[0]]
 
-        return df_train, df_tune, df_test
+        return preprocessed_data #df_train, df_tune, df_test
 
 
 if __name__ == '__main__':

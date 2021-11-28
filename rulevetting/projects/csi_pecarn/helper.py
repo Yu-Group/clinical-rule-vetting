@@ -37,9 +37,11 @@ def extract_numeric_data(input_df):
             binary_encoded = np.select(conditions, encodings, default=np.nan)
             col_name = column+"_binary"
             binary_data[col_name] = binary_encoded
-         
     numeric_df = pd.merge(numeric_data,binary_data,left_on=numeric_data.index,right_on=binary_data.index)
-    
+    # fix indexing
+    numeric_df.rename(columns={'key_0':'id'}, inplace=True)
+    numeric_df.set_index('id' , inplace=True)
+
     return numeric_df
 
 
