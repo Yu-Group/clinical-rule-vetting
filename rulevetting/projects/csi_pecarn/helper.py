@@ -239,10 +239,10 @@ def derived_feats(df):
 
     return df
 
-def impute_missing(df, n = 5):
+def impute_missing(df, n = 0.05):
     
     '''
-    1. drop observations with missing rate higer than n%;
+    1. drop observations with missing rate higer than n% in analysis variables;
     2. change some binary variable label: e.g. Ambulatory -> NonAmbulatory;
     3. fill other NaN by "0";
     '''
@@ -254,13 +254,17 @@ def impute_missing(df, n = 5):
        'Predisposed', 'HighriskDiving', 'HighriskFall', 'HighriskHanging',
        'HighriskHitByCar', 'HighriskMVC', 'HighriskOtherMV', 'AxialLoadAnyDoc',
        'axialloadtop', 'Clotheslining']
-    df['missing_rate'] = df[an_names].isna().sum(axis = 1)/len(an_names) # calculate missing
-    df = df[df['missing_rate'] > n/100] # drop observations with missing rate higer than n%
-    df.drop('missing_rate', inplace=True)
+    robust_an_names = [covar_name if covar_name in df.columns else covar_name+'2' for covar_name in an_names]
+
+    df.loc[:,'missing_rate'] = df[robust_an_names].isna().sum(axis = 1)/len(robust_an_names) # calculate missing
+    print(df.shape)
+    df = df[df.loc[:,'missing_rate'] > n] # drop observations with missing rate higer than n%
+    print(df.shape)
+    df.drop('missing_rate', axis=1, inplace=True)
     
     # change some binary variable label
-    df['NonAmbulatory'] = df['ambulatory'].replace([1,0],[0,1])
-    df.drop('ambulatory', inplace=True)
+    df.loc[:,'NonAmbulatory'] = df.loc[:,'ambulatory'].replace([1,0],[0,1])
+    df.drop('ambulatory', axis=1, inplace=True)
     
     # fill other NaN by "0"
     df.fillna(0, inplace=True)

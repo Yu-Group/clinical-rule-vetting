@@ -98,8 +98,7 @@ class Dataset(DatasetTemplate):
         df = numeric_df #.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
         
         # impute missing values
-        # TODO: iclude Yaxuan's code
-        df = helper.impute_missing(df, n = 5) # drop some observations and impute other missing values 
+        df = helper.impute_missing(df, n=kwargs['frac_missing_allowed']) # drop some observations and impute other missing values 
         
 
         # pandas impute missing values with median
