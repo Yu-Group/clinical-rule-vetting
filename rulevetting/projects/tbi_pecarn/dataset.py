@@ -92,8 +92,12 @@ class Dataset(DatasetTemplate):
         tbi_df = tbi_df.assign(PosIntFinalNoHosp=new_outcome)
 
         ################################
-        # Step 6: GCS missing values
+        # Step 6: Impute/drop GCS Verbal/Motor/Eye Scores 
         ################################
+
+        tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) & (
+                    (tbi_df['GCSVerbal'].isnull()) | (tbi_df['GCSMotor'].isnull()) | (
+                tbi_df['GCSEye'].isnull()))].index, inplace=True)
 
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSVerbal'].isnull(), 'GCSVerbal'] = 5
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSMotor'].isnull(), 'GCSMotor'] = 6
@@ -108,7 +112,7 @@ class Dataset(DatasetTemplate):
             tbi_df['GCSEye'].isnull()))].index, inplace=True)
 
         ################################
-        # Step 7: Paralyzed, Sedated, Intubated missing values
+        # Step 7: Impute/drop based on Paralyzed/Sedated/Intubated
         ################################
 
         tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'] == 1) | (tbi_df['Sedated'] == 1) | (
@@ -118,19 +122,19 @@ class Dataset(DatasetTemplate):
         tbi_df.drop(['Sedated', 'Paralyzed', 'Intubated'], axis=1, inplace=True)
 
         ################################
-        # Step 8: AMS missing values
+        # Step 8: Impute/drop based on AMS
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['AMS'].isnull()].index, inplace=True)
 
         ################################
-        # Step 9: OSI missing values
+        # Step 9: Impute/drop based on OSI
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
 
         ################################
-        # Step 10: Hemotoma related features missing values
+        # Step 10: Impute/drop based on Hema variables
         ################################
 
 
@@ -138,7 +142,7 @@ class Dataset(DatasetTemplate):
             tbi_df['HemaSize'].isnull())].index, inplace=True)
 
         ################################
-        # Step 11: skull fracture related features missing values
+        # Step 11: Impute/drop based on skull fracture palp variables
         ################################
 
         tbi_df.loc[(tbi_df['SFxPalp'] == 2), 'SFxPalp'] = 1
@@ -147,32 +151,32 @@ class Dataset(DatasetTemplate):
                             tbi_df['SFxPalp'].isnull())].index, inplace=True)
 
         ################################
-        # Step 12: skull fracture Bas. Removed missing values
+        # Step 12: Impute/drop based on basilar skull fracture variables
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['SFxBas'].isnull()].index, inplace=True)
 
         ################################
-        # Step 13: clavicle related features missing values
+        # Step 13: Impute/drop based on Clav group of variables
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['Clav'].isnull()].index, inplace=True)
 
         ################################
-        # Step 14: neurological injury related features missing values
+        # Step 14: Impute/drop based on Neuro group of variables
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['NeuroD'].isnull()].index, inplace=True)
 
         ################################
-        # Step 15: vomiting related features missing values
+        # Step 15: Impute/drop based on Vomiting group of variables
         ################################
 
         tbi_df.drop(['VomitStart', 'VomitLast', 'VomitNbr'], axis=1, inplace=True)
         tbi_df.drop(tbi_df.loc[tbi_df['Vomit'].isnull()].index, inplace=True)
 
         ################################
-        # Step 16: Headache related features missing values
+        # Step 16: Impute/drop based on Headache group of variables
         ################################
 
         tbi_df.drop(['HAStart'], axis=1, inplace=True)
@@ -181,7 +185,7 @@ class Dataset(DatasetTemplate):
             inplace=True)
 
         ################################
-        # Step 17: Seizure related features missing values
+        # Step 17: Impute/drop based on Seizure group of variables
         ################################
 
         tbi_df.drop(
@@ -190,7 +194,7 @@ class Dataset(DatasetTemplate):
         tbi_df.drop('SeizOccur', axis=1, inplace=True)
 
         ################################
-        # Step 18: Loss of Consciousness features features missing values
+        # Step 18: Impute/drop based on Loss of Consciousness variables
         ################################
 
         tbi_df.drop(
@@ -199,12 +203,21 @@ class Dataset(DatasetTemplate):
         tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 1
 
         ################################
-        # Step 19: Amnesia and High injury severity missing values
+        # Step 19: Drop Missing Values for Amnesia/High Injury Severity
         ################################
 
         tbi_df.drop(tbi_df.loc[(tbi_df['Amnesia_verb'].isnull()) | (
             tbi_df['High_impact_InjSev'].isnull())].index, inplace=True)
 
+        ################################
+        # Step 20: Drop the Drugs Column
+        ################################
+
+        tbi_df = tbi_df.drop('Drugs', axis = 1)
+
+        ################################
+        # Result
+        ################################
         df = tbi_df.copy()
         df['outcome'] = df[self.get_outcome_name()]
 
