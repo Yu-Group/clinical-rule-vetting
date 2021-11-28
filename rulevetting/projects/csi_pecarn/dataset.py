@@ -89,6 +89,10 @@ class Dataset(DatasetTemplate):
             kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
             # replace with kappa data at relavent locations
             df_features.loc[kappa_data.index,kappa_data.columns] = kappa_data
+            
+        # drop uniformative columns which only contains a single value
+        no_information_columns = df_features.columns[df_features.nunique() <= 1]
+        df_features.drop(no_information_columns, axis=1, inplace=True)
         
         return df_features
 
