@@ -3,6 +3,7 @@ import os
 from os.path import join as oj
 from typing import Dict
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -119,7 +120,7 @@ class Dataset(DatasetTemplate):
         tbi_df = tbi_df.drop(['GCSGroup'], axis=1)
 
         ################################
-        # Step 4: Generate an unified response variables
+        # Step 4: Generate an unified response variable
         ################################
         # NOTE: PosIntFinalNoHosp is too wordy IMO, just call it ciTBI
         tbi_df = hp.union_var(tbi_df, ['DeathTBI', 'Intub24Head', 'Neurosurgery',
@@ -140,13 +141,13 @@ class Dataset(DatasetTemplate):
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSMotor'].isnull(), 'GCSMotor'] = 6
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSEye'].isnull(), 'GCSEye'] = 4
 
-        # Maximum total GCS but not the sum of subcomponents
+        # judgement call: Maximum total GCS but not the sum of subcomponents
         if judg_calls["step5_fake15GCS"]:
             tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 15) & (
                     (tbi_df['GCSVerbal'] < 5) | (tbi_df['GCSMotor'] < 6) | (
                     tbi_df['GCSEye'] < 4))].index, inplace=True)
 
-        # Maximum subcomponents but not total:
+        # judgement call: Maximum subcomponents but not total:
         if judg_calls["step5_fake14GCS"]:
             tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) &
                                (tbi_df['GCSVerbal'] == 5) &
@@ -157,9 +158,8 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 6: Drop Paralyzed/Sedated/Intubated
         ################################
-        # Outside the scope for first-time CT evaluation
-
         # NOTE: is this a judgement call within our scope, or is it out of scope?
+        # Right now: outside the scope for first-time CT evaluation
 
         # Drop the observations that were Intubated... and where the info is missing
         tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'] == 1) | (tbi_df['Sedated'] == 1)
@@ -186,7 +186,7 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 9: Impute/drop based on Hema variables
         ################################
-        # TODO: there is a judgement call whether to flatten this or not, see below
+        # TODO: UMBRELLA: there is a judgement call whether to flatten this or not, see below
 
         # Judgement call - impute HEMA from the presence of ANY sub-variable (Union),
         # drop sub-variables
@@ -197,7 +197,7 @@ class Dataset(DatasetTemplate):
                        ['HemaLoc', 'HemaSize']] = np.NaN
             tbi_df = hp.union_var(tbi_df, ['Hema', 'HemaLoc', 'HemaSize'], 'Hema')
 
-        #Judgement call: Permit missing size, impute from loc, drop size
+        # Judgement call: Permit missing size, impute from loc, drop size
         elif judg_calls["step9_HEMA"] == 2:
             # first drop really missing HemaLoc
             tbi_df.drop(tbi_df.loc[(tbi_df['HemaLoc'].isnull())].index, inplace=True)
@@ -208,92 +208,186 @@ class Dataset(DatasetTemplate):
             # We don't care about the HemaSize
             tbi_df.drop(['HemaSize'], axis=1, inplace=True)
 
-        #Judgement call: be strict about missing sub-categories
+        # Judgement call: be strict about missing sub-categories
         elif judg_calls["step9_HEMA"] == 3:
             tbi_df.drop(tbi_df.loc[(tbi_df['HemaLoc'].isnull()) |
                                    (tbi_df['HemaSize'].isnull())].index,
                         inplace=True)
-
         else:
-            raise NotImplementedError("Hema preprocess step not implemented!")
+            raise NotImplementedError("Desired Hema preprocess step not implemented!")
 
         # now drop remaining missing Hema regardless of the above
         tbi_df.drop(tbi_df.loc[(tbi_df['Hema'].isnull())].index, inplace=True)
 
         ################################
-        # Step 10: Impute/drop based on skull fracture palp variables
+        # Step 10: Impute/drop based on palpable skull fracture
         ################################
+        # TODO: UMBRELLA: SFxPalpDepress
 
-        tbi_df.loc[(tbi_df['SFxPalp'] == 2), 'SFxPalp'] = 1
-        tbi_df.drop(tbi_df.loc[
-                        (tbi_df['FontBulg'].isnull()) | (tbi_df['SFxPalpDepress'].isnull()) | (
-                            tbi_df['SFxPalp'].isnull())].index, inplace=True)
+        # treat unclear tests of skull fracture as a sign of possible presence
+        if judg_calls["step10_cautiousUncl"]:
+            tbi_df.loc[(tbi_df['SFxPalp'] == 2), 'SFxPalp'] = 1
+
+        # Fontanelle bulging is believed to be a good indicator so drop missing
+        tbi_df.drop(tbi_df.loc[(tbi_df['SFxPalp'].isnull()) |
+                               (tbi_df['FontBulg'].isnull()) |
+                               (tbi_df['SFxPalpDepress'].isnull())].index,
+                    inplace=True)
 
         ################################
         # Step 11: Impute/drop based on basilar skull fracture variables
         ################################
+        # TODO: UMBRELLA: SFxBasHem SFxBasOto SFxBasPer SFxBasRet SFxBasRhi
 
+        # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['SFxBas'].isnull()].index, inplace=True)
 
         ################################
         # Step 12: Impute/drop based on Clav group of variables
         ################################
+        # TODO: UMBRELLA: ClavFace ClavNeck ClavFro ClavOcc ClavPar ClavTem
 
+        # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['Clav'].isnull()].index, inplace=True)
 
         ################################
         # Step 13: Impute/drop based on Neuro group of variables
         ################################
+        # TODO: UMBRELLA: NeuroDMotor NeuroDSensory NeuroDCranial NeuroDReflex NeuroDOth
 
+        # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['NeuroD'].isnull()].index, inplace=True)
 
         ################################
         # Step 14: Impute/drop based on Vomiting group of variables
         ################################
 
-        tbi_df.drop(['VomitStart', 'VomitLast', 'VomitNbr'], axis=1, inplace=True)
+        if not judg_calls["step14_vomitDtls"]:
+            # TODO: UMBRELLA (if present): 'VomitStart', 'VomitLast', 'VomitNbr
+            tbi_df.drop(['VomitStart', 'VomitLast', 'VomitNbr'], axis=1, inplace=True)
+
+        # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['Vomit'].isnull()].index, inplace=True)
 
         ################################
         # Step 15: Impute/drop based on Headache group of variables
         ################################
+        # TODO: UMBRELLA: HASeverity HAStart
+        # NOTE: (Andrej) This seems to me similar to HEMA, just maybe use a different default
 
-        tbi_df.drop(['HAStart'], axis=1, inplace=True)
-        tbi_df.drop(
-            tbi_df.loc[(tbi_df['HA_verb'].isnull()) | (tbi_df['HASeverity'].isnull())].index,
-            inplace=True)
+        idx_verbal = (tbi_df.HA_verb != 91).index
+
+        # Judgement call - impute HA_verb from the presence of ANY sub-variable (Union),
+        # drop sub-variables
+        if judg_calls["step15_HA"] == 1:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.HAStart == 92) | (tbi_df.HASeverity == 92)].index,
+                       ['HAStart', 'HASeverity']] = np.NaN
+
+            # need to modify union_variable code due to 91 - preverbal
+            tbi_df.loc[idx_verbal, 'HA_verb'] = tbi_df.loc[idx_verbal,
+                                                           ["HA_verb", "HAStart", "HASeverity"]]. \
+                any(axis=1, skipna=True).astype(int)
+
+            # drop sub-features
+            tbi_df.drop(["HAStart", "HASeverity"], axis=1, inplace=True)
+
+
+        # Judgement call: Permit missing start, impute from severity, drop start
+        elif judg_calls["step15_HA"] == 2:
+            # first drop really missing HASeverity
+            tbi_df.drop(tbi_df.loc[(tbi_df['HASeverity'].isnull())].index, inplace=True)
+
+            # impute HA_verb from HASeverity
+            tbi_df.loc[idx_verbal.intersection(tbi_df[tbi_df.HASeverity != 92].index),
+                       "HA_verb"] = 1
+
+            # We don't care about the HAStart
+            tbi_df.drop(['HAStart'], axis=1, inplace=True)
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step15_HA"] == 3:
+
+            # Judgement call: keep HAStart
+            if not judg_calls["step15_HAStart"]:
+                tbi_df.drop(['HAStart'], axis=1, inplace=True)
+
+            else:
+                tbi_df.drop(tbi_df.loc[(tbi_df['HAStart'].isnull())].index,
+                            inplace=True)
+
+            tbi_df.drop(tbi_df.loc[(tbi_df['HA_verb'].isnull()) |
+                                   (tbi_df['HASeverity'].isnull())].index,
+                        inplace=True)
 
         ################################
         # Step 16: Impute/drop based on Seizure group of variables
         ################################
+        # TODO: UMBRELLA: SeizOccur SeizLen
+        # NOTE: (Andrej) This seems to me similar to HEMA, just maybe use a different default
 
-        tbi_df.drop(
-            tbi_df.loc[(tbi_df['Seiz'].isnull()) | (tbi_df['SeizLen'].isnull())].index,
-            inplace=True)
-        tbi_df.drop('SeizOccur', axis=1, inplace=True)
+        # Judgement call: union the Seiz var with sub-vars
+        if judg_calls["step16_Seiz"] == 1:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.SeizLen == 92) | (tbi_df.SeizOccur == 92)].index,
+                       ['SeizLen', 'SeizOccur']] = np.NaN
+
+            tbi_df = hp.union_var(tbi_df, ['Seiz', 'SeizLen', 'SeizOccur'], 'Seiz')
+
+
+        # Judgement call: Permit missing SeizOccur, impute from SeizLen, drop SeizOccur
+        elif judg_calls["step16_Seiz"] == 2:
+            # first drop really missing SeizLen
+            tbi_df.drop(tbi_df.loc[(tbi_df['SeizLen'].isnull())].index, inplace=True)
+
+            # impute Seiz from SeizLen
+            tbi_df.loc[tbi_df[tbi_df.SeizLen != 92].index, "Seiz"] = 1
+
+            # We don't care about the SeizOccur
+            tbi_df.drop(['SeizOccur'], axis=1, inplace=True)
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step16_Seiz"] == 3:
+
+            # Judgement call: keep SeizOccur
+            if not judg_calls["step16_SeizOccur"]:
+                tbi_df.drop(['SeizOccur'], axis=1, inplace=True)
+
+            else:
+                tbi_df.drop(tbi_df.loc[(tbi_df['SeizOccur'].isnull())].index,
+                            inplace=True)
+
+            tbi_df.drop(tbi_df.loc[(tbi_df['Seiz'].isnull()) |
+                                   (tbi_df['SeizLen'].isnull())].index,
+                        inplace=True)
 
         ################################
         # Step 17: Impute/drop based on Loss of Consciousness variables
         ################################
+        if judg_calls["step17_cautiousUncl"]:
+            tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 1
 
-        tbi_df.drop(
-            tbi_df.loc[(tbi_df['LOCSeparate'].isnull()) | (tbi_df['LocLen'].isnull())].index,
-            inplace=True)
-        tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 1
+        # Not possible to impute, just drop missing
+        tbi_df.drop(tbi_df.loc[(tbi_df['LOCSeparate'].isnull()) |
+                               (tbi_df['LocLen'].isnull())].index,
+                    inplace=True)
 
         ################################
         # Step 18: Drop Missing Values for Amnesia/High Injury Severity
         ################################
 
-        tbi_df.drop(tbi_df.loc[(tbi_df['Amnesia_verb'].isnull()) | (
-            tbi_df['High_impact_InjSev'].isnull())].index, inplace=True)
+        # Not possible to impute, just drop missing
+        tbi_df.drop(tbi_df.loc[(tbi_df['Amnesia_verb'].isnull()) |
+                               (tbi_df['High_impact_InjSev'].isnull())].index,
+                    inplace=True)
 
         ################################
         # Step 19: Drop the Drugs Column
         ################################
-
-        tbi_df = tbi_df.drop('Drugs', axis=1)
-
+        if not judg_calls["step19_Drugs"]:
+            tbi_df = tbi_df.drop('Drugs', axis=1)
 
         tbi_df['outcome'] = tbi_df[self.get_outcome_name()]
 
@@ -324,6 +418,7 @@ class Dataset(DatasetTemplate):
         judg_calls = self.get_judgement_calls_current()
 
         # put PatNum to the index
+        # FIXME: check index vs actual length
         df = preprocessed_data.copy()
         df.index = df.PatNum
         df = df.drop(['PatNum'], axis=1)
@@ -336,7 +431,7 @@ class Dataset(DatasetTemplate):
         # convert these feats to dummy
         df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
 
-        # remove any col that is all 0s
+        # remove any col that is all 0s - constant value in all observations
         df = df.loc[:, (df != 0).any(axis=0)]
 
         return df
@@ -377,12 +472,22 @@ class Dataset(DatasetTemplate):
                     # 'frac_missing_allowed': [0.05, 0.10],
 
                     # include injury mechanic
-                    "step1_injMech":    [False, True],
-                    "step5_missSubGCS": [True, False],
-                    "step5_fake15GCS":  [True, False],
-                    "step5_fake14GCS":  [True, False],
-                    "step8_missingOSI": [True, False],
-                    "step9_HEMA":       [3, 1, 2],
+                    "step1_injMech"      : [False, True],
+                    "step5_missSubGCS"   : [True, False],
+                    "step5_fake15GCS"    : [True, False],
+                    "step5_fake14GCS"    : [True, False],
+                    "step8_missingOSI"   : [True, False],
+                    "step9_HEMA"         : [3, 1, 2],
+                    "step10_cautiousUncl": [True, False],
+                    "step14_vomitDtls"   : [False, True],
+                    "step15_HA"          : [2, 3, 1],
+                    # only affects 3 above
+                    "step15_HAStart"     : [False, True],
+                    "step16_Seiz"        : [2, 3, 1],
+                    # only affects 3 above
+                    "step16_SeizOccur"   : [False, True],
+                    "step17_cautiousUncl": [True, False],
+                    "step19_Drugs"       : [False, True]
 
                 },
                 'extract_features': {
@@ -393,7 +498,6 @@ class Dataset(DatasetTemplate):
 
         return judg_calls
 
-    # NOTE: the format might change
     def get_judgement_calls_current(self) -> Dict[str, list]:
         """
          Returns the sub-dictionary of judgement calls for the calling function
