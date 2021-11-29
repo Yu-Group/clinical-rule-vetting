@@ -36,6 +36,11 @@ class Dataset(DatasetTemplate):
             df.rename(columns={'studysubjectid': 'id'}, inplace=True)
             assert ('id' in df.keys())
             r[fname] = df
+            
+            df.columns = [re.sub('SITE','site',x) for x in df.columns]
+            df.columns = [re.sub('CaseID','case_id',x) for x in df.columns]
+            df.columns = [re.sub('CSpine','CervicalSpine',x) for x in df.columns]
+            df.columns = [re.sub('ControlType','control_type',x,flags=re.IGNORECASE) for x in df.columns]
 
         # Get filenames we consider in our covariate analysis
         # We do not consider radiology data or injury classification because this data is not
@@ -47,31 +52,23 @@ class Dataset(DatasetTemplate):
         
         df_features = r[fnames[0]] # keep `site`, `case id`, and `control type` covar from first df
         
-        
         print('merging all of the dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
             df2 = r[fname].copy()
 
             # if subj has multiple entries, only keep first
+            # there are no duplicates in this dataset but we keep this code for robustness to future data
             df2 = df2.drop_duplicates(subset=['id'], keep='last')
-            df2_features = df2.iloc[:,3:]
-            # don't save duplicate columns
+            df2_features = df2.iloc[:,3:] # ignore `site`, `case id` and `contol type`
+            # don't save duplicate columns; the above line catches errors from different cased var names
             df_features = df_features.set_index('id').combine_first(df2_features.set_index('id')).reset_index()
-        pass
+        
         # set_index commands merge but do not properly set index
         # use a multi-indexing for easily work with binary features
-        df_features.columns = [re.sub('SITE','site',x) for x in df_features.columns]
-        df_features.columns = [re.sub('CaseID','case_id',x) for x in df_features.columns]
-        df_features.columns = [re.sub('ControlType','control_type',x,flags=re.IGNORECASE) for x in df_features.columns]
-        df_features = df_features.set_index(['id','case_id','site','control_type'])
-
-        # add a binary outcome variable for CSI injury 
-        #print(df_features.index.get_level_values('control_type'))
-        df_features.loc[:,'csi_injury'] = df_features.index.get_level_values('control_type').\
-            map(helper.assign_binary_outcome)
+        df_features = df_features.set_index(['id','case_id','site','control_type']) # use a multiIndex
         
         # remove variables collected after the intervention
-        posthoc_columns = df_features.columns[df_features.columns.str.startswith('Interv')].union( \
+        posthoc_columns = df_features.columns[df_features.columns.str.startswith('IntervFor')].union( \
             df_features.columns[df_features.columns.str.contains('LongTerm')]).union( \
             df_features.columns[df_features.columns.str.contains('Outcome')])
         df_features.drop(posthoc_columns, axis=1, inplace=True)
@@ -104,26 +101,26 @@ class Dataset(DatasetTemplate):
         return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        numeric_df = helper.extract_numeric_data(cleaned_data)
-        # drop cols with vals missing this percent of the time
-        df = numeric_df #.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
-        pass
-        pass
+        df = helper.extract_numeric_data(cleaned_data)
+                
         # impute missing values
         df = helper.impute_missing(df, n=kwargs['frac_missing_allowed']) # drop some observations and impute other missing values 
-        
+        # drop cols with vals missing this percent of the time
+        #df = df.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
 
-        # pandas impute missing values with median
-        #df = df.fillna(df.median())
-        #df.GCSScore = df.GCSScore.fillna(df.GCSScore.median())
-
-        #df['outcome'] = df[self.get_outcome_name()]
+        # add a binary outcome variable for CSI injury 
+        df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
         
         # drop uniformative columns which only contains a single value
         no_information_columns = df.columns[df.nunique() <= 1]
         df.drop(no_information_columns, axis=1, inplace=True)
         
-
+        # bin useful continuous variables Age and EMSArrivalTime
+        binning_dict = {}
+        binning_dict['AgeInYears'] = (5,13,2)
+        
+        df = helper.bin_continuous_data(df, binning_dict)
+        
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:

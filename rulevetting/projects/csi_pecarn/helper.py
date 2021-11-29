@@ -30,13 +30,15 @@ def extract_numeric_data(input_df):
     for column in char_data:
         char_column = char_data[column] # select column
         unique_values = pd.unique(char_column) # get unique entries
-        
+        print('----')
+        print(column)
         # encode yes as 1, no as 0
         if (('Y' in unique_values)|('A' in unique_values)) & ('N' in unique_values):
-            conditions  = [char_column == 'Y',char_column == 'A',char_column == 'N']
-            encodings = [1,1,0]
+            conditions  = [char_column == 'Y',char_column == 'YD',char_column == 'YND',char_column == 'A',char_column == 'N']
+            encodings = [1,1,1,1,0]
             binary_encoded = np.select(conditions, encodings, default=np.nan)
             col_name = column+"_binary"
+            print("Accepted")
             binary_data.loc[:,col_name] = binary_encoded.copy()
             
     # add in newly created binary columns        
@@ -44,6 +46,45 @@ def extract_numeric_data(input_df):
 
     return numeric_data
 
+def bin_continuous_data(input_df, binning_dict):
+    '''
+    This function bins and then one-hot encodes continuous covariates
+    It returns a df with the cont. columns dropped and the new binary ones included
+    
+    Inputs
+    ------
+    input_df [pandas df]: raw data
+    binning_dict [dictionary]: keys are column names; values are cutoffs to bin with
+    '''
+    # check that all columns are valid
+    binning_cols = list(binning_dict.keys())
+    bin_boolean = np.all(np.isin(binning_cols, input_df.columns))
+    if not bin_boolean: raise ValueError("Invalid column name in `binning_dict`.") 
+        
+    for col_name, cutoff_tuple in binning_dict.items():
+        
+        # build appropriate names for bins
+        cutoff_list = list(cutoff_tuple)
+        cutoff_list.sort()
+        if len(cutoff_list) <= 1: print("Cannot bin variables with single value")
+        else:
+            cutoff_names = [col_name+"_<"+str(cutoff_list[0])]
+            range_names = [col_name+"_"+str(cutoff_list[i])+"-"+str(value) for i, value in enumerate(cutoff_list[1:])]
+            cutoff_names.extend(range_names)
+            cutoff_names.append(col_name+"_"+str(cutoff_list[-1])+"+")
+            
+        # create a temporary column of binned values
+        bin_name = col_name+"_binned"
+        cutoff_list.insert(0,-np.inf) # lower limit
+        cutoff_list.append(np.inf) # upper limit
+        input_df.loc[:,[bin_name]] = pd.cut(input_df.loc[:,col_name], cutoff_list, labels=cutoff_names)
+        
+        # convert bins to one-hot and drop working columms and original cont. one
+        one_hot = pd.get_dummies(input_df.loc[:,bin_name])
+        input_df = input_df.drop([col_name,bin_name],axis = 1)
+        input_df = input_df.join(one_hot)
+
+    return input_df
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     """Read in the outcomes
