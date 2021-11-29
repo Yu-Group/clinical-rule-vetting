@@ -27,12 +27,40 @@ for(i in seq_along(var_andy)) {
 ```
 
 ```{r}
+df_old <- read.csv("../rulevetting/projects/csi_pecarn/notebooks/df_old.csv")
+ncol(df_old)
+apply(df_old %>% select(PtAmbulatoryPriorArrival, PtCompPain, LimitedRangeMotion), 2, unique)
+num_na_old<-apply(df_old %>% select(-AgeInYears, -CaseID), 2, function(x) sum(is.na(x)))
+```
+
+
+
+```{r}
 df_andy <- read.csv("../rulevetting/projects/csi_pecarn/notebooks/df_andy.csv")
 impute_na <- function(column) {
   ifelse(is.na(column), 0, column)
 }
 # df_andy %>% select(where(function(x) any(is.na(x)))) #select NA columns
 df_andy
-unique(df_andy$outcome)
+unique(df_andy$CervicalSpineImmobilization)
+apply(df_andy %>% select(-AgeInYears, -CaseID), 2, unique)
+num_na_new <- apply(df_andy %>% select(-AgeInYears, -CaseID), 2, function(x) sum(is.na(x)))
+
+unique(df_andy$ControlType)
 ```
+
+
+```{r}
+num_na_new==num_na_old
+```
+
+
+```{r}
+na_old <- apply(df_old %>% select(-AgeInYears, -CaseID), 2, function(x) any(is.na(x)))
+na_new <- apply(df_andy %>% select(-AgeInYears, -CaseID), 2, function(x) any(is.na(x)))
+eq <- na_old == na_new
+eq
+```
+
+
 
