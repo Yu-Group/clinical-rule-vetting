@@ -7,18 +7,17 @@ import pandas as pd
 This file is optional.
 '''
 
-
-var_andy = ['AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault', 'AxialLoadAnyDoc',
-           'CaseID', 'CervicalSpineImmobilization', 'ChildAbuse', 'ControlType',
-           'DxCspineInjury', 'Ethnicity', 'FallDownStairs', 'FallFromElevation',
-            'FocalNeuroFindings', 'Gender', 'HeadFirst', 'HighriskDiving',
-            'HighriskFall', 'HighriskHanging', 'HighriskHitByCar',
-            'HighriskMVC', 'HighriskOtherMV', 'InjuryPrimaryMechanism',
-           'IntervForCervicalStab', 'LOC', 'LimitedRangeMotion','LongTermRehab',
-           'Predisposed', "MedsGiven", "MedsRecdPriorArrival", "MotorGCS", "PainNeck",\
-          "PainNeck2", "PassRestraint", "PosMidNeckTenderness", \
-        'PosMidNeckTenderness2',"PtAmbulatoryPriorArrival", \
-        "PtCompPain"]
+var_sh = ['PtCompPainHead', 'PtCompPainNeck', 'PtCompPainNeckMove', 'PtCompPainPelvis', 'PtExtremityWeakness',
+          'PtParesthesias', 'PtSensoryLoss', 'PtTender', 'PtTenderAbd', 'PtTenderBack',
+          'PtTenderChest', 'PtTenderExt', 'PtTenderFace', 'PtTenderFlank', 'PtTenderHead',
+          'PtTenderNeck', 'PtTenderNeckAnt', 'PtTenderNeckLat', 'PtTenderNeckLevel', 'PtTenderNeckLevelC1', 
+          'PtTenderNeckLevelC2', 'PtTenderNeckLevelC3', 'PtTenderNeckLevelC4', 'PtTenderNeckLevelC5', 'PtTenderNeckLevelC6', 
+          'PtTenderNeckLevelC7', 'PtTenderNeckMid', 'PtTenderNeckOther', 'PtTenderNeckPos', 'PtTenderPelvis', 
+          'ShakenBabySyndrome', 'SiteID', 'SubInj_Ext', 'SubInj_Face', 'SubInj_Head', 
+          'SubInj_TorsoTrunk', 'SubjectID', 'TenderNeck', 'TenderNeck2', 'Torticollis', 
+          'Torticollis2', 'TotalGCS', 'TotalGCSManual', 'VerbalGCS', 'ambulatory', 
+          'axialloadtop', 'clotheslining', 'helmet', 'outcome', 'subinj_Ext2',
+          'subinj_Face2', 'subinj_Head2', 'subinj_TorsoTrunk2'] 
 
 
 def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
@@ -162,19 +161,34 @@ def rename_values(df):
     # FallDownStairs and FallFromElevation have weird coding(2, 3, etc)
     # MVC variables have weird coding with numbers that are not just (0, 1)
     
-    #######
-    
-    YN_binary ={
-        'Y': 1,
-        'N': 0,
-    
+    ### SH ###
+    # SH: Do 'YND' and 'S' mean "yes"??
+    # SH: Including above two, do '3' and '4' have different meaning by variables? (e.g. rangemotion)
+    YN_binary ={ 
+        'Y': 1.,
+        'N': 0.,
+        'ND': 0.,
+        'YND': 1.,
+        '3': 0.,
+        'S': 1.,
+        'P': 0.
     }
+    df.PtCompPainNeckMove = df.PtCompPainNeckMove.map(YN_binary)
+    df.PtExtremityWeakness = df.PtExtremityWeakness.map(YN_binary)
+    df.PtParesthesias = df.PtParesthesias.map(YN_binary)
+    df.PtSensoryLoss = df.PtSensoryLoss.map(YN_binary)
+    df.PtTender = df.PtTender.map(YN_binary)
+
+    GCS_threshold = 15
+    GCS_binary = {i:int(i>=GCS_threshold) for i in range(1, 16)}
+    GCS_binary["99"] = 0 # SH : I set NaN as 0
+    df.TotalGCS = df.TotalGCS.replace('7T', '7').fillna("999").astype(int).map(GCS_binary)
+    # SH: I don't know what is '7T', but there is only one data for this.
     
+    df.clotheslining = df.clotheslining.map(YN_binary)
+    df.helmet = df.helmet.map(YN_binary)
     
     return df
-
-
-
 
 def derived_feats(df):
     '''Add derived features
