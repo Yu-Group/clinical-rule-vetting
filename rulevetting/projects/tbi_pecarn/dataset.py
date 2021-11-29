@@ -188,19 +188,40 @@ class Dataset(DatasetTemplate):
         ################################
         # TODO: there is a judgement call whether to flatten this or not, see below
 
-        # TODO: location but not sizes
+        # Judgement call - impute HEMA from the presence of ANY sub-variable (Union),
+        # drop sub-variables
+        if judg_calls["step9_HEMA"] == 1:
 
-        # Judgement call - impute HEMA from the presence of ANY sub-variable (Union) -
-        if judg_calls["step9_HEMAUnion"]:
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.HemaLoc == 92) | (tbi_df.HemaSize == 92)].index,
+                       ['HemaLoc', 'HemaSize']] = np.NaN
+            tbi_df = hp.union_var(tbi_df, ['Hema', 'HemaLoc', 'HemaSize'], 'Hema')
 
+        #Judgement call: Permit missing size, impute from loc, drop size
+        elif judg_calls["step9_HEMA"] == 2:
+            # first drop really missing HemaLoc
+            tbi_df.drop(tbi_df.loc[(tbi_df['HemaLoc'].isnull())].index, inplace=True)
 
-        # be strict about missing sub-categories
+            # impute Hema from HemaLoc
+            tbi_df.loc[tbi_df[tbi_df.HemaLoc != 92].index, "Hema"] = 1
+
+            # We don't care about the HemaSize
+            tbi_df.drop(['HemaSize'], axis=1, inplace=True)
+
+        #Judgement call: be strict about missing sub-categories
+        elif judg_calls["step9_HEMA"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df['HemaLoc'].isnull()) |
+                                   (tbi_df['HemaSize'].isnull())].index,
+                        inplace=True)
+
         else:
-            tbi_df.drop(tbi_df.loc[(tbi_df['Hema'].isnull()) | (tbi_df['HemaLoc'].isnull())
-                                   | (tbi_df['HemaSize'].isnull())].index, inplace=True)
+            raise NotImplementedError("Hema preprocess step not implemented!")
+
+        # now drop remaining missing Hema regardless of the above
+        tbi_df.drop(tbi_df.loc[(tbi_df['Hema'].isnull())].index, inplace=True)
 
         ################################
-        # Step 11: Impute/drop based on skull fracture palp variables
+        # Step 10: Impute/drop based on skull fracture palp variables
         ################################
 
         tbi_df.loc[(tbi_df['SFxPalp'] == 2), 'SFxPalp'] = 1
@@ -209,32 +230,32 @@ class Dataset(DatasetTemplate):
                             tbi_df['SFxPalp'].isnull())].index, inplace=True)
 
         ################################
-        # Step 12: Impute/drop based on basilar skull fracture variables
+        # Step 11: Impute/drop based on basilar skull fracture variables
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['SFxBas'].isnull()].index, inplace=True)
 
         ################################
-        # Step 13: Impute/drop based on Clav group of variables
+        # Step 12: Impute/drop based on Clav group of variables
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['Clav'].isnull()].index, inplace=True)
 
         ################################
-        # Step 14: Impute/drop based on Neuro group of variables
+        # Step 13: Impute/drop based on Neuro group of variables
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['NeuroD'].isnull()].index, inplace=True)
 
         ################################
-        # Step 15: Impute/drop based on Vomiting group of variables
+        # Step 14: Impute/drop based on Vomiting group of variables
         ################################
 
         tbi_df.drop(['VomitStart', 'VomitLast', 'VomitNbr'], axis=1, inplace=True)
         tbi_df.drop(tbi_df.loc[tbi_df['Vomit'].isnull()].index, inplace=True)
 
         ################################
-        # Step 16: Impute/drop based on Headache group of variables
+        # Step 15: Impute/drop based on Headache group of variables
         ################################
 
         tbi_df.drop(['HAStart'], axis=1, inplace=True)
@@ -243,7 +264,7 @@ class Dataset(DatasetTemplate):
             inplace=True)
 
         ################################
-        # Step 17: Impute/drop based on Seizure group of variables
+        # Step 16: Impute/drop based on Seizure group of variables
         ################################
 
         tbi_df.drop(
@@ -252,7 +273,7 @@ class Dataset(DatasetTemplate):
         tbi_df.drop('SeizOccur', axis=1, inplace=True)
 
         ################################
-        # Step 18: Impute/drop based on Loss of Consciousness variables
+        # Step 17: Impute/drop based on Loss of Consciousness variables
         ################################
 
         tbi_df.drop(
@@ -261,25 +282,22 @@ class Dataset(DatasetTemplate):
         tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 1
 
         ################################
-        # Step 19: Drop Missing Values for Amnesia/High Injury Severity
+        # Step 18: Drop Missing Values for Amnesia/High Injury Severity
         ################################
 
         tbi_df.drop(tbi_df.loc[(tbi_df['Amnesia_verb'].isnull()) | (
             tbi_df['High_impact_InjSev'].isnull())].index, inplace=True)
 
         ################################
-        # Step 20: Drop the Drugs Column
+        # Step 19: Drop the Drugs Column
         ################################
 
         tbi_df = tbi_df.drop('Drugs', axis=1)
 
-        ################################
-        # Result
-        ################################
-        df = tbi_df.copy()
-        df['outcome'] = df[self.get_outcome_name()]
 
-        return df
+        tbi_df['outcome'] = tbi_df[self.get_outcome_name()]
+
+        return tbi_df
 
     # TODO: - check
     #       - binarization of categoricals !!!
@@ -350,6 +368,7 @@ class Dataset(DatasetTemplate):
         }
         """
 
+        # TODO: document in-place
         judg_calls = \
             {
                 'clean_data'      : {},
@@ -358,12 +377,12 @@ class Dataset(DatasetTemplate):
                     # 'frac_missing_allowed': [0.05, 0.10],
 
                     # include injury mechanic
-                    "step1_injMech"   : [False, True],
+                    "step1_injMech":    [False, True],
                     "step5_missSubGCS": [True, False],
-                    "step5_fake15GCS" : [True, False],
-                    "step5_fake14GCS" : [True, False],
+                    "step5_fake15GCS":  [True, False],
+                    "step5_fake14GCS":  [True, False],
                     "step8_missingOSI": [True, False],
-                    "step9_HEMAUnion" : [False, True],
+                    "step9_HEMA":       [3, 1, 2],
 
                 },
                 'extract_features': {
