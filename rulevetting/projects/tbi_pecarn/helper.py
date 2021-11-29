@@ -30,7 +30,11 @@ def union_var(df: pd.DataFrame, colnames: list, new_name: str, NA_eq_1: bool = F
     # be careful about N/A!
     df.loc[:, new_name] = df.loc[:, colnames].any(axis = 1, skipna = not NA_eq_1).\
         astype(int)
+
+    if new_name in colnames:
+        colnames.remove(new_name)
     df.drop(colnames, axis= 1, inplace=True)
+
     return df
 
 

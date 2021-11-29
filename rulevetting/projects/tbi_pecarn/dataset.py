@@ -1,17 +1,15 @@
+import inspect
 import os
 from os.path import join as oj
 from typing import Dict
 
-import inspect
-
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 # TODO: fix _init_.py so these are easily accessible
 import rulevetting.api.util
-from rulevetting.templates.dataset import DatasetTemplate
 import rulevetting.projects.tbi_pecarn.helper as hp
+from rulevetting.templates.dataset import DatasetTemplate
 
 
 class Dataset(DatasetTemplate):
@@ -34,6 +32,8 @@ class Dataset(DatasetTemplate):
         cleaned_data: pd.DataFrame
         """
 
+        # No judgement calls
+
         # raw data path
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
@@ -51,7 +51,6 @@ class Dataset(DatasetTemplate):
 
         return df
 
-    # TODO:     - unioning
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """
         Preprocess the data.
@@ -71,7 +70,11 @@ class Dataset(DatasetTemplate):
         """
 
         tbi_df = cleaned_data.copy()
-        judg_calls = self.get_judgement_calls_current()
+
+        if kwargs:
+            judg_calls = kwargs["preprocess_data"]
+        else:
+            judg_calls = self.get_judgement_calls_current()
 
         ################################
         # Step 1: Remove variables which have nothing to do with our problem (uncontroversial choices)
@@ -79,7 +82,7 @@ class Dataset(DatasetTemplate):
 
         list1 = ['EmplType', 'Certification']
 
-        # NOTE: this is the only judgement call here
+        # judgement call: drop injury mechanic
         if not judg_calls["step1_injMech"]:
             list1.append('InjuryMech')
 
@@ -119,59 +122,82 @@ class Dataset(DatasetTemplate):
         # Step 4: Generate an unified response variables
         ################################
         # NOTE: PosIntFinalNoHosp is too wordy IMO, just call it ciTBI
-
         tbi_df = hp.union_var(tbi_df, ['DeathTBI', 'Intub24Head', 'Neurosurgery',
                                        'HospHead', 'PosIntFinal'], "ciTBI")
-
 
         ################################
         # Step 5: Impute/drop GCS Verbal/Motor/Eye Scores
         ################################
 
-        tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) & (
-                (tbi_df['GCSVerbal'].isnull()) | (tbi_df['GCSMotor'].isnull()) | (
-            tbi_df['GCSEye'].isnull()))].index, inplace=True)
+        # judgement call: drop borderline GCS scores with missing components
+        if judg_calls["step5_missSubGCS"]:
+            tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) & (
+                    (tbi_df['GCSVerbal'].isnull()) | (tbi_df['GCSMotor'].isnull()) | (
+                tbi_df['GCSEye'].isnull()))].index, inplace=True)
 
+        # Impute the missing values among GCS = 15 scores to just be the full points
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSVerbal'].isnull(), 'GCSVerbal'] = 5
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSMotor'].isnull(), 'GCSMotor'] = 6
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSEye'].isnull(), 'GCSEye'] = 4
 
-        tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 15) & (
-                (tbi_df['GCSVerbal'] < 5) | (tbi_df['GCSMotor'] < 6) | (
-                tbi_df['GCSEye'] < 4))].index, inplace=True)
+        # Maximum total GCS but not the sum of subcomponents
+        if judg_calls["step5_fake15GCS"]:
+            tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 15) & (
+                    (tbi_df['GCSVerbal'] < 5) | (tbi_df['GCSMotor'] < 6) | (
+                    tbi_df['GCSEye'] < 4))].index, inplace=True)
 
-        tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) & (
-                (tbi_df['GCSVerbal'].isnull()) | (tbi_df['GCSMotor'].isnull()) | (
-            tbi_df['GCSEye'].isnull()))].index, inplace=True)
+        # Maximum subcomponents but not total:
+        if judg_calls["step5_fake14GCS"]:
+            tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) &
+                               (tbi_df['GCSVerbal'] == 5) &
+                               (tbi_df['GCSMotor'] == 6) &
+                               (tbi_df['GCSEye'] == 4)].index,
+                        inplace=True)
 
         ################################
-        # Step 7: Impute/drop based on Paralyzed/Sedated/Intubated
+        # Step 6: Drop Paralyzed/Sedated/Intubated
         ################################
+        # Outside the scope for first-time CT evaluation
 
-        tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'] == 1) | (tbi_df['Sedated'] == 1) | (
-                tbi_df['Intubated'] == 1)].index, inplace=True)
-        tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'].isnull()) | (tbi_df['Sedated'].isnull()) | (
-            tbi_df['Intubated'].isnull())].index, inplace=True)
+        # NOTE: is this a judgement call within our scope, or is it out of scope?
+
+        # Drop the observations that were Intubated... and where the info is missing
+        tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'] == 1) | (tbi_df['Sedated'] == 1)
+                               | (tbi_df['Intubated'] == 1)].index, inplace=True)
+        tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'].isnull()) | (tbi_df['Sedated'].isnull())
+                               | (tbi_df['Intubated'].isnull())].index, inplace=True)
+
+        # Drop these categories altogether
         tbi_df.drop(['Sedated', 'Paralyzed', 'Intubated'], axis=1, inplace=True)
 
         ################################
-        # Step 8: Impute/drop based on AMS
+        # Step 7: Drop missing AMS
         ################################
 
         tbi_df.drop(tbi_df.loc[tbi_df['AMS'].isnull()].index, inplace=True)
 
         ################################
-        # Step 9: Impute/drop based on OSI
+        # Step 8: Drop  those with missing OSI - other substantial injuries
         ################################
 
-        tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
+        if judg_calls["step8_missingOSI"]:
+            tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
 
         ################################
-        # Step 10: Impute/drop based on Hema variables
+        # Step 9: Impute/drop based on Hema variables
         ################################
+        # TODO: there is a judgement call whether to flatten this or not, see below
 
-        tbi_df.drop(tbi_df.loc[(tbi_df['Hema'].isnull()) | (tbi_df['HemaLoc'].isnull()) | (
-            tbi_df['HemaSize'].isnull())].index, inplace=True)
+        # TODO: location but not sizes
+
+        # Judgement call - impute HEMA from the presence of ANY sub-variable (Union) -
+        if judg_calls["step9_HEMAUnion"]:
+
+
+        # be strict about missing sub-categories
+        else:
+            tbi_df.drop(tbi_df.loc[(tbi_df['Hema'].isnull()) | (tbi_df['HemaLoc'].isnull())
+                                   | (tbi_df['HemaSize'].isnull())].index, inplace=True)
 
         ################################
         # Step 11: Impute/drop based on skull fracture palp variables
@@ -255,10 +281,9 @@ class Dataset(DatasetTemplate):
 
         return df
 
-
     # TODO: - check
-    #       - binarization of categoricals
-    #       - flattening of umbrellas
+    #       - binarization of categoricals !!!
+    #       - flattening of umbrellas !!!
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
 
         """
@@ -325,22 +350,27 @@ class Dataset(DatasetTemplate):
         }
         """
 
-        judg_calls =\
-        {
-            'clean_data'      : {},
-            'preprocess_data' : {
-                # drop cols with vals missing this percent of the time
-                # 'frac_missing_allowed': [0.05, 0.10],
+        judg_calls = \
+            {
+                'clean_data'      : {},
+                'preprocess_data' : {
+                    # drop cols with vals missing this percent of the time
+                    # 'frac_missing_allowed': [0.05, 0.10],
 
-                # include injury mechanic
-                "step1_injMech" : [False, True],
+                    # include injury mechanic
+                    "step1_injMech"   : [False, True],
+                    "step5_missSubGCS": [True, False],
+                    "step5_fake15GCS" : [True, False],
+                    "step5_fake14GCS" : [True, False],
+                    "step8_missingOSI": [True, False],
+                    "step9_HEMAUnion" : [False, True],
 
-            },
-            'extract_features': {
-                # whether to drop columns with suffix _no
-                # 'drop_negative_columns': [False],  # default value comes first
-            },
-        }
+                },
+                'extract_features': {
+                    # whether to drop columns with suffix _no
+                    # 'drop_negative_columns': [False],  # default value comes first
+                },
+            }
 
         return judg_calls
 
@@ -348,7 +378,7 @@ class Dataset(DatasetTemplate):
     def get_judgement_calls_current(self) -> Dict[str, list]:
         """
          Returns the sub-dictionary of judgement calls for the calling function
-         via inspection.
+         with default values, using inspection.
 
         Returns
         -------
@@ -358,7 +388,10 @@ class Dataset(DatasetTemplate):
         """
 
         calling_func = inspect.currentframe().f_back.f_code.co_name
-        return self.get_judgement_calls_dictionary()[calling_func]
+        judg_calls = self.get_judgement_calls_dictionary()[calling_func]
+
+        # return the default
+        return {k: v[0] for k, v in judg_calls.items()}
 
     # NOTE: for quick reference - this is what's inherited and gets run:
     # NOTE: can actually override it if extra judgement call functionality needed!
@@ -390,8 +423,22 @@ class Dataset(DatasetTemplate):
 
 
 if __name__ == '__main__':
-    dset = Dataset()
-    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
+    # for development
+    self = Dataset()
+    raw_data_path = oj(rulevetting.DATA_PATH, self.get_dataset_id(), 'raw')
+
+    # raw data file names to be loaded and searched over
+    # for tbi, we only have one file
+    fnames = sorted([
+        fname for fname in os.listdir(raw_data_path)
+        if 'csv' in fname])
+
+    # read raw data
+    cleaned_data = pd.DataFrame()
+    for fname in tqdm(fnames):
+        cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
+
+    # df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
 
     # dset.preprocess_data(df_train)
 
