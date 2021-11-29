@@ -21,8 +21,8 @@ class Dataset(DatasetTemplate):
         os.makedirs(raw_data_path, exist_ok=True)
         
         # all the fnames to be loaded and searched over        
-        fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
-        
+        #fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
+        fnames = ['analysisvariables.csv', 'clinicalpresentationsite.csv','clinicalpresentationoutside.csv','clinicalpresentationfield.csv', 'demographics.csv', 'injuryclassification.csv', 'injurymechanism.csv','kappa.csv', 'medicalhistory.csv', 'radiologyoutside.csv', 'radiologyreview.csv', 'radiologysite.csv']
         # read through each fname and save into the r dictionary
         r = {}
         print('read all the csvs...\n', fnames)
@@ -34,13 +34,24 @@ class Dataset(DatasetTemplate):
             df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
             df.rename(columns={'StudySubjectID': 'id'}, inplace=True)
             df.rename(columns={'studysubjectid': 'id'}, inplace=True)
-            assert ('id' in df.keys())
-            r[fname] = df
-            
+            pass
             df.columns = [re.sub('SITE','site',x) for x in df.columns]
             df.columns = [re.sub('CaseID','case_id',x) for x in df.columns]
             df.columns = [re.sub('CSpine','CervicalSpine',x) for x in df.columns]
             df.columns = [re.sub('ControlType','control_type',x,flags=re.IGNORECASE) for x in df.columns]
+            
+            if fname == "clinicalpresentationfield.csv": 
+                print("There")
+                df.iloc[:,4:] = df.add_suffix('_ems')
+                print(df.iloc[:,4:].head())
+            if fname == "clinicalpresentationoutside.csv":
+                df.iloc[:,4:] = df.add_suffix('_outside')
+            if fname == "clinicalpresentationsite.csv":
+                df.iloc[:,4:] = df.add_suffix('_site')
+                
+            assert ('id' in df.keys())   
+            print(df.head())
+            r[fname] = df
 
         # Get filenames we consider in our covariate analysis
         # We do not consider radiology data or injury classification because this data is not
