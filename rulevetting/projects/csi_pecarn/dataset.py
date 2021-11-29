@@ -101,6 +101,14 @@ class Dataset(DatasetTemplate):
         return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        
+        # create one-hot encoding of AVPU data
+        cleaned_data['AVPUDetails'] = cleaned_data['AVPUDetails'].replace('N',np.NaN)
+        cleaned_data['AVPUDetails'] = 'AVPU_' + cleaned_data['AVPUDetails'].astype(str)
+        avpu_one_hot = pd.get_dummies(cleaned_data['AVPUDetails'])
+        cleaned_data = cleaned_data.drop(['AVPU','AVPUDetails'],axis = 1)
+        cleaned_data = cleaned_data.join(avpu_one_hot)
+        
         df = helper.extract_numeric_data(cleaned_data)
                 
         # impute missing values
@@ -115,10 +123,10 @@ class Dataset(DatasetTemplate):
         no_information_columns = df.columns[df.nunique() <= 1]
         df.drop(no_information_columns, axis=1, inplace=True)
         
-        # bin useful continuous variables Age and EMSArrivalTime
+        # bin useful continuous variables Age and (perhaps) EMSArrivalTime
+        # TODO: make cutoffs a judgement call
         binning_dict = {}
-        binning_dict['AgeInYears'] = (5,13,2)
-        
+        binning_dict['AgeInYears'] = (2,5,13)        
         df = helper.bin_continuous_data(df, binning_dict)
         
         return df
