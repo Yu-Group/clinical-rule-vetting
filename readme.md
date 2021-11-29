@@ -9,9 +9,9 @@
   <img src="https://img.shields.io/github/checks-status/Yu-Group/rule-vetting/master">
 </p>  
 
-This is a *collaborative* repository intended to validate and derive clinical-decision rules for pediatric cervical spine injuries (CSIs). This project is by Yaxuan Huang, Ishaan Srivastava, and William Torous, all in the UC Berkeley statistics department. Domain expertise is provided by Dr. Gabriel Devlin of UCSF.
+This is a *collaborative* repository intended to validate and derive clinical-decision rules for recognizing pediatric cervical spine injuries (CSIs). This project is work by Yaxuan Huang, Ishaan Srivastava, and William Torous, all in the UC Berkeley statistics department. Domain expertise is provided by Dr. Gabriel Devlin of UCSF.
 
-We use a robust pipeline to vet previous modeling practices for clinical decision rules. Additionally, we hope to externally validate the rules under study here with data from UCSF.
+We use a robust pipeline to vet previous clinical decision rules proposed in the academic literature and by hosptials. Additionally, we hope to externally validate the rules under study here with data from UCSF.
 
 # Dataset
 
