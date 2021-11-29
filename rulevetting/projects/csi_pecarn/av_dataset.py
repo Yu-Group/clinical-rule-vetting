@@ -108,7 +108,7 @@ class Dataset(DatasetTemplate):
             for ct in control_types:
                 split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'))
                 np.split(split_subset.sample(frac=1, random_state=42),[int(.6 * len(split_subset)), int(.8 * len(split_subset))])
-        # TODO: combine spliting and make split by study side only or both study site and control type a kwargs
+        # TODO: combine spliting and make split by control type only or both study site and control type a kwargs
         
         return tuple(np.split(
             preprocessed_data.sample(frac=1, random_state=42),
