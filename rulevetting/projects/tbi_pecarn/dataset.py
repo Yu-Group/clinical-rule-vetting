@@ -78,7 +78,8 @@ class Dataset(DatasetTemplate):
             judg_calls = self.get_judgement_calls_current()
 
         ################################
-        # Step 1: Remove variables which have nothing to do with our problem (uncontroversial choices)
+        # Step 1: Remove variables which have nothing to do with our problem
+        # (uncontroversial choices)
         ################################
 
         list1 = ['EmplType', 'Certification']
@@ -190,7 +191,7 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 9: Impute/drop based on Hema variables
         ################################
-        # TODO: UMBRELLA: there is a judgement call whether to flatten this or not, see below
+        # UMBRELLA: there is a judgement call whether to flatten this or not, see below
 
         # Judgement call - impute HEMA from the presence of ANY sub-variable (Union),
         # drop sub-variables
@@ -226,7 +227,8 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 10: Impute/drop based on palpable skull fracture
         ################################
-        # TODO: UMBRELLA: SFxPalpDepress
+        # UMBRELLA: SFxPalpDepress - doesn't work with cautious because
+        # unclear gets mapped to 92
 
         # treat unclear tests of skull fracture as a sign of possible presence
         if judg_calls["step10_cautiousUncl"]:
@@ -241,7 +243,7 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 11: Impute/drop based on basilar skull fracture variables
         ################################
-        # TODO: UMBRELLA: SFxBasHem SFxBasOto SFxBasPer SFxBasRet SFxBasRhi
+        # UMBRELLA: SFxBasHem SFxBasOto SFxBasPer SFxBasRet SFxBasRhi
 
         # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['SFxBas'].isnull()].index, inplace=True)
@@ -249,7 +251,7 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 12: Impute/drop based on Clav group of variables
         ################################
-        # TODO: UMBRELLA: ClavFace ClavNeck ClavFro ClavOcc ClavPar ClavTem
+        # UMBRELLA: ClavFace ClavNeck ClavFro ClavOcc ClavPar ClavTem
 
         # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['Clav'].isnull()].index, inplace=True)
@@ -257,7 +259,7 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 13: Impute/drop based on Neuro group of variables
         ################################
-        # TODO: UMBRELLA: NeuroDMotor NeuroDSensory NeuroDCranial NeuroDReflex NeuroDOth
+        # UMBRELLA: NeuroDMotor NeuroDSensory NeuroDCranial NeuroDReflex NeuroDOth
 
         # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['NeuroD'].isnull()].index, inplace=True)
@@ -267,7 +269,7 @@ class Dataset(DatasetTemplate):
         ################################
 
         if not judg_calls["step14_vomitDtls"]:
-            # TODO: UMBRELLA (if present): 'VomitStart', 'VomitLast', 'VomitNbr
+            #  UMBRELLA (if present): 'VomitStart', 'VomitLast', 'VomitNbr
             tbi_df.drop(['VomitStart', 'VomitLast', 'VomitNbr'], axis=1, inplace=True)
 
         # Not possible to impute, just drop missing
@@ -276,7 +278,7 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 15: Impute/drop based on Headache group of variables
         ################################
-        # TODO: UMBRELLA: HASeverity HAStart
+        #  UMBRELLA: HASeverity HAStart
         # NOTE: (Andrej) This seems to me similar to HEMA, just maybe use a different default
 
         idx_verbal = (tbi_df.HA_verb != 91).index
@@ -330,7 +332,7 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 16: Impute/drop based on Seizure group of variables
         ################################
-        # TODO: UMBRELLA: SeizOccur SeizLen
+        # UMBRELLA: SeizOccur SeizLen
         # NOTE: (Andrej) This seems to me similar to HEMA, just maybe use a different default
 
         # Judgement call: union the Seiz var with sub-vars
@@ -341,7 +343,6 @@ class Dataset(DatasetTemplate):
                        ['SeizLen', 'SeizOccur']] = np.NaN
 
             tbi_df = hp.union_var(tbi_df, ['Seiz', 'SeizLen', 'SeizOccur'], 'Seiz')
-
 
         # Judgement call: Permit missing SeizOccur, impute from SeizLen, drop SeizOccur
         elif judg_calls["step16_Seiz"] == 2:
@@ -374,6 +375,8 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 17: Impute/drop based on Loss of Consciousness variables
         ###############################
+        # UMBRELLA LocLen
+
         # Judgement call: unclear counts as present
         if judg_calls["step17_cautiousUncl"]:
             tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 1
@@ -416,9 +419,6 @@ class Dataset(DatasetTemplate):
 
         return tbi_df
 
-    # TODO: - check
-    #       - binarization of categoricals !!!
-    #       - flattening of umbrellas !!!
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
 
         """
@@ -437,24 +437,138 @@ class Dataset(DatasetTemplate):
         """
 
         # TODO: implement consistent binarization
-        judg_calls = self.get_judgement_calls_current()
+        if kwargs:
+            judg_calls = kwargs["extract_features"]
+            prepr_calls = kwargs["preprocess_data"]
+        else:
+            # defaults
+            judg_calls = self.get_judgement_calls_current()
+            prepr_calls = self.get_judgement_calls_dictionary()["preprocess_data"]
+            prepr_calls = {k: v[0] for k, v in prepr_calls.items()}
 
-        # put PatNum to the index
-        # FIXME: check index vs actual length
         df = preprocessed_data.copy()
-        df.index = df.PatNum
-        df = df.drop(['PatNum'], axis=1)
 
-        # choose features which is not binary
+        # FLATTEN UMBRELLAS:
+        if judg_calls["HEMA_umbrella"]:
+
+            # cannot flatten if unionized
+            assert prepr_calls["step9_HEMA"] != 1
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("Hema", axis=1, inplace=True)
+            # 92 is treated as 0
+            try:
+                df.loc[(df.HemaLoc == 92) | (df.HemaSize == 92),
+                       ['HemaLoc', 'HemaSize']] = 0
+            except AttributeError:
+                df.loc[df.HemaLoc == 92, 'HemaLoc'] = 0
+
+        if judg_calls["SFxPalp_umbrella"]:
+            # cannot disambiguate if unclear had been assigned to 1
+            assert not prepr_calls["step10_cautiousUncl"]
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("SFxPalp", axis=1, inplace=True)
+            # assign NEW category to 92 - no palpable at all
+            df.loc[df.SFxPalpDepress == 92, 'SFxPalpDepress'] = 2
+
+        if judg_calls["SFxBas_umbrella"]:
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("SFxBas", axis=1, inplace=True)
+            # 92 is treated as 0
+            df.loc[(df.SFxBasHem == 92) | (df.SFxBasOto == 92) |
+                   (df.SFxBasPer == 92) | (df.SFxBasRet == 92) |
+                   (df.SFxBasRhi == 92), ["SFxBasHem", "SFxBasOto", "SFxBasPer",
+                                          "SFxBasRet", "SFxBasRhi"]] = 0
+
+        if judg_calls["Clav_umbrella"]:
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("Clav", axis=1, inplace=True)
+            # 92 is treated as 0
+            df.loc[(df.ClavFace == 92) | (df.ClavNeck == 92) |
+                   (df.ClavFro == 92) | (df.ClavOcc == 92) |
+                   (df.ClavPar == 92) | (df.ClavTem == 92),
+                   ["ClavFace", "ClavNeck", "ClavFro", "ClavOcc", "ClavPar",
+                    "ClavTem"]] = 0
+
+        if judg_calls["NeuroD_umbrella"]:
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("NeuroD", axis=1, inplace=True)
+            # 92 is treated as 0
+            df.loc[(df.NeuroDMotor == 92) | (df.NeuroDSensory == 92) |
+                   (df.NeuroDCranial == 92) | (df.NeuroDReflex == 92) |
+                   (df.NeuroDOth == 92),
+                   ["NeuroDMotor", "NeuroDSensory", "NeuroDCranial", "NeuroDReflex",
+                    "NeuroDOth"]] = 0
+
+        if judg_calls["Vomit_umbrella"]:
+            # the child vars must not have been removed
+            assert prepr_calls["step14_vomitDtls"]
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("Vomit", axis=1, inplace=True)
+            # 92 is treated as 0
+            df.loc[(df.VomitStart == 92) | (df.VomitLast == 92) |
+                   (df.VomitNbr == 92),
+                   ["VomitStart", "VomitLast", "VomitNbr"]] = 0
+
+        if judg_calls["HA_umbrella"]:
+
+            # cannot flatten if unionized
+            assert prepr_calls["step15_HA"] != 1
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("HA_verb", axis=1, inplace=True)
+            # 92 is treated as 0
+            try:
+                df.loc[(df.HASeverity == 92) | (df.HAStart == 92),
+                       ['HASeverity', 'HAStart']] = 0
+            except AttributeError:
+                df.loc[df.HASeverity == 92, 'HASeverity'] = 0
+
+        if judg_calls["Seiz_umbrella"]:
+
+            # cannot flatten if unionized
+            assert prepr_calls["step16_Seiz"] != 1
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("Seiz", axis=1, inplace=True)
+            # 92 is treated as 0
+            try:
+                df.loc[(df.SeizLen == 92) | (df.SeizOccur == 92),
+                       ['SeizLen', 'SeizOccur']] = 0
+            except AttributeError:
+                df.loc[df.SeizLen == 92, 'SeizLen'] = 0
+
+        if judg_calls["LOC_umbrella"]:
+            # cannot disambiguate if unclear had been assigned to 1
+            assert not prepr_calls["step17_cautiousUncl"]
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("LOCSeparate", axis=1, inplace=True)
+            # assign new category to 92 - no LOC
+            df.loc[df.LocLen == 92, 'LocLen'] = 0
+
+        # binarize categoricals
+        # FIXME: there aren't any N/As - dealt with via judgement calls in preprocessing
+
+        #  set correct type on categoricals
         for col in df:
             if (col != 'AgeinYears') & (len(df[col].unique()) > 2):
                 df[col] = df[col].astype('category')
 
-        # convert these feats to dummy
-        df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
+        # there shouldn't be N/A outside of meta columns
+        cols = [c for c in df.columns if
+                isinstance(df.loc[:, c].dtype, pd.CategoricalDtype) and
+                (c not in (self.get_meta_keys() + ["AgeinYears"]))]
+        df = pd.get_dummies(df, dummy_na=False, columns=cols)
 
-        # remove any col that is all 0s - constant value in all observations
-        df = df.loc[:, (df != 0).any(axis=0)]
+        # remove any col that has constant value in all observations
+        if judg_calls["remove_constVal"]:
+            df.drop(df.columns[df.nunique() <= 1], axis=1, inplace=True)
+
+        assert np.sum(np.sum(pd.isna(df.drop(self.get_meta_keys(), axis=1)))) == 0, \
+            "N/As present after extracting features!"
 
         return df
 
@@ -489,6 +603,11 @@ class Dataset(DatasetTemplate):
             {
                 'clean_data'      : {},
                 'preprocess_data' : {
+                    # Unionization policies:
+                    # 1: unionize - impute parent from children, drop children
+                    # 2: mixed: keep (some) children & parent, impute parent from the children kept
+                    # 3: no: no imputation, keep all children, drop those with N/A in any child
+
                     # include injury mechanic
                     "step1_injMech"      : [False, True],
                     "step5_missSubGCS"   : [True, False],
@@ -510,8 +629,16 @@ class Dataset(DatasetTemplate):
 
                 },
                 'extract_features': {
-                    # whether to drop columns with suffix _no
-                    # 'drop_negative_columns': [False],  # default value comes first
+                    "HEMA_umbrella"   : [False, True],
+                    "SFxPalp_umbrella": [False, True],
+                    "SFxBas_umbrella" : [False, True],
+                    "Clav_umbrella"   : [False, True],
+                    "NeuroD_umbrella" : [False, True],
+                    "Vomit_umbrella"  : [False, True],
+                    "HA_umbrella"     : [False, True],
+                    "Seiz_umbrella"   : [False, True],
+                    "LOC_umbrella"    : [False, True],
+                    "remove_constVal" : [True, False]
                 },
             }
 
@@ -580,7 +707,8 @@ if __name__ == '__main__':
     for fname in tqdm(fnames):
         cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
 
-    self.preprocess_data(cleaned_data)
+    prep_data = self.preprocess_data(cleaned_data)
+    final_data = self.extract_features(prep_data)
 
     # df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
 
