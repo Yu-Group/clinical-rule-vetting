@@ -59,6 +59,7 @@ class Dataset(DatasetTemplate):
         # then get relavent columns
         robust_av_columns = df_features.columns[df_features.columns.str.endswith('2')]
         nonrobust_av_columns = [col_name[:-1] for col_name in robust_av_columns] 
+        
         # drop columns for jdugement call
         if kwargs['use_robust_av']: df_features.drop(nonrobust_av_columns, axis=1, inplace=True)
         else: df_features.drop(robust_av_columns, axis=1, inplace=True)
@@ -101,20 +102,24 @@ class Dataset(DatasetTemplate):
         df_tune
         df_test
         """
+        df_train = np.empty([0, preprocessed_data.shape[1]])
+        df_tune = np.empty([0, preprocessed_data.shape[1]])
+        df_test = np.empty([0, preprocessed_data.shape[1]])
+
         study_site_list = [i for i in range(1,18)]
         control_types = ['case', 'ems', 'moi', 'ran']
         
         for ss in study_site_list:
             for ct in control_types:
-                split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'))
-                np.split(split_subset.sample(frac=1, random_state=42),[int(.6 * len(split_subset)), int(.8 * len(split_subset))])
-        # TODO: combine spliting and make split by control type only or both study site and control type a kwargs
+                split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type')) # subset to split
+                # do the splitting below
+                split_data = np.split(split_subset.sample(frac=1, random_state=42),
+                                      [int(.6 * len(split_subset)), int(.8 * len(split_subset))])
+                df_train = np.vstack((df_train,split_data[0]))
+                df_tune = np.vstack((df_tune,split_data[1]))
+                df_test = np.vstack((df_test,split_data[2]))
         
-        return tuple(np.split(
-            preprocessed_data.sample(frac=1, random_state=42),
-            [int(.6 * len(preprocessed_data)),  # 60% train
-             int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
-        ))
+        return tuple([df_train,df_tune,df_test])
 
     def get_outcome_name(self) -> str:
         return 'csi_injury'  # return the name of the outcome we are predicting
