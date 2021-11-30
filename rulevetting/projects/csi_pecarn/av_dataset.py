@@ -102,23 +102,28 @@ class Dataset(DatasetTemplate):
         df_tune
         df_test
         """
-        df_train = np.empty([0, preprocessed_data.shape[1]])
-        df_tune = np.empty([0, preprocessed_data.shape[1]])
-        df_test = np.empty([0, preprocessed_data.shape[1]])
-
+        col_names = ['id','case_id','site','control_type'] + list(preprocessed_data.columns.copy())
+        df_train = pd.DataFrame(columns=col_names)
+        df_train = df_train.set_index(['id','case_id','site','control_type'])
+        df_tune = pd.DataFrame(columns=col_names)
+        df_tune = df_tune.set_index(['id','case_id','site','control_type'])
+        df_test = pd.DataFrame(columns=col_names)
+        df_test = df_test.set_index(['id','case_id','site','control_type'])
+        
         study_site_list = [i for i in range(1,18)]
         control_types = ['case', 'ems', 'moi', 'ran']
         
         for ss in study_site_list:
             for ct in control_types:
-                split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type')) # subset to split
+                split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'), drop_level=False) # subset to split
+                
                 # do the splitting below
                 split_data = np.split(split_subset.sample(frac=1, random_state=42),
                                       [int(.6 * len(split_subset)), int(.8 * len(split_subset))])
-                df_train = np.vstack((df_train,split_data[0]))
-                df_tune = np.vstack((df_tune,split_data[1]))
-                df_test = np.vstack((df_test,split_data[2]))
-        
+                df_train = pd.concat([df_train,split_data[0]])
+                df_tune = pd.concat([df_tune,split_data[1]])
+                df_test = pd.concat([df_test,split_data[2]])
+                
         return tuple([df_train,df_tune,df_test])
 
     def get_outcome_name(self) -> str:
