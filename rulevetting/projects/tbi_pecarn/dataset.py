@@ -132,9 +132,11 @@ class Dataset(DatasetTemplate):
 
         # judgement call: drop borderline GCS scores with missing components
         if judg_calls["step5_missSubGCS"]:
-            tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) & (
-                    (tbi_df['GCSVerbal'].isnull()) | (tbi_df['GCSMotor'].isnull()) | (
-                tbi_df['GCSEye'].isnull()))].index, inplace=True)
+            tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 14) &
+                               ((tbi_df['GCSVerbal'].isnull()) |
+                                (tbi_df['GCSMotor'].isnull()) |
+                                (tbi_df['GCSEye'].isnull()))].index,
+                        inplace=True)
 
         # Impute the missing values among GCS = 15 scores to just be the full points
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSVerbal'].isnull(), 'GCSVerbal'] = 5
@@ -143,9 +145,11 @@ class Dataset(DatasetTemplate):
 
         # judgement call: Maximum total GCS but not the sum of subcomponents
         if judg_calls["step5_fake15GCS"]:
-            tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 15) & (
-                    (tbi_df['GCSVerbal'] < 5) | (tbi_df['GCSMotor'] < 6) | (
-                    tbi_df['GCSEye'] < 4))].index, inplace=True)
+            tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 15) &
+                               ((tbi_df['GCSVerbal'] < 5) |
+                                (tbi_df['GCSMotor'] < 6) |
+                                (tbi_df['GCSEye'] < 4))].index,
+                        inplace=True)
 
         # judgement call: Maximum subcomponents but not total:
         if judg_calls["step5_fake14GCS"]:
@@ -167,7 +171,7 @@ class Dataset(DatasetTemplate):
         tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'].isnull()) | (tbi_df['Sedated'].isnull())
                                | (tbi_df['Intubated'].isnull())].index, inplace=True)
 
-        # Drop these categories altogether
+        # Drop these features altogether
         tbi_df.drop(['Sedated', 'Paralyzed', 'Intubated'], axis=1, inplace=True)
 
         ################################
@@ -317,9 +321,11 @@ class Dataset(DatasetTemplate):
                 tbi_df.drop(tbi_df.loc[(tbi_df['HAStart'].isnull())].index,
                             inplace=True)
 
-            tbi_df.drop(tbi_df.loc[(tbi_df['HA_verb'].isnull()) |
-                                   (tbi_df['HASeverity'].isnull())].index,
+            tbi_df.drop(tbi_df.loc[(tbi_df['HASeverity'].isnull())].index,
                         inplace=True)
+
+        # now drop remaining missing HA_verb regardless of the above
+        tbi_df.drop(tbi_df.loc[(tbi_df['HA_verb'].isnull())].index, inplace=True)
 
         ################################
         # Step 16: Impute/drop based on Seizure group of variables
@@ -359,13 +365,16 @@ class Dataset(DatasetTemplate):
                 tbi_df.drop(tbi_df.loc[(tbi_df['SeizOccur'].isnull())].index,
                             inplace=True)
 
-            tbi_df.drop(tbi_df.loc[(tbi_df['Seiz'].isnull()) |
-                                   (tbi_df['SeizLen'].isnull())].index,
+            tbi_df.drop(tbi_df.loc[(tbi_df['SeizLen'].isnull())].index,
                         inplace=True)
+
+        # now drop remaining missing Seiz regardless of the above
+        tbi_df.drop(tbi_df.loc[(tbi_df['Seiz'].isnull())].index, inplace=True)
 
         ################################
         # Step 17: Impute/drop based on Loss of Consciousness variables
-        ################################
+        ###############################
+        # Judgement call: unclear counts as present
         if judg_calls["step17_cautiousUncl"]:
             tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 1
 
@@ -387,9 +396,23 @@ class Dataset(DatasetTemplate):
         # Step 19: Drop the Drugs Column
         ################################
         if not judg_calls["step19_Drugs"]:
-            tbi_df = tbi_df.drop('Drugs', axis=1)
+            tbi_df.drop('Drugs', axis=1, inplace=True)
+
+        ################################
+        # Step 20: Handle the ActNorm column
+        ################################
+        # Judgement call: N/A counts as normal
+        if judg_calls["step20_ActNormal"]:
+            tbi_df.loc[tbi_df.ActNorm.isna(), 'ActNorm'] = 1
+        else:
+            # N/A counts as ABnormal
+            tbi_df.loc[tbi_df.ActNorm.isna(), 'ActNorm'] = 0
 
         tbi_df['outcome'] = tbi_df[self.get_outcome_name()]
+        tbi_df.set_index('PatNum', inplace=True)
+
+        assert np.sum(np.sum(pd.isna(tbi_df.drop(self.get_meta_keys(), axis=1)))) == 0, \
+            "N/As present after cleaning!"
 
         return tbi_df
 
@@ -400,8 +423,7 @@ class Dataset(DatasetTemplate):
 
         """
         Binarizes the categoricals
-        Flattens depending on the
-
+        Flattens depending on the the judgmement calls provided
 
         Parameters
         ----------
@@ -437,14 +459,13 @@ class Dataset(DatasetTemplate):
         return df
 
     def get_outcome_name(self) -> str:
-        return 'PosIntFinal'  # return the name of the outcome we are predicting
+        return 'ciTBI'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
         return 'tbi_pecarn'  # return the name of the dataset id
 
     def get_meta_keys(self) -> list:
-        # TODO gender race
-        return []  # keys which are useful but not used for prediction
+        return ["Gender", "Race"]  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         """
@@ -468,9 +489,6 @@ class Dataset(DatasetTemplate):
             {
                 'clean_data'      : {},
                 'preprocess_data' : {
-                    # drop cols with vals missing this percent of the time
-                    # 'frac_missing_allowed': [0.05, 0.10],
-
                     # include injury mechanic
                     "step1_injMech"      : [False, True],
                     "step5_missSubGCS"   : [True, False],
@@ -487,7 +505,8 @@ class Dataset(DatasetTemplate):
                     # only affects 3 above
                     "step16_SeizOccur"   : [False, True],
                     "step17_cautiousUncl": [True, False],
-                    "step19_Drugs"       : [False, True]
+                    "step19_Drugs"       : [False, True],
+                    "step20_ActNormal"   : [True, False],
 
                 },
                 'extract_features': {
@@ -560,6 +579,8 @@ if __name__ == '__main__':
     cleaned_data = pd.DataFrame()
     for fname in tqdm(fnames):
         cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
+
+    self.preprocess_data(cleaned_data)
 
     # df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
 

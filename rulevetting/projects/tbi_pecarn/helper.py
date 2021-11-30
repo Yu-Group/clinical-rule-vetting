@@ -27,13 +27,15 @@ def union_var(df: pd.DataFrame, colnames: list, new_name: str, NA_eq_1: bool = F
     df : pd.DataFrame
     """
 
-    # be careful about N/A!
-    df.loc[:, new_name] = df.loc[:, colnames].any(axis = 1, skipna = not NA_eq_1).\
+    # be careful about N/A! Only drop where all are N/A
+    df.dropna(subset=colnames, how='all', inplace=True)
+
+    df.loc[:, new_name] = df.loc[:, colnames].any(axis=1, skipna=not NA_eq_1). \
         astype(int)
 
     if new_name in colnames:
         colnames.remove(new_name)
-    df.drop(colnames, axis= 1, inplace=True)
+    df.drop(colnames, axis=1, inplace=True)
 
     return df
 
@@ -92,8 +94,8 @@ def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
     iai_intervention[ids_np] = 1
 
     df_iai = pd.DataFrame.from_dict({
-        'id': np.arange(1, NUM_PATIENTS + 1),
-        'iai': iai,
+        'id'              : np.arange(1, NUM_PATIENTS + 1),
+        'iai'             : iai,
         'iai_intervention': iai_intervention
     })
     return df_iai
@@ -118,25 +120,25 @@ def rename_values(df):
     }
     df.RACE = df.RACE.map(race)
     moi = {
-        1: 'Motor vehicle collision',
-        2: 'Fall from an elevation',
-        3: 'Fall down stairs',
-        4: 'Pedestrian/bicyclist struck by moving vehicle',
-        5: 'Bike collision/fall',
-        6: 'Motorcycle/ATV/Scooter collision',
-        7: 'Object struck abdomen',
-        8: 'unknown',  # unknown mechanism,
-        9: 'unknown',  # other mechanism
+        1 : 'Motor vehicle collision',
+        2 : 'Fall from an elevation',
+        3 : 'Fall down stairs',
+        4 : 'Pedestrian/bicyclist struck by moving vehicle',
+        5 : 'Bike collision/fall',
+        6 : 'Motorcycle/ATV/Scooter collision',
+        7 : 'Object struck abdomen',
+        8 : 'unknown',  # unknown mechanism,
+        9 : 'unknown',  # other mechanism
         10: 'unknown'  # physician did not answer
     }
     df.loc[:, 'MOI'] = df.RecodedMOI.map(moi)
 
     df.drop(columns=['RecodedMOI'], inplace=True)
     abdTenderDegree = {
-        1: 'Mild',
-        2: 'Moderate',
-        3: 'Severe',
-        4: 'unknown',
+        1     : 'Mild',
+        2     : 'Moderate',
+        3     : 'Severe',
+        4     : 'unknown',
         np.nan: 'unknown'
     }
 
@@ -149,20 +151,20 @@ def rename_values(df):
 
     # print(np.unique(df['AbdTenderDegree'], return_counts=True))
     binary = {
-        0: 'no',
-        1: 'yes',
-        False: 'no',
-        True: 'yes',
+        0        : 'no',
+        1        : 'yes',
+        False    : 'no',
+        True     : 'yes',
         'unknown': 'unknown'
     }
     df['HISPANIC_ETHNICITY'] = (df['HISPANIC_ETHNICITY'] == '-1').map(
         binary)  # note: -1 is Hispanic (0 is not, 1 is unknown)
 
     # rename variables
-    df = df.rename(columns={'RACE': 'Race_orig',
-                            'SEX': 'Sex',
+    df = df.rename(columns={'RACE'              : 'Race_orig',
+                            'SEX'               : 'Sex',
                             'HISPANIC_ETHNICITY': 'Hispanic',
-                            'ageinyrs': 'Age'
+                            'ageinyrs'          : 'Age'
                             })
 
     # set types of these variables to categorical
@@ -191,12 +193,12 @@ def rename_values(df):
         if contains_nan and uniques.size in [4, 5] or ~contains_nan and uniques.size in [3, 4]:
             if '1' in uniques and '2' in uniques and ('3' in uniques or 'other' in uniques):
                 df[k] = df[k].map({
-                    '1': 'yes',
-                    '2': 'no',
-                    '3': 'unknown',
-                    '4': 'unknown',
+                    '1'    : 'yes',
+                    '2'    : 'no',
+                    '3'    : 'unknown',
+                    '4'    : 'unknown',
                     'other': 'other',
-                    np.nan: 'unknown',
+                    np.nan : 'unknown',
                 })
     return df
 
@@ -205,10 +207,10 @@ def derived_feats(df):
     '''Add derived features
     '''
     binary = {
-        0: 'no',
-        1: 'yes',
-        False: 'no',
-        True: 'yes',
+        0        : 'no',
+        1        : 'yes',
+        False    : 'no',
+        True     : 'yes',
         'unknown': 'unknown'
     }
     df['AbdTrauma_or_SeatBeltSign'] = ((df.AbdTrauma == 'yes') | (df.SeatBeltSign == 'yes')).map(binary)
