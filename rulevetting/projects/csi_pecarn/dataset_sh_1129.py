@@ -63,18 +63,35 @@ class Dataset(DatasetTemplate):
             df_features = df_features.set_index('SubjectID').combine_first(df2.set_index('SubjectID')).reset_index()
 
         # SH: After this line, the code is slightly different from the Chandan's code
-        df = df_features
         
-        # SH: outcome (we are not going to use helper.py for this step)
-        df = df.assign(outcome=lambda x: (x.ControlType == 'case').astype(int))
-        df.drop(columns = "ControlType")
+        # SH: var_use variables only
+        # SH: Why there are PainNeck and PainNeck2
+        var_as_ll = ['AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault',
+                     'AxialLoadAnyDoc', 'CaseID', 'CervicalSpineImmobilization', 'ChildAbuse', 'ControlType',
+                     'DxCspineInjury', 'Ethnicity', 'FallDownStairs', 'FallFromElevation', 'FocalNeuroFindings',
+                     'Gender', 'HeadFirst', 'HighriskDiving', 'HighriskFall', 'HighriskHanging',
+                     'HighriskHitByCar', 'HighriskMVC', 'HighriskOtherMV', 'InjuryPrimaryMechanism', 'IntervForCervicalStab',
+                     'LOC', 'LimitedRangeMotion','LongTermRehab', 'Predisposed', "MedsGiven",
+                     "MedsRecdPriorArrival", "MotorGCS", "PainNeck", "PainNeck2", "PassRestraint",
+                     "PosMidNeckTenderness", 'PosMidNeckTenderness2',"PtAmbulatoryPriorArrival", "PtCompPain"] # 39
         
-        # SH: reorder the columns
-        cols = df.columns.tolist()
-        first = ["SubjectID", "SiteID", "CaseID"]
-        cols = [c for c in cols if c not in first]
-        cols = first + cols
-        df = df[cols]
+        var_sh = ['PtCompPainHead', 'PtCompPainNeck', 'PtCompPainPelvis', 'PtExtremityWeakness', 'PtParesthesias',
+                  'PtSensoryLoss', 'PtTender', 'PtTenderAbd', 'PtTenderBack', 'PtTenderChest',
+                  'PtTenderExt', 'PtTenderFlank', 'PtTenderHead', 'PtTenderNeck', 'PtTenderPelvis',
+                  'ShakenBabySyndrome', 'SiteID', 'SubInj_Ext', 'SubInj_Face', 'SubInj_Head',
+                  'SubInj_TorsoTrunk', 'SubjectID', 'TenderNeck', 'Torticollis', 'TotalGCS',
+                  'ambulatory', 'axialloadtop', 'helmet'] # 28
+        
+        var_use = var_as_ll + var_sh
+        
+        df = df_features[var_use]
+        
+        # # SH: reorder the columns
+        # cols = df.columns.tolist()
+        # meta = self.get_meta_keys()
+        # cols = [c for c in cols if c not in meta]
+        # cols = first + cols
+        # df = df[cols]
         
         df = helper_sh.rename_values(df)  # rename the features by their meaning
         
@@ -94,7 +111,11 @@ class Dataset(DatasetTemplate):
 #         df.GCSScore = df.GCSScore.fillna(df.GCSScore.median())
 
 #         df['outcome'] = df[self.get_outcome_name()]
+
+        # SH: outcome (we are not going to use helper.py for this step)
         df = cleaned_data
+        df = df.assign(outcome=lambda x: (x.ControlType == 'case').astype(int))
+        
         return df
 
 
@@ -125,19 +146,20 @@ class Dataset(DatasetTemplate):
 #         feats = rulevetting.api.util.get_feat_names_from_base_feats(feat_names,
 #                                                                     base_feat_names=base_feat_names) + ['outcome']
 #         return df[feats]
+
         df = preprocessed_data
         return df
 
-    def get_outcome_name(self) -> str:
-        return 'csi_intervention'  # return the name of the outcome we are predicting
+    #def get_outcome_name(self) -> str:
+    #    return 'csi_intervention'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
         return 'csi_pecarn'  # return the name of the dataset id
 
-    def get_meta_keys(self) -> list: # SH: maybe useless
-        # return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
-        return []
-
+    def get_meta_keys(self) -> list:
+        return ["SubjectID", "SiteID", "CaseID", "ControlType", "Ethnicity", "Gender"]
+        # keys which are useful but not used for prediction
+        
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]: # SH: we can do this later
         return {
             'clean_data': {},
