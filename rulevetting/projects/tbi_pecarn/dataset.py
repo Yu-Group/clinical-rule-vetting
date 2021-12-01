@@ -582,7 +582,7 @@ class Dataset(DatasetTemplate):
         return df
 
     def get_outcome_name(self) -> str:
-        return 'ciTBI'  # return the name of the outcome we are predicting
+        return 'outcome'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
         return 'tbi_pecarn'  # return the name of the dataset id
