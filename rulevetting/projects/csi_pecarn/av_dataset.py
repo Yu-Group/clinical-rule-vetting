@@ -84,7 +84,7 @@ class Dataset(DatasetTemplate):
                 
         return df
     
-    def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing.
         Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
@@ -111,10 +111,11 @@ class Dataset(DatasetTemplate):
         df_test = df_test.set_index(['id','case_id','site','control_type'])
         
         study_site_list = [i for i in range(1,18)]
-        control_types = ['case', 'ems', 'moi', 'ran']
+        print(kwargs['control_types'])
+        selected_control_types = ['case']+kwargs['control_types']
         
         for ss in study_site_list:
-            for ct in control_types:
+            for ct in selected_control_types:
                 split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'), drop_level=False) # subset to split
                 
                 # do the splitting below
@@ -146,13 +147,18 @@ class Dataset(DatasetTemplate):
             'preprocess_data': {
                 # drop cols with vals missing this percent of the time
                 'frac_missing_allowed': [0.05, 0.10],
+            },
+            'split_data': {
+                # drop cols with vals missing this percent of the time
+                'control_types': [['ran','moi','ems']],
             }
         }
     
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
-                 run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 run_perturbations: bool = False,
+                 control_types=['ran','moi','ems']) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -166,7 +172,8 @@ class Dataset(DatasetTemplate):
             Whether to skip all processing and load data directly from csvs
         run_perturbations: bool, optional
             Whether to run / save data pipeline for all combinations of judgement calls
-
+        control_types: list of str, optional
+            Which control types (Random, Mechanism of Injury, EMS) to include
         Returns
         -------
         df_train
@@ -193,7 +200,7 @@ class Dataset(DatasetTemplate):
         if not run_perturbations:
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-            df_train, df_tune, df_test = cache(self.split_data)(preprocessed_data)
+            df_train, df_tune, df_test = cache(self.split_data)(preprocessed_data, **{'control_types': control_types})
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
             clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
@@ -201,7 +208,7 @@ class Dataset(DatasetTemplate):
             preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
                                         cache_dir=CACHE_PATH)
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
+            extract_set = build_Vset('extract_features', self.extract_features, param_dict==kwargs['split_data'],
                                      cache_dir=CACHE_PATH)
             extracted_features = extract_set(preprocessed_data)
             split_data = Vset('split_data', modules=[self.split_data])
