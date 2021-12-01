@@ -83,7 +83,7 @@ class Dataset(DatasetTemplate):
 
         ################################
         # Step 1: Remove variables which have nothing to do with our problem
-        # (uncontroversial choices)
+        # (uncontroversial choices, these variables do not matter for our problem at all)
         ################################
 
         list1 = ['EmplType', 'Certification']
@@ -92,27 +92,34 @@ class Dataset(DatasetTemplate):
         if not judg_calls["step1_injMech"]:
             list1.append('InjuryMech')
 
-        # grab all of the CT/Ind variables
+        # grab all of the CT/Ind variables, which have to do with CT scans
+        # when our classifier is applied, we will not have access to this info
         list2 = []
         for col in tbi_df.keys():
             if 'Ind' in col or 'CT' in col:
                 list2.append(col)
 
+        # 'AgeTwoPlus' can be recreated easily, 'AgeInMonth' we decided does not matter
         list3 = ['AgeTwoPlus', 'AgeInMonth']
 
-        # grab all of the Finding variables
+        # These vars have to do with obtaining CT scans or reasons for hospital discharge
+        # These vars will not be observed in our case
         list4 = ['Observed', 'EDDisposition']
 
+        # these vars are all indicators for what was found on a CT scan (not relevant for us)
         for col in tbi_df.keys():
             if 'Finding' in col:
                 list4.append(col)
 
+        # combine all lists and drop
         total_rem = list1 + list2 + list3 + list4
 
         tbi_df = tbi_df.drop(total_rem, axis=1)
 
         ################################
-        # Step 2: Remove variables with really high missingness (that we don't care about)
+        # Step 2: Remove variables with really high missingness
+        # Dizzy is unimportant/too subjective according to Dr. Inglis
+        # Ethnicity is too missing, so difficult to perform meaningful posthoc analysis
         ################################
 
         tbi_df = tbi_df.drop(['Ethnicity', 'Dizzy'], axis=1)
@@ -127,9 +134,9 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 4: Generate an unified response variable
         ################################
-        # NOTE: PosIntFinalNoHosp is too wordy IMO, just call it ciTBI
+
         tbi_df = hp.union_var(tbi_df, ['DeathTBI', 'Intub24Head', 'Neurosurgery',
-                                       'HospHead', 'PosIntFinal'], "ciTBI")
+                                       'HospHead', 'PosIntFinal'], "outcome")
 
         ################################
         # Step 5: Impute/drop GCS Verbal/Motor/Eye Scores
@@ -148,7 +155,7 @@ class Dataset(DatasetTemplate):
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSMotor'].isnull(), 'GCSMotor'] = 6
         tbi_df.loc[(tbi_df['GCSTotal'] == 15) & tbi_df['GCSEye'].isnull(), 'GCSEye'] = 4
 
-        # judgement call: Maximum total GCS but not the sum of subcomponents
+        # judgement call: drop obs who have max total GCS but not max's of subcomponents
         if judg_calls["step5_fake15GCS"]:
             tbi_df.drop(tbi_df[(tbi_df['GCSTotal'] == 15) &
                                ((tbi_df['GCSVerbal'] < 5) |
@@ -167,8 +174,6 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 6: Drop Paralyzed/Sedated/Intubated
         ################################
-        # NOTE: is this a judgement call within our scope, or is it out of scope?
-        # Right now: outside the scope for first-time CT evaluation
 
         # Drop the observations that were Intubated... and where the info is missing
         tbi_df.drop(tbi_df.loc[(tbi_df['Paralyzed'] == 1) | (tbi_df['Sedated'] == 1)

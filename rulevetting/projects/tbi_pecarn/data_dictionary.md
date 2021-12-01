@@ -34,3 +34,7 @@
 
 
 
+Descriptions of Variables in Processed Data
+(NOTE: some variables are only present when certain judgement calls are turned on, these will be marked accordingly)
+
+
