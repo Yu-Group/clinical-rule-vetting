@@ -10,24 +10,24 @@ class Baseline(ModelTemplate):
         self.agegroup = agegroup
         if self.agegroup == 'young':
             self.rules = [
-                ('AMS == 1', 3.6),
-                ('HemaLoc == [2, 3]', 1.5),
-                ('LocLen == [2, 3, 4]', 1.4),
-                ('High_impact_InjSev == 3', 0.31),
-                ('SFxPalp == 1', 3.4),
-                ('ActNorm == 0', 0.28),
+                ('AMS == 1', 7.5),
+                ('HemaLoc == [2, 3]', 1.9),
+                ('LocLen == [2, 3, 4]', 2.0),
+                ('High_impact_InjSev == 3', 0.5),
+                ('SFxPalp == 1', 33.3),
+                ('ActNorm == 0', 0.4),
 
                 # final condition is just something that is always true
-                ('GCSTotal >= 0', 0.02),
+                ('GCSTotal >= 0', 0.03),
             ]
         if self.agegroup == 'old':
             self.rules = [
-                ('AMS == 1', 2.6),
-                ('LOCSeparate == [1, 2]', 0.82),
-                ('Vomit == 1', 0.88),
-                ('High_impact_InjSev == 3', 0.21),
-                ('SFxBas == 1', 5.7),
-                ('HASeverity == 3', 1.0),
+                ('AMS == 1', 10.0),
+                ('LOCSeparate == [1, 2]', 1.2),
+                ('Vomit == 1', 0.9),
+                ('High_impact_InjSev == 3', 0.5),
+                ('SFxBas == 1', 8.9),
+                ('HASeverity == 3', 1.3),
 
                 # final condition is just something that is always true
                 ('GCSTotal >= 0', 0.05),
@@ -63,7 +63,7 @@ class Baseline(ModelTemplate):
         # for each age group, do different prediction
         # (based on the  prob from final condition - the one always true)
         if self.agegroup == "young":
-            return (predicted_probabilities > 0.021).astype(int)
+            return (predicted_probabilities > 0.031).astype(int)
         if self.agegroup == "old":
             return (predicted_probabilities > 0.051).astype(int)
 
@@ -79,17 +79,21 @@ class Baseline(ModelTemplate):
 if __name__ == '__main__':
     import numpy as np
     import pandas as pd
+    from rulevetting.projects.tbi_pecarn.dataset import Dataset
 
-    tbi_df = pd.read_csv('./data/tbi_pecarn/processed/clean_dataset_11_24.csv',
-                         index_col=0)
+    # use original data
+    tbi_df = Dataset().clean_data()
     tbi_df.index = tbi_df.PatNum.copy()
 
+    # divided by ages
     tbi_df_young = tbi_df[tbi_df['AgeinYears'] < 2]
     tbi_df_old = tbi_df[tbi_df['AgeinYears'] >= 2]
 
+    # baseline for age < 2
     model_young = Baseline("young")
     preds_proba = model_young.predict_proba(tbi_df_young)
     print(model_young.print_model(tbi_df_young))
 
+    # baseline for age >= 2
     model_old = Baseline('old')
     print(model_old.print_model(tbi_df_old))
