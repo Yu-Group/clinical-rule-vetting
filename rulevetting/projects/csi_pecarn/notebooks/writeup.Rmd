@@ -6,6 +6,11 @@ date: "Acknowledgments: Michael Boyle, Chandan Singh"
 header-includes:
    - \usepackage{float}
    - \usepackage{bbm}
+   - \usepackage{graphicx}
+   - \usepackage{array}
+   - \usepackage{blindtext}
+   - \usepackage{color}
+   - \usepackage{subfloat}
 output: 
   pdf_document:
     number_sections: true
@@ -53,19 +58,16 @@ The data consist of 12 datasets, each containing various categories of informati
 
 Some of the datasets have the same name, but are denoted with an `field`, `out` or `site` at the end of the file name (e.g `clinicalpresentationfield` vs `clinicalpresentationsite`). The suffix "field" denotes measurements of the patient at the location where the injury was sustained, such as the site of the car crash or the patient's home. The suffix "out" refers to information reported by an outside hospital referring the patient to the PECARN system. Note that this information is not available for patients who were not referred by an outside hospital. The suffix "site" refers to information collected at the PECARN hospital site. **The site information is always collected last**, with the outside hospital information collected between field and site if pertinent. 
 
-It is also important to recognize that this data is extremely prone to human and/or machine error. Each piece of data was recorded from multiple different perspectives. The measurements were collected differently across 2-3 different locations and at 2-3 different time periods - the actual values could differ across time and location. Moreover, the instruments used to take each measurement could be calibrated differently or the individual taking the measurement could have made a mistake. It is very important to keep these sources of error in mind in the modeling process and when questioning unusual observations.
-
-
-
+It is also important to recognize that this data is extremely prone to human and/or machine error. We describe potential lapses in the data collection process in Section \blue{\ref{sec:meaning}}.
 
 
 \red{The questions below are useful to ask: How were the data collected? At what locations? Over what time period? Who collected them? What instruments were used? Have the operators and instruments changed over the period? Try to imagine yourself at the data collection site physically.}
 
 \red{INCLUDE NUMBER OF CONTROL AND CASE PATIENTS IN THE FINAL CLEANED DATA.}
 
-# Meaning {#sec:meaning}
+## Meaning {#sec:meaning}
 
-In terms of our modeling dataset, we separate our features into **three distinct categories: demographic information, injury mechanism, and trauma presentation.** Demographic information simply refers to the patient's basic information, such as age, gender, and ethnicity. While these features may have very little predictive power, they can be useful in grouping injured or non-injured patients post-hoc.
+In order to better group the variables in our data, we separate them into **three distinct categories: demographic information, injury mechanism, and trauma presentation.** Demographic information simply refers to the patient's basic information, such as age, gender, and ethnicity. While these features may have very little predictive power, they can be useful in grouping injured or non-injured patients post-hoc.
 
 Injury mechanism refers to how the patient sustained their trauma. Examples of injury mechanism include a vehicle accident, child abuse, assault, or falling. Each category of injury is then further elucidated into more specific modes of injury (such as a rear-end collision vs a side impact collision). Most mechanisms of injury in the given data are injuries sustained from various youth sports or from a motor vehicle accident. \red{Discuss later whether mechanism is actually useful or not}.
 
@@ -75,15 +77,44 @@ Note here that some features across these three categories preclude accurate rep
 
 For our study, we prioritize using the "site" data if it is available, imputing necessary missing values from outside hospital data and site data in that order. We select the site data since it is most recent in terms of a patient's trauma presentation. Features in the other two categories do not differ across location and are named in an unsuffixed dataset.
 
+The non-demographic variables all measure some aspect of the patient's trauma and allows us to assess how serious it is.  Each piece of data was recorded from multiple different perspectives. The measurements were collected differently across 2-3 different locations and at 2-3 different time periods - the actual values could differ across time and location. Moreover, the instruments used to take each measurement could be calibrated differently or the individual taking the measurement could have made a mistake. It is very important to keep these sources of error in mind in the modeling process and when questioning unusual observations.
+
+By assuming our data is correct, we are assuming that...
+
 \red{What does each variable mean in the data? What does it measure? Does it measure what it is supposed to measure? How could things go wrong? What statistical assumptions is one making by assuming things didn’t go wrong? (Knowing the data collection process helps here.)}
 
 \red{Meaning of each variable -- ask students to imagine being there at the ER and giving a Glasgow coma score, for example, and also a couple of variables -- ask students what could cause different values written down.}
 
 \red{How were the data cleaned? By whom?}
 
-# Relevance
+## Relevance
 
 \red{Can the data collected answer the substantive question(s) in whole or in part? If not, what other data should one collect? The points made in (2) are pertinent here.}
+
+The data provided are relevant to our study. The features described in our model are all accessible to a physician when they make their clinical decision. If any additional data is necessary, it could include other potentially useful features that are typically made available to a physician at the time of making the clinical decision. We do not collect any more data since we are provided with all of the data recorded by PECARN and it is highly unlikely that additional data with predictive power exists.
+
+
+# Exploratory Data Analysis {#sec:eda}
+
+## Reducing feature space
+
+Our initial feature space included over 300 features and an interpretable model only requires a small fraction of these features. We trim down our initial subset of features through the consultation of domain experts in cervical spine injury. Utilizing the assistance of Dr. Michael Boyle, a physician in the UC San Francisco School of Medicine, we reduced our feature space to roughly 51 variables to perform variable selection on. The feature selection criteria is discussed in Section \blue{\ref{sec:feat-sel}}.
+
+The omitted features were mostly redundant information or information that would not be provided to a physician when making a clinical decision. These omissions were largely determined through domain-expert judgment calls. When in doubt, we retained a predictor to avoid potentially losing crucial predictive information. As discussed in Section \blue{\ref{sec:feat-sel}}, we use a variable selection process to determine our best features for modeling.
+
+## Correlation Heatmap
+
+Figure \blue{\ref{fig:corr-map}} shows a heatmap of the reduced feature space of 51 variables.
+
+\begin{figure}[H]
+\includegraphics[height=4in, width=6in]{corr-map.png}
+\centering
+\caption{Correlation heatmap.} 
+\label{fig:corr-map}
+\end{figure}
+
+## Feature selection {#sec:feat-sel}
+
 
 # Translation
 
