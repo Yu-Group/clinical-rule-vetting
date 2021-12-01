@@ -95,11 +95,33 @@ class Dataset(DatasetTemplate):
         
         df = helper_ll.rename_values(df)  # rename the features by their meaning
         
+       
+        
+        
         return df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         
         df = cleaned_data
+        
+        
+        
+        '''   ## code for only using random control
+        
+        ind1=[True for i in range(cleaned_data.shape[0])]
+        index=pd.array(ind1,dtype='boolean')
+        for i in range(len(index)):
+            if df.ControlType[i]=='case' or  df.ControlType[i]=='ran':
+                index[i]=True
+            else:
+                index[i]=False
+        df=df[index]
+        '''
+       
+        #df=df[(df.ControlType == 'case') or (df.ControlType == 'ran')]
+       
+        
+        
         df = df.assign(outcome=lambda x: (x.ControlType == 'case').astype(int))
         
         
@@ -112,6 +134,7 @@ class Dataset(DatasetTemplate):
 
 
         df = df.fillna(df.median())  
+        
         
        
         #df['outcome'] = df[self.get_outcome_name()]
