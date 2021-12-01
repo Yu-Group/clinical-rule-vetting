@@ -73,30 +73,97 @@ def rename_values(df):
     set types of
     '''
 
-    # map categorical vars values
-    ll_binary1 = {
-        'N': 0.,
+     # map categorical vars values
+    
+    Y_binary ={ 
         'Y': 1.,
-    }  
-    ll_binary2 = {
+        'N': 0.,
+        'ND': 0.,
+        'YND': 0.,
+        '3': 0.,
+        'S': 0.,
+        'P': 0.
+    }
+    zeroone_binary = {
             0:0.,
             1:1.,
-        }  
-    motorgcs={1.:0.,2.:0.,3.:0.,4.:0.,5.:0.,6.:1.}
-    for k in ['MedsGiven','MedsRecdPriorArrival']:
-        df[k]=df[k].map(ll_binary1)
-        
-    df.Predisposed=df.Predisposed.map(ll_binary2)
+    } 
+    
+    comppain = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        'YND': 1.,
+        'S': 1.,
+        'P': 0.,
+    }
+    #     outcome = {
+    #         "case": 1.,
+    #         "ems": 0.,  
+    #         "moi": 0.,  
+    #         "ran": 0., 
+    #     }    
+    
+    rangemotion = {
+        'N': 0.,
+        'Y': 1.,
+        'ND': 0.,
+        '3': 1.,
+        '4': 1.,
+    }
+    
+    motorgcs={
+        1.:0.,
+        2.:0.,
+        3.:0.,
+        4.:0.,
+        5.:0.,
+        6.:1.
+    }
+    csimmob={3.: 0., 
+             1.: 1.,
+             2.: 1.}
+
+    df.MedsGiven=df.MedsGiven.map(Y_binary)
+    df.MedsRecdPriorArrival=df.MedsRecdPriorArrival.map(Y_binary)
+    df.Predisposed=df.Predisposed.map(zeroone_binary)
     df.MotorGCS=df.MotorGCS.map(motorgcs)
-    df.PtAmbulatoryPriorArrival=\
-    df.PtAmbulatoryPriorArrival.map(ll_binary1)
-
-    df.PtCompPain=df.PtCompPain.map(ll_binary1)
-
-
+    df.PtAmbulatoryPriorArrival=df.PtAmbulatoryPriorArrival.map(Y_binary)
+    df.PtCompPain=df.PtCompPain.map(comppain)
+    df.AVPU = df.AVPU.map(Y_binary)
+    #df.ControlType = df.ControlType.map(outcome)
+    df.ArrPtIntub = df.ArrPtIntub.map(Y_binary)
+    df.DxCspineInjury = df.DxCspineInjury.map(Y_binary)
+    df.IntervForCervicalStab = df.IntervForCervicalStab.map(Y_binary)
+    df.LongTermRehab = df.LongTermRehab.map(Y_binary)
+    #df.Clotheslining = df.Clotheslining.map(as_binary1)
+    df.HeadFirst = df.HeadFirst.map(Y_binary)
+    df.LimitedRangeMotion = df.LimitedRangeMotion.map(rangemotion)
+    # FallDownStairs and FallFromElevation have weird coding(2, 3, etc)
+    # MVC variables have weird coding with numbers that are not just (0, 1)
     
+    df.CervicalSpineImmobilization=df.CervicalSpineImmobilization.map(csimmob)  
     
+    ### SH ###
+    #df.PtCompPainNeckMove = df.PtCompPainNeckMove.map(YN_binary)
+    # small_freq_as_Y_binary = {
+    #     "N": 0,
+    #     "Y": 1,
+    #     "ND": 1,
+    #     "3": 1
+    # }
+    df.PtExtremityWeakness = df.PtExtremityWeakness.fillna("N").map(Y_binary)
+    df.PtParesthesias = df.PtParesthesias.fillna("N").map(Y_binary)
+    df.PtSensoryLoss = df.PtSensoryLoss.fillna("N").map(Y_binary)
+    df.PtTender = df.PtTender.fillna("N").map(Y_binary)
+    GCS_threshold = 15
+    GCS_binary = {i:int(i<GCS_threshold) for i in range(0, 16)}
+    GCS_binary[999] = 0 # SH : I set NaN as 0
+    df.TotalGCS = df.TotalGCS.replace('7T', '7').fillna("999").astype(int).map(GCS_binary)
+    #df.clotheslining = df.clotheslining.map(Y_binary)
+    df.helmet = df.helmet.map(Y_binary)
     
+   
     
     return df
 
