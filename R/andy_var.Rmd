@@ -63,4 +63,7 @@ eq
 ```
 
 
+```{r}
+train <- read.csv("../data/csi_pecarn/processed/train.csv")
+```
 
