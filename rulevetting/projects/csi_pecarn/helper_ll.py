@@ -95,7 +95,7 @@ def rename_values(df):
         'ND': 0.,
         'YND': 1.,
         'S': 1.,
-        'P': 0.,
+        'P': 1.,
     }
     #     outcome = {
     #         "case": 1.,
