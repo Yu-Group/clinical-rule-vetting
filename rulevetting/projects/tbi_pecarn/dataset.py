@@ -499,6 +499,15 @@ class Dataset(DatasetTemplate):
                    ["ClavFace", "ClavNeck", "ClavFro", "ClavOcc", "ClavPar",
                     "ClavTem"]] = 0
 
+        if judg_calls["AMS_umbrella"]:
+           # "flatten" - drop the umbrella variable, all children are equal
+           df.drop("AMS", axis=1, inplace=True)
+           # 92 is treated as 0
+           df.loc[(df.AMSAgitated == 92) | (df.AMSSleep == 92) |
+                   (df.AMSSlow == 92) | (df.AMSRepeat == 92) |
+                   (df.AMSOth == 92),
+                   ["AMSAgitated", "AMSSleep", "AMSSlow", "AMSRepeat", "AMSOth"]] = 0
+
         if judg_calls["NeuroD_umbrella"]:
             # "flatten" - drop the umbrella variable, all children are equal
             df.drop("NeuroD", axis=1, inplace=True)
@@ -641,6 +650,7 @@ class Dataset(DatasetTemplate):
                     "HEMA_umbrella"   : [False, True],
                     "SFxPalp_umbrella": [False, True],
                     "SFxBas_umbrella" : [False, True],
+                    "AMS_umbrella"    : [False, True],
                     "Clav_umbrella"   : [False, True],
                     "NeuroD_umbrella" : [False, True],
                     "Vomit_umbrella"  : [False, True],
@@ -677,7 +687,7 @@ class Dataset(DatasetTemplate):
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
-                 run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 run_perturbations: bool = False, **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
