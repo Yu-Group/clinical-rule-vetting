@@ -39,8 +39,11 @@ giving them a CT scan.
 **Authors/Affiliations**
 
 Jimmy Butler (UC Berkeley Department of Statistics)
+
 Andrej Leban (UC Berkeley Department of Statistics)
+
 Ian Shen (UC Berkeley Department of Statistics)
+
 Xin Zhou (UC Berkeley Department of Biostatistics)
 
 
