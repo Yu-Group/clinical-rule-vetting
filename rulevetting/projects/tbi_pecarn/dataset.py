@@ -67,9 +67,8 @@ class Dataset:
                 df = helper.rename_tbi_neuro(df)
             r[fname] = df
 
-        # now merging all of these dataframes into one - ignoring this and focusing on first...
-        df = r['TBI PUD 10-08-2013.csv'] #.set_index('id').join(r['TBI PUD Imaging.csv'].set_index('id'))
-        #df = df.join(r['TBI PUD Neuro.csv'].set_index('id'))
+        # just looking at the first dataframe with pre-ct variables
+        df = r['TBI PUD 10-08-2013.csv']
         df = df.fillna(value='Unknown')
         cleaned_data = df.replace('nan', 'Unknown')
 
@@ -104,75 +103,52 @@ class Dataset:
                 outcome = not_missing[0]
             return outcome
         
-        # these are the outcomes that determine PosIntFinal
+        # here we infer the missing outcomes based on the variables that define the outcome - hosphead, intub, ...
         cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
+        
+        # renaming our target variable
         cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
         
-        # removing gcs subcategories - missing and can be inferred through total
+        # removing gcs subcategories - several are missing and can be inferred through total
         gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
         cleaned_data = cleaned_data.drop(columns=gcs_vars)
         
         # removing post-ct variables that aren't the outcome
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
         
-        # removing not concrete vars - likely to change case by case
-        # We first only consider AgeTwoPlus
+        # removing not concrete vars and ones that are missing many points
+        # We first only consider AgeTwoPlus - a binary var representing age
         other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
                       'AgeInMonth', 'AgeinYears']
         cleaned_data = cleaned_data.drop(columns=other_vars)
         
-        # Impute Unknown values with most normal value
-        
-        cleaned_data.loc[cleaned_data['InjuryMech'] == 'Unknown', 'InjuryMech'] = 'Other mechanism'
-        cleaned_data.loc[cleaned_data['High_impact_InjSev'] == 'Unknown', 'High_impact_InjSev'] = 'No'
-        cleaned_data.loc[cleaned_data['Amnesia_verb'] == 'Unknown', 'Amnesia_verb'] = 'No'
-        cleaned_data.loc[cleaned_data['LOCSeparate'] == 'Unknown', 'LOCSeparate'] = 'No'
-        cleaned_data.loc[cleaned_data['LocLen'] == 'Unknown', 'LocLen'] = 'Not applicable'
-        cleaned_data.loc[cleaned_data['SeizLen'] == 'Not applicable', 'SeizLen'] = 'No'
-        cleaned_data.loc[cleaned_data['SeizLen'] == 'Unknown', 'SeizLen'] = 'No'  
-        cleaned_data.loc[cleaned_data['SeizOccur'] == 'Not applicable', 'SeizOccur'] = 'No'
-        cleaned_data.loc[cleaned_data['SeizOccur'] == 'Unknown', 'SeizOccur'] = 'No'
-        
-        
-        cleaned_data.loc[cleaned_data['ActNorm'] == 'Unknown', 'ActNorm'] = 'No'
-        
-        cleaned_data.loc[cleaned_data['HA_verb'] == 'Unknown', 'HA_verb'] = 'No'
-        cleaned_data.loc[cleaned_data['HASeverity'] == 'Not applicable', 'HASeverity'] = 'No'
-        cleaned_data.loc[cleaned_data['HASeverity'] == 'Unknown', 'HASeverity'] = 'No'
-        cleaned_data.loc[cleaned_data['HAStart'] == 'Not applicable', 'HAStart'] = 'No'
-        cleaned_data.loc[cleaned_data['HAStart'] == 'Unknown', 'HAStart'] = 'No'     
-
-        cleaned_data.loc[cleaned_data['VomitNbr'] == 'Not applicable', 'VomitNbr'] = 'No'
-        cleaned_data.loc[cleaned_data['VomitNbr'] == 'Unknown', 'VomitNbr'] = 'No' 
-        cleaned_data.loc[cleaned_data['VomitStart'] == 'Not applicable', 'VomitStart'] = 'No'
-        cleaned_data.loc[cleaned_data['VomitStart'] == 'Unknown', 'VomitStart'] = 'No'   
-        cleaned_data.loc[cleaned_data['VomitLast'] == 'Not applicable', 'VomitLast'] = 'No'
-        cleaned_data.loc[cleaned_data['VomitLast'] == 'Unknown', 'VomitLast'] = 'No' 
-        
-        cleaned_data.loc[cleaned_data['SFxPalp'] == 'Unknown', 'SFxPalp'] = 'No'       
-        
-        cleaned_data.loc[cleaned_data['FontBulg'] == 'Unknown', 'FontBulg'] = 'No'
-        cleaned_data.loc[cleaned_data['FontBulg'] == 'No/Closed', 'FontBulg'] = 'No'
-                
-        cleaned_data.loc[cleaned_data['HemaLoc'] == 'Unknown', 'HemaLoc'] = 'No'
-        cleaned_data.loc[cleaned_data['HemaSize'] == 'Not applicable', 'HemaSize'] = 'No'
-        cleaned_data.loc[cleaned_data['HemaSize'] == 'Unknown', 'HemaSize'] = 'No'
-        
-        # NEED TO CHANGE : Missing gender to Male  (Only 3)
-        cleaned_data.loc[cleaned_data['Gender'] == 'Unknown', 'Gender'] = 'Male'
-        cleaned_data.loc[cleaned_data['Gender'] == 'Male', 'Gender'] = 1
-        cleaned_data.loc[cleaned_data['Gender'] == 'Female', 'Gender'] = 2
+        # Impute unknowns with mode
+        for col in cleaned_data.columns.tolist():
+            cleaned_data.loc[cleaned_data[col] == 'Unknown', col] = cleaned_data.mode()[col][0]
+            
+        # Impute features that have descriptions about dealing with not applicables
+        not_applicable_doc_feats = ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
+                                    'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer', 
+                                    'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc', 
+                                    'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
+                                    'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
+                                    'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']
+        for col in  not_applicable_doc_feats:
+            cleaned_data.loc[cleaned_data[col] == 'Not applicable', col] = 'No'
 
         
-        # remapping binary + 92 (not applicable) variables
-        bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes', 'Unknown', 'Not applicable']).all()]
+        # remapping binary variables
+        bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes']).all()]
         for bool_col in bool_cols:
-            cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1, 'Not applicable': 0, 'Unknown': 0 })
+            cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1})
+            
+        # gender has to be remapped - if we actually use it
+        cleaned_data['Gender'] = cleaned_data['Gender'].map({'Male': 0, 'Female': 1})
             
         # one-hot encode categorical vars w/ >2 unique values
         cleaned_data = helper.one_hot_encode_df(cleaned_data)
         
-        # we don't need the id anymore I think
+        # id isn't necessary post eda
         preprocessed_data = cleaned_data.drop(columns=['id'])
         
         return preprocessed_data

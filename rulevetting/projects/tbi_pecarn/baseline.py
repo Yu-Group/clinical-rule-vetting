@@ -3,8 +3,8 @@ import pandas as pd
 
 from rulevetting.templates.model import ModelTemplate
 
-class Baseline(ModelTemplate, age_group):
-    def __init__(self):
+class Baseline(ModelTemplate):
+    def __init__(self, age_group):
         # query for each rule + resulting predicted probability in young tree
         if age_group == 'young':
             self.rules = [
