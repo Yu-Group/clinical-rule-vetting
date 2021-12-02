@@ -3,22 +3,32 @@ import pandas as pd
 
 from rulevetting.templates.model import ModelTemplate
 
-
-class Baseline(ModelTemplate):
+class Baseline(ModelTemplate, age_group):
     def __init__(self):
-        # query for each rule + resulting predicted probability
-        self.rules = [
-            ('AbdTrauma_or_SeatBeltSign_yes == 1', 5.7),
-            ('GCSScore < 14', 4.6),
-            ('AbdTenderDegree_None == 0', 1.4),
-            ('ThoracicTrauma_yes == 1', 0.6),
-            ('AbdomenPain_yes == 1', 0.7),
-            ('DecrBreathSound_yes == 1', 2.9),
-            ('VomitWretch_yes == 1', 0.5),
+        # query for each rule + resulting predicted probability in young tree
+        if age_group == 'young':
+            self.rules = [
+                ('GCSScore == GCSScore', 0.9),
+                ('AMS == 1', 4.13),
+                ('HemaBinary == 1', 1.95),
+                ('LocBinary == 1', 1.98),
+                ('MechBinary == 1', 0.46),
+                ('SFxPalpBinary == 1', 4.81),
+                ('ActNorm == 1', 0.44)
+            ]
+        
 
-            # final condition is just something that is always true
-            ('GCSScore == GCSScore', 0.1),
-        ]
+        # query for each rule + resulting predicted probability in old tree
+        if age_group == 'old':
+            self.rules = [
+                ('GCSScore == GCSScore', 0.88),
+                ('AMS == 1', 4.07),
+                ('LocBinary == 1', 1.17),
+                ('Vomit == 1', 0.93),
+                ('MechBinary == 1', 0.54),
+                ('SFxBas == 1', 8.99),
+                ('HABinary == 1', 0.94),
+            ]
 
     def _traverse_rule(self, df_features: pd.DataFrame):
         str_print = f''
@@ -31,7 +41,6 @@ class Baseline(ModelTemplate):
             df_rhs = df.query(query)
             idxs_satisfying_rule = df_rhs.index
             predicted_probabilities.loc[idxs_satisfying_rule] = prob
-
             df.drop(index=idxs_satisfying_rule, inplace=True)
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
             query_print = query.replace(' == 1', '')
