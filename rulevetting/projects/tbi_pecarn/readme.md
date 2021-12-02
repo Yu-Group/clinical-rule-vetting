@@ -4,7 +4,7 @@
 
 **Paper link 📄**: https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf
 
-**Prediction Task and Motivation
+**Prediction Task and Motivation**
 
 The primary task of this project is to build on the prediction algorithm developed by Kupperman and his colleagues to predict whether a child who has been
 admitted to the hospital for head trauma will be at low risk of having clinically important traumatic brain injury (TBI) given a certain set of covariates. 
@@ -14,7 +14,7 @@ performed are in individuals with minor head trauma, defined as a GCS score of 1
 CT scans on any individual poses the risk of radiation-induced malignancies, so we should be sparing in its use, especially for individuals that are likely to not have a TBI, where the risk of performing the CT scan might outweigh knowledge of the results. If we are able to predict whether a child is at low risk of having
 a TBI, then we are able to identify a child for which a CT scan would be unnecessary.
 
-**Dataset
+**Dataset**
 
 This dataset consists of children younger than 18 years of age who presented to one of the 25 hospitals in the PECARN hospital network, within 24 hours of some
 head trauma. Since we are interested in predicting low risk of TBI for individuals where CT scans could possibly be avoided, we limit our analysis to individuals that have Glasgow Coma Scale (GCS) scores of 14 or 15, and were not pharmacologically sedated, pharmacologically paralyzed, or intubated at the time
@@ -28,13 +28,20 @@ used in Kupperman et al.: an individual has a ciTBI if they die in the emergency
 more nights, underwent neurosurgery, or were marked as having a ciTBI by Kupperman et al. To ensure there were no missed ciTBI diagnoses after children were
 discharged from the hospital, regular follow-ups were made to the parents and the correct outcome was imputed accordingly.
 
-**Future Settings
+**Future Settings**
 
 If a child presents to the emergency room with head trauma, and it is
 unclear if a CT scan will be necessary to identify ciTBI (has GCS score as 14 or 15, not pharmacologically paralyzed, etc.), 
 the physician can examine the patient and collect data on various covariates of importance to our classifier. We can then 
 use these covariate values in our classifier to determine if the child is at low risk of ciTBI, and thus whether we can avoid
 giving them a CT scan.
+
+**Authors/Affiliations**
+
+Jimmy Butler (UC Berkeley Department of Statistics)
+Andrej Leban (UC Berkeley Department of Statistics)
+Ian Shen (UC Berkeley Department of Statistics)
+Xin Zhou (UC Berkeley Department of Biostatistics)
 
 
 
