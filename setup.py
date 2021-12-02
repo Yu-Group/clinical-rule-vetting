@@ -28,7 +28,9 @@ setuptools.setup(
         'seaborn',
         'tqdm',
         'vflow',
-
+	'logitboost',
+	'pydotplus',
+	
         # for project only
         'jupyter',
         'jupyterlab',
