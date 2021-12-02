@@ -1,40 +1,301 @@
-**Original features**
+Descriptions of Features in Processed Dataset
 
-| Variable name    | Variable description           | Notes                                          |
-|------------------|--------------------------------|------------------------------------------------|
-| AbdDistention    | Abdominal distention           |                                                |
-| AbdTenderDegree  | Degree of abdominal tenderness | None/Moderates/Severe                          |
-| AbdTrauma        | Abdominal wall trauma          |                                                |
-| AbdomenPain      | Complaints of abdominal pain   |                                                |
-| Age              |                                | In years, [0, 17]                              |
-| CostalTender     | Costal margin tenderness       |                                                |
-| DecreBreathSound | Decreased breath sounds        |                                                |
-| DistractingPain  | Distracting painful injury     |                                                |
-| GCSScore         | GCS coma scale score           | 3-15                                           |
-| Hypotension      |                                | Calculated from age  + systolic blood pressure |
-| LtCostalTender   | Left costal margin tenderness  |                                                |
-| MOI              | Mechanism of injury            |                                                |
-| RtCostalTender   | Right costal margin tenderness |                                                |
-| SeatBeltSign     | Seat belt sign                 |                                                |
-| Sex            |                                              |       |
-| ThoracicTender | Thoracic tenderness                          |       |
-| ThoracicTrauma | Evidence of Thoracic Wall Trauma             |       |
-| VomitWretch    | Vomiting                                     |       |
-| outcome        | Intra-abominal injury requiring intervention |       |
+Note that not all of these columns will appear in the final dataset, depending on which judgement calls have been activated.
 
-**Engineered features**
+* indicates a feature whose coding/values or presence depends on a judgement call. The key in our 
+	judgement call dictionary, as well as the default value, is provided
 
-| Variable name    | Variable description           | Notes                                          |
-|------------------|--------------------------------|------------------------------------------------|
-| AbdDistention_or_AbdomenPain | Either abdominal distention or abdominal pain                          |       |
-| AbdTrauma_or_SeatBeltSign_no | Either abdominal trabua or seatbelt sign |       |
-| Age<2    | Whether age < 2                                     |       |
-| GCSScore_Full        | Whether GCSScore = 15 |       |
+** indicates an umbrella feature, meaning that it's a feature that has sub-features whose
+	values depend on the umbrella feature (for example: where basilar skull fracture
+	occurred would be a sub feature for a larger indicator on whether there was basilar skull 
+	fracture in the first place; as a default, if there is no basilar skull fracture, the sub-feature 
+	location is coded as missing, so observations with no missing values in the sub features have the 
+	umbrella variable marked as true). For these features, we make two main decisions. Either
+	we include the umbrella variable and one-hot encode the sub-features, whose encodings are described
+	above, or we flatten the umbrella variable by dropping it and recoding each sub-feature's
+	missing values as 0 and then one-hot encoding the sub-features.
+	The default encoding is the former, but these groups of umbrella and sub-features will
+	be nonetheless marked, with sub features being indented relative to the umbrella feature.
+	When describing the encodings of the sub features, we use the default interpretation (with missing values).
+
+
+Note: for any feature that is not already binary, we provide the categories as originally encoded, 
+but note that these categorical variables are one-hot encoded.
 
 
 
+InjuryMech*
+	-How the injury occurred
+	-Coded as: (1 Occupant in motor vehicle collision (MVC);
+			2 Pedestrian struck by moving vehicle;
+			3 Bike rider struck by automobile;
+			4 Bike collision or fall from bike while riding;
+			5 Other wheeled transport crash
+			6 Fall to ground from standing/walking/running
+			7 Walked or ran into stationary object
+			8 Fall from an elevation
+			9 Fall down stairs
+			10 Sports
+			11 Assault
+			12 Object struck head - accidentally
+	-Inclusion by Judgement Call: step1_injMech, DEFAULT: FALSE
 
-Descriptions of Variables in Processed Data
-(NOTE: some variables are only present when certain judgement calls are turned on, these will be marked accordingly)
+High_impact_InjSev_1, High_impact_InjSev_2, High_impact_InjSev_3
+	-Indicators for severity of injury mechanism (whether rated 1, 2, or 3)
+	-Coded as binary for each observation
+
+Amnesia_verb_0, Amnesia_verb_1, Amnesia_verb_91
+	-Indicators for if you don't have Amnesia (Amnesia_verb_0), you do have Amnesia (Amnesia_verb_1),
+		or you are marked as pre-verbal/non-verbal (Amnesia_verb_91)
+
+LOCSeparate*, **
+	-History of loss of consciousness?
+	-Coded as: (1 yes or suspected; 0 otherwise)
+		-Alternative Coding by Judgement Call 'step17_cautiousUncl': (1 yes, 0 no, 2 suspected)
+
+	LOCLen
+
+		-Duration of loss of consciousness
+		-Coded as: (1: <5 sec, 2: 5 sec - 1 min, 3: 1 - 5 min, 4: > 5 min, or missing)
+
+Seiz **
+	-Whether there was a seizure
+
+	SeizLen
+		- Duration of the seizure
+		-Coded as: (1: <1 min, 2: 1 sec - < 5 min, 3: 5 - 15 min, 4: > 15 min, or missing)
+
+	SeizOccur
+		- How long after injury did the seizure occur
+		-Coded as: (1: Immediately on contact, 2: Within 30 minutes of injury, 3: >30 minutes after injury, or missing)
+
+ActNorm
+	-Whether the parent thinks the child is acting normally
+
+HA_verb **
+	-Whether there was a headache at the time of evaluation, or
+	the child is preverbal/nonverbal
+	-Coded as: (0: no, 1: yes, 91: preverbal/nonverbal)
+
+	HASeverity
+		-Ranking of severity of headache
+		-Coded as: (1: Mild, 2: Moderate, 3: Severe, or missing)
+
+	HAStart
+		-How long after injury did headache start
+		-Coded as: (1: Before injury, 2: within 1 hr of event, 3: 1-4 hours after, 4: >4 hours after, or missing) 
+
+
+Vomit **
+	-Whether the individual vomited after the injury
+
+	Inclusion of following features by judgement call: 'step14_vomitDtls', DEFAULT = FALSE
+
+	VomitStart*
+		-When did the vomiting start
+		-Coded as: (1: Before injury, 2: Within 1 hour after, 3: 1-4 hours after, 4: >4 hours after, or missing)
+
+	VomitLast*
+		-How long before eval was last vomit
+		-Coded as: (1: <1 hour before eval, 2: 1-4 hours before eval, 3: > 4 hours before eval, or missing)
+
+	VomitNbr*
+		-How many vomiting episodes were there
+		-Coded as: (1: Once, 2: Twice, 3: >2 times, or missing)
+
+GCSEye
+	-GCS eye score, either 3 or 4
+
+GCSVerbal
+	-GCS verbal score, either 4 or 5
+
+GCSMotor 
+	-GCS motor score, either 5 or 6
+
+GCSTotal
+	-GCS total score, either 15 or 14
+
+AMS**
+	-GCS < 15, or other signs of altered mental status
+
+	AMSAgitated
+		-Whether they seem agitated as a reason for AMS
+		-Coded as: (0: no, 1: yes, or missing)
+
+	AMSSleep
+		-Whether they seem sleepy as a reason for AMS
+		-Coded as: (0: no, 1: yes, or missing)
+
+	AMSSlow
+		-Whether they seem slow to respond as a reason for AMS
+		-Coded as: (0: no, 1: yes, or missing)
+
+	AMSRepeat
+		-Whether they ask repetitive questions as a reason for AMS
+		-Coded as: (0: no, 1: yes, or missing)
+
+	AMSOth
+		-Whether there is any other reason to suspect AMS
+		-Coded as: (0: no, 1: yes, or missing)
+
+SFxPalp*, **
+	-Palpable skull fracture?
+
+	SFxPalpDepress
+		-Whether the palpable skull fracture feels depressed
+		-Coded as: (0: no, 1: yes, or missing)
+
+FontBulg
+	-Anterior fontanelle bulging? Either yes or no/closed (meaning you're older)
+
+SFxBas**
+	-Signs of basilar skull fracture?
+
+	SFxBasHem
+		-hemotympanum?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	SFxBasOto
+		-CSF otorrhea?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	SFxBasPer
+		-periorbital ecchymosis (raccoon eyes)?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	SFxBasRet
+		-retroauricular ecchymosis (battle's sign)?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	SFxBasRhi
+		-CSF rhinorrhea?
+		-Coded as: (0: no, 1: yes, or missing)
+
+Hema**
+	-Raised scalp hematoma or swelling?
+
+	HemaLoc
+		-Location?
+		-Coded as: (1: Frontal, 2: Occipital, 3: Parietal/Temporal, or missing)
+
+	HemaSize
+		-Size?
+		-Coded as: (1: small < 1cm, medium 1 - 3cm, large, >3cm, or missing)
+
+Clav**
+	-Evidence of trauma above the clavicles?
+
+	ClavFace
+		-Was it on the face?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	ClavNeck
+		-Was it on the neck?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	ClavFro
+		-Was it on the scalp, but frontal?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	ClavOcc
+		-Was it on the scalp, but occipital?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	ClavPar
+		-Was it on the scalp, but parietal?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	ClavTem
+		-Was it on the scalp, but temporal?
+		-Coded as: (0: no, 1: yes, or missing)
+
+NeuroD**
+	-Evidence of neurological deficit, besides altered mental status?
+
+	NeuroDMotor
+		-Motor deficit?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	NeuroDSensory
+		-Sensory deficit?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	NeuroDCranial
+		-Cranial nerve?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	NeuroDReflex
+		-Reflex issue?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	NeuroDOth
+		-other neurological deficit?
+		-Coded as: (0: no, 1: yes, or missing)
+
+OSI**
+	-Evidence of substantial non-head injuries
+
+	OSIExtremity
+		-an injury on the extremities?
+		-Coded as: (0: no, 1: yes, or missing)
+
+	OSICut
+		-laceration requiring OR repair
+		-Coded as: (0: no, 1: yes, or missing)
+
+	OSICspine
+		-injury to c-spine
+		-Coded as: (0: no, 1: yes, or missing)
+
+	OSIFlank
+		-injury to chest/back/flank
+		-Coded as: (0: no, 1: yes, or missing)
+
+	OSIAbdomen
+		-intra-abdominal injury
+		-Coded as: (0: no, 1: yes, or missing)
+
+	OSIPelvis
+		-pelvis injury
+		-Coded as: (0: no, 1: yes, or missing)
+
+	OSIOth
+		-another substantial non-head injury
+		-Coded as: (0: no, 1: yes, or missing)
+
+AgeinYears
+	-the age of the individual in years
+
+Gender
+	-encoded as either male or female
+
+Race
+	-either encoded as White, Black, Asian, American Indian/Alaska Native, Pacific Islander
+
+Outcome
+
+	-a pooled outcome variable that is completely binary (1 or 0)
+	-1 if the observation had neurological surgery, intubated > 24 hours,
+	death due to TBI or in the ED, hospitalized for >= 2 nights due to injury, 
+	or already marked as 1 on PosIntFinal (Kupperman et al.'s definition of ciTBI)
+
+
+
+
+
+	
+
+
+
+
+
+
+
+	
+		
+	
+
+
+	
 
 
