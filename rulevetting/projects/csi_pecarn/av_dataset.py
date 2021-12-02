@@ -17,6 +17,7 @@ from rulevetting.templates.dataset import DatasetTemplate
 
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
+        print('clean_data kwargs', kwargs)
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
         
@@ -67,7 +68,7 @@ class Dataset(DatasetTemplate):
         return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        
+        print('preprocess_data kwargs', kwargs)
         df = helper.extract_numeric_data(cleaned_data)
                 
         # impute missing values
@@ -102,6 +103,8 @@ class Dataset(DatasetTemplate):
         df_tune
         df_test
         """
+        print('split_data kwargs', kwargs)
+        
         col_names = ['id','case_id','site','control_type'] + list(preprocessed_data.columns.copy())
         df_train = pd.DataFrame(columns=col_names)
         df_train = df_train.set_index(['id','case_id','site','control_type'])
@@ -158,7 +161,8 @@ class Dataset(DatasetTemplate):
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
                  run_perturbations: bool = False,
-                 control_types=['ran','moi','ems']) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 control_types=['ran','moi','ems'],
+                 use_robust_av=True) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -196,9 +200,8 @@ class Dataset(DatasetTemplate):
             default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
 
-        print('kwargs', default_kwargs)
         if not run_perturbations:
-            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+            cleaned_data = cache(self.clean_data)(data_path=data_path, **{'use_robust_av': use_robust_av})
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             df_train, df_tune, df_test = cache(self.split_data)(preprocessed_data, **{'control_types': control_types})
         elif run_perturbations:
