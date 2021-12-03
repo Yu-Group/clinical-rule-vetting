@@ -126,6 +126,7 @@ class Dataset(DatasetTemplate):
 
         # remove site, case ID, subject ID, control type
         feats = df.keys()[4:]
+        # feats = feats.append(pd.Index(['SITE']))
 
         return df[feats]
 
