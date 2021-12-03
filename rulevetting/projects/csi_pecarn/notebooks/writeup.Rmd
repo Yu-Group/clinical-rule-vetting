@@ -38,6 +38,13 @@ knitr::opts_chunk$set(
 \newcommand{\red}{\textcolor{red}}
 \newcommand{\bb}{\textbf}
 
+
+```{r}
+# load processed data
+setwd("../../")
+```
+
+
 # Introduction and Domain Problem
 
 Cervical spine injuries (CSI) include injuries sustained to the spinal cord connecting the head and neck to the rest of the body. These injuries, albeit rare, are extremely severe for children whose bodies are still developing. CSI detection strategies include the use of a **computed tomography (CT) scan**, among others. While these interventions are generally effective at pinpointing injuries, they have the potential to inadvertently expose children to ionizing radiation and cause unnecessary pain (@leonard2011factors). 
