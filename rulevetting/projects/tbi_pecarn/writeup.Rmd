@@ -1,0 +1,108 @@
+---
+title: 'Predicting Low Risk of Clinically-Important TBI in Children: A Re-Analysis
+  of the PECARN Dataset'
+author: Jimmy Butler, Andrej Leban, Ian Shen, Xin Zhou
+output: pdf_document
+---
+
+# Introduction and Problem Motivation
+
+Answer Q1
+
+# Data
+
+## Description
+
+Insert a few paragraphs or so describing the data of the original study (unclean/unprocessed),
+including details on how it was collected (the who, what, when, and where information
+about the dataset)
+
+Answer Q2 - Q3 - Q4 - Q5, - Q6, 
+
+## Cleaning and Preprocessing
+
+Insert the cleaning and preprocessing steps here (stick with describing the canonical default
+judgement calls, but maybe map out specifically what kind of judgement calls we could implement)
+
+Justify each preprocessing/cleaning step, and justify why we decided to make a judgement call juncture/switch
+for this particular decision.
+
+I think Bin would like to see us be very explicit with the judgement calls (like even give them names
+so like we could turn them on or off)
+
+Give a short description of the final preprocessed data post-all of these judgement calls.
+
+## Post-Processing EDA
+
+This takes care of Q7
+
+Show some post-processing EDA plots and descriptions of the data (cleaned according to canonical steps)
+
+Currently, I'm thinking:
+
+1. Show general plots of counts for different categories, etc.
+2. Show plots of correlations between variables and with the outcome for just the umbrella variables
+  -to justify only using the umbrella variables in our classifier
+  -also possibly make some plots of conditioning on one umbrella variable and finding correlations between outcomes
+  to justify the rules/sequences of decisions
+3. Show plots of correlations between variables and with the outcome for the umbrella subcategories
+  -to justify possibly including the subcategories as well, may provide different information
+  -depends on what the domain expert says, though
+
+Conclude with our feature extraction judgement calls: we will either include only the umbrella variables,
+or all of them including subcategories, or just collapse the umbrellas into the subcategories (not sure how this last one will fit in, but we can see)
+
+## Data Discussion
+
+Answer Question 8 about randomness
+
+# Models
+
+Short sentence or two about how we will fit decision trees/rules for maximal interpretability
+
+## Baseline Model
+
+Short sentence or two about how we will be doing modelling
+
+### Description
+
+Describe the baseline classifier from the paper
+
+### Procedure and Performance
+
+Give the performance of the baseline model on the original data
+
+## Proposed Model
+
+### Description
+
+Describe the proposed model, it's advantages, disadvantages, how it might compare
+to the original model, etc.
+
+### Procedure and Performance
+
+Describe the procedure for training the model with justification
+Give the performance of the model
+
+### Stability Analysis
+
+Answer Question 9
+
+Go through the perturbations of our judgement calls (which will have been introduced above)
+and compare the performance of our classifier, see if it is similar or different
+
+Also, if there was instability in training the classifiers (as Xin noted in his notebook
+in our 12/2 meeting), run through it here as well
+
+# Discussion
+
+Discuss the performance, the results, the stability subject to perturbations,
+how well it compared to the baseline, etc.
+
+Discuss future directions on what we can do (other models, other perturbations,
+things we missed that we would have done with more time, etc.)
+
+# Conclusion
+
+Just wrap it up
+
