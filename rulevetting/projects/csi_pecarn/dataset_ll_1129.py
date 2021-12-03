@@ -106,7 +106,7 @@ class Dataset(DatasetTemplate):
         
         
         
-        '''   ## code for only using random control
+           ## code for only using random control
         
         ind1=[True for i in range(cleaned_data.shape[0])]
         index=pd.array(ind1,dtype='boolean')
@@ -116,7 +116,7 @@ class Dataset(DatasetTemplate):
             else:
                 index[i]=False
         df=df[index]
-        '''
+        
        
         #df=df[(df.ControlType == 'case') or (df.ControlType == 'ran')]
        
