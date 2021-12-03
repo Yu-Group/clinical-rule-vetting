@@ -1,6 +1,6 @@
 ---
-title: "Final Project: Predicting Cervical Spine Injuries in Children"
-subtitle: "Statistics 215A - Statistical Models: Theory and Application"
+title: \textbf{ Predicting Cervical Spine Injuries in Children}
+subtitle: "Final Project: Statistics 215A, Fall 2021"
 author: "Andy Shen, Licong Lin, Seunghoon Paik"
 date: \textbf{Acknowledgments:} Michael Boyle, Chandan Singh, Omer Ronen, Bin Yu
 header-includes:
@@ -14,8 +14,11 @@ header-includes:
 output: 
   pdf_document:
     number_sections: true
+    toc: true
 bibliography: bibliography.bib
 ---
+
+
 
 ```{r setup, include=FALSE}
 rm(list = ls())
@@ -30,7 +33,6 @@ knitr::opts_chunk$set(
   fig.align = "center",  # always align figure in center
   fig.pos = "H",  # always plot figure at the exact location of the code chunk
   cache = FALSE,
-  dev = "jpeg",
   dpi = 400) 
 ```
 
@@ -41,7 +43,10 @@ knitr::opts_chunk$set(
 
 ```{r}
 # load processed data
-setwd("../../")
+train <- read.csv("../../../../data/csi_pecarn/processed/train.csv")
+tune <- read.csv("../../../../data/csi_pecarn/processed/train.csv")
+test <- read.csv("../../../../data/csi_pecarn/processed/train.csv")
+all <- rbind(train, tune, test)[, -1]
 ```
 
 
@@ -62,7 +67,7 @@ The structure of this report is as follows: In Section \blue{\ref{sec:data}}, we
 
 \red{The questions below are useful to ask: How were the data collected? At what locations? Over what time period? Who collected them? What instruments were used? Have the operators and instruments changed over the period? Try to imagine yourself at the data collection site physically.}
 
-\red{INCLUDE NUMBER OF CONTROL AND CASE PATIENTS IN THE FINAL CLEANED DATA.}
+\red{INCLUDE NUMBER OF CONTROL AND CASE PATIENTS IN THE FINAL CLEANED DATA (52).}
 
 As mentioned above, our data is collected from the PECARN hospital network, which contains patient CSI data from a previous CDR study. The previous study contained children both with and without CSI. The children without CSI were grouped into various controls based on their injury mechanism and whether they had received out-of-patient emergency medical services (EMS) treatment. \red{In our study, we are only interested in distinguishing true injury from simple trauma. We group all of the sub-control groups into a single control group for more refined predictions.}
 
@@ -115,7 +120,7 @@ The omitted features were mostly redundant information or information that would
 
 ## Correlation Heatmap
 
-Figure \blue{\ref{fig:corr-map}} shows a heatmap of the reduced feature space of 51 variables. While most features are not strongly correlated with each other, there are some features that exhibit high correlations. These features are typically those of the same type, such as whether the patient reported pain in their neck and whether tenderness was observed in the patient's neck. It is expected for features like these to be influenced by one another. Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating weak association throughout the feature space in general.
+Figure \blue{\ref{fig:corr-map}} shows a heatmap of the reduced feature space of `r ncol(all)` variables. While most features are not strongly correlated with each other, there are some features that exhibit high correlations. These features are typically those of the same type, such as whether the patient reported pain in their neck and whether tenderness was observed in the patient's neck. It is expected for features like these to be influenced by one another. Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating weak association throughout the feature space in general.
 
 \begin{figure}[H]
 \includegraphics[height=6in, width=8in]{corr-map.png}
@@ -129,6 +134,28 @@ Figure \blue{\ref{fig:corr-map}} shows a heatmap of the reduced feature space of
 After seeing which features are associated with each other, we then examine the correlation of each feature with respect to the outcome variable (whether the patient truly has a CSI). We find that most features are not highly correlated with the outcome in either direction, with some exceptions: the `IntervForCervicalStab` feature, which tells whether the patient underwent any cervical stabilization measures at the site, has the highest correlation (above 0.60) with the outcome. This should not be surprising since a cervical stabilization measure is only imposed on a patient if a medical official on-site thinks it is necessary, thus we expect most true injuries to be highly associated with this intervention. 
 
 Similarly, `DxCspineInjury` measures whether the patient is suspected of having a CSI. This has the second-highest correlation of roughly 0.45, which also should not be surprising. We discuss this variable in more detail in Section \blue{\ref{sec:best}}. 
+
+## Frequency of feature values
+
+
+To further explore how the features are distributed, we examine the frequency of "yes" or `1` values for the features. The top ten features with the highest frequency of `1` values are shown in Figure \blue{\ref{fig:feat-freq}}.
+
+The features `AVPU` and `PtCompPain` have the two highest yes frequencies 
+
+```{r feat-freq, fig.cap="Top ten features with highest \"yes\" (1) responses.", out.width='75%', fig.width=9, fig.height=5}
+features <- all %>% select(-outcome) %>% 
+  select(!contains("2"))
+freq1 <- sort(apply(features, 2, mean), dec = TRUE)
+top <- freq1[1:8]
+names(top)[c(3, 4)] <- c("LimitedRM", "CSImmob")
+df <- data.frame("feat" = names(top), "frequency" = top)
+df %>% 
+  ggplot(aes(reorder(feat, -frequency, sum), frequency)) + 
+  geom_col(fill = "lightblue", color = "black") +
+  theme_bw() + 
+  labs(x = "Feature", y = "Frequency of Yes")
+```
+
 
 # Modeling {#sec:modeling}
 
