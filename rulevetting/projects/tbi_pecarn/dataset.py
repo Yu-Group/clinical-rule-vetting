@@ -103,6 +103,13 @@ class Dataset:
                 outcome = not_missing[0]
             return outcome
         
+        #######################
+        # DROP GCSSCORE < 14  #
+        #######################
+        cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, : ]
+        cleaned_data = cleaned_data.drop(columns = ['GCSTotal', 'GCSGroup'])
+        #######################
+        
         # here we infer the missing outcomes based on the variables that define the outcome - hosphead, intub, ...
         cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
         
@@ -152,7 +159,7 @@ class Dataset:
         preprocessed_data = cleaned_data.drop(columns=['id'])
         
         return preprocessed_data
-
+    
     @abstractmethod
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Extract features from preprocessed data
@@ -194,10 +201,50 @@ class Dataset:
             [int(.6 * len(preprocessed_data)),  # 60% train
              int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
         ))
+    
+    @abstractmethod
+    def get_data_split(self, pre_data: pd.DataFrame, simple = False, young = True, old = True) :
+        """Retrieve preprocessed data and returns the requested dataset (train, tune, test)
+        
+        Parameters
+        ----------
+        pre_data : pd.DataFrame  - Preprocessed data
+        simple : True or False   - Only contains simple variables if True, contains all variables if False
+        young  : True or False   - Data contains age < 2
+        old    : True or False   - Data contains age > 2
+
+        Returns
+        -------
+        X_train : pd.DataFrame     y_train : np.array
+        X_tune : pd.DataFrame      y_tune : np.array
+        X_test : pd.DataFrame      y_test : np.array
+        """
+    
+        outcome_def = self.get_outcome_name()
+        simple_var_list = self.get_simple_var_list()
+        
+        if simple :
+            pre_data = pre_data[simple_var_list]
+        if young and not old : 
+            pre_data = pre_data[pre_data['AgeTwoPlus'] == 1]
+            pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
+        if old and not young :
+            pre_data = pre_data[pre_data['AgeTwoPlus'] == 2]
+            pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
+        
+        df_train, df_tune, df_test = self.split_data(pre_data)
+        X_train = df_train.drop(columns=outcome_def)
+        y_train = df_train[outcome_def].values
+        X_tune = df_tune.drop(columns=outcome_def)
+        y_tune = df_tune[outcome_def].values
+        X_test = df_test.drop(columns=outcome_def)
+        y_test = df_test[outcome_def].values
+
+        return X_train, y_train, X_tune, y_tune, X_test, y_test
 
     @abstractmethod
     def get_outcome_name(self) -> str:
-        return 'PosIntFinal'  # return the name of the outcome we are predicting
+        return 'outcome'  # return the name of the outcome we are predicting
 
     @abstractmethod
     def get_post_ct_names(self) -> list:
@@ -212,6 +259,26 @@ class Dataset:
         
         return  tbi_on_ct + ctform_vars + outcome_vars + other_vars # return name of post ct vars that aren't the outcome
 
+    @abstractmethod
+    def get_simple_var_list(self) -> list:
+        return ['InjuryMech_Assault', 'InjuryMech_Bicyclist struck by automobile',
+           'InjuryMech_Bike collision/fall', 'InjuryMech_Fall down stairs',
+           'InjuryMech_Fall from an elevation',
+           'InjuryMech_Fall to ground standing/walking/running',
+           'InjuryMech_Motor vehicle collision',
+           'InjuryMech_Object struck head - accidental',
+           'InjuryMech_Other mechanism', 'InjuryMech_Other wheeled crash',
+           'InjuryMech_Pedestrian struck by moving vehicle', 'InjuryMech_Sports',
+           'InjuryMech_Walked/ran into stationary object',
+           'High_impact_InjSev_High', 'High_impact_InjSev_Low',
+           'High_impact_InjSev_Moderate', 'Amnesia_verb_No', 
+           'Amnesia_verb_Pre/Non-verbal', 'Amnesia_verb_Yes',
+           'LOCSeparate_No', 'LOCSeparate_Suspected', 'LOCSeparate_Yes', 
+           'Seiz', 'ActNorm', 'HA_verb_No', 'HA_verb_Pre/Non-verbal', 'HA_verb_Yes',
+            'Vomit', 'Intubated', 'Paralyzed', 'Sedated',
+            'AMS', 'SFxPalp_No', 'SFxPalp_Unclear', 'SFxPalp_Yes',
+           'FontBulg', 'Hema', 'Clav', 'NeuroD', 'OSI', 'Drugs', 'AgeTwoPlus', 'Gender', 'outcome']
+    
     @abstractmethod
     def get_dataset_id(self) -> str:
         return 'tbi_pecarn'  # return the name of the dataset id
