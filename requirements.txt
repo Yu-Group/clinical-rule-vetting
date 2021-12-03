@@ -1,0 +1,2 @@
+logitboost >= 0.7
+pydotplus >= 2.0.2
