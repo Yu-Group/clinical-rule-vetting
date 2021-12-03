@@ -123,12 +123,6 @@ def rename_values(df):
     csimmob={3.: 0., 
              1.: 1.,
              2.: 1.}
-    
-    avpu = {
-        
-    
-    }
-
     df.MedsGiven=df.MedsGiven.map(Y_binary)
     df.MedsRecdPriorArrival=df.MedsRecdPriorArrival.map(Y_binary)
     df.Predisposed=df.Predisposed.map(zeroone_binary)
