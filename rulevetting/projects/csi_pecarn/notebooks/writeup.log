@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  4 DEC 2021 00:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  4 DEC 2021 15:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -535,37 +535,75 @@ LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
 (/Users/andyshen/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) [2] [3] [4]
-<corr-map.png, id=145, 1806.75pt x 1806.75pt>
+<corr-map.png, id=149, 1806.75pt x 1806.75pt>
 File: corr-map.png Graphic file (type png)
 <use corr-map.png>
-Package pdftex.def Info: corr-map.png  used on input line 353.
+Package pdftex.def Info: corr-map.png  used on input line 358.
 (pdftex.def)             Requested size: 433.60129pt x 433.60129pt.
 [5pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.373 
+l.378 
        <./corr-map.png>]
-<writeup_files/figure-latex/feat-freq-1.pdf, id=159, 644.4075pt x 349.305pt>
-File: writeup_files/figure-latex/feat-freq-1.pdf Graphic file (type pdf)
-<use writeup_files/figure-latex/feat-freq-1.pdf>
-Package pdftex.def Info: writeup_files/figure-latex/feat-freq-1.pdf  used on in
-put line 390.
-(pdftex.def)             Requested size: 422.79306pt x 229.17754pt.
+
+LaTeX Warning: Reference `fig:largediff' on page 6 undefined on input line 391.
+
+
+
+LaTeX Warning: Reference `fig:smalldiff' on page 6 undefined on input line 392.
+
+
+<writeup_files/figure-latex/outcomes-1.pdf, id=163, 627.34375pt x 340.27126pt>
+File: writeup_files/figure-latex/outcomes-1.pdf Graphic file (type pdf)
+<use writeup_files/figure-latex/outcomes-1.pdf>
+Package pdftex.def Info: writeup_files/figure-latex/outcomes-1.pdf  used on inp
+ut line 396.
+(pdftex.def)             Requested size: 422.78783pt x 229.32011pt.
+<writeup_files/figure-latex/controls-1.pdf, id=164, 627.34375pt x 338.26375pt>
+File: writeup_files/figure-latex/controls-1.pdf Graphic file (type pdf)
+<use writeup_files/figure-latex/controls-1.pdf>
+Package pdftex.def Info: writeup_files/figure-latex/controls-1.pdf  used on inp
+ut line 405.
+(pdftex.def)             Requested size: 422.78783pt x 227.96718pt.
 [6pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.422 
-       <./writeup_files/figure-latex/feat-freq-1.pdf>] [7] [8] (./writeup.aux)
+l.411 
+       <./writeup_files/figure-latex/outcomes-1.pdf>] [7pdfTeX warning (ext4): 
+destination with the same identifier (name{figure.3}) has been already used, du
+plicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.455 ...tion{Decision Tree}\label{decision-tree}}
+                                                   <./writeup_files/figure-late
+x/controls-1.pdf>]
+<writeup_files/figure-latex/accuracy-rates-1.pdf, id=196, 525.965pt x 279.0425p
+t>
+File: writeup_files/figure-latex/accuracy-rates-1.pdf Graphic file (type pdf)
+<use writeup_files/figure-latex/accuracy-rates-1.pdf>
+Package pdftex.def Info: writeup_files/figure-latex/accuracy-rates-1.pdf  used 
+on input line 471.
+(pdftex.def)             Requested size: 399.31218pt x 211.84883pt.
+[8pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
+has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.505 
+       <./writeup_files/figure-latex/accuracy-rates-1.pdf>] [9] [10] (./writeup
+.aux)
+
+LaTeX Warning: There were undefined references.
+
 Package rerunfilecheck Info: File `writeup.out' has not changed.
-(rerunfilecheck)             Checksum: 7F396ACDF0FB8BC4C47350DB5FB3AB74;2775.
+(rerunfilecheck)             Checksum: A31C4208F0EF35D6EF5B0579B1E60A4C;2863.
  ) 
 Here is how much of TeX's memory you used:
- 11480 strings out of 480313
- 179571 string characters out of 5896366
- 475952 words of memory out of 5000000
- 29094 multiletter control sequences out of 15000+600000
+ 11519 strings out of 480313
+ 180697 string characters out of 5896366
+ 477478 words of memory out of 5000000
+ 29119 multiletter control sequences out of 15000+600000
  460566 words of font info for 69 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  60i,6n,63p,606b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -582,10 +620,10 @@ ary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/andyshen/Library
 nyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/Tiny
 TeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTe
 X/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (8 pages, 326503 bytes).
+Output written on writeup.pdf (10 pages, 339695 bytes).
 PDF statistics:
- 258 PDF objects out of 1000 (max. 8388607)
- 221 compressed objects within 3 object streams
- 54 named destinations out of 1000 (max. 500000)
- 171 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 298 PDF objects out of 1000 (max. 8388607)
+ 253 compressed objects within 3 object streams
+ 66 named destinations out of 1000 (max. 500000)
+ 189 words of extra memory for PDF output out of 10000 (max. 10000000)
 

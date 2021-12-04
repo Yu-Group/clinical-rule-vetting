@@ -21,6 +21,8 @@ bibliography: bibliography.bib
 rm(list = ls())
 library(tidyverse)
 library(knitr)
+library(reshape2)
+library(patchwork)
 knitr::opts_chunk$set(
   echo = FALSE,  # don't print the code chunk
   warning = FALSE,  # don't print warnings
@@ -120,16 +122,16 @@ The omitted features were mostly redundant information or information that would
 
 ## Data Cleaning {#sec:clean}
 
-After reducing the feature space, we implement several layers of ***judgment calls*** in our data cleaning procedure. All judgment calls directly involving medical subject-matter expertise were verified by Dr. Boyle.
+After reducing the feature space, we implement several layers of ***judgment calls*** in our data cleaning procedure. Any judgment call that directly involved medical subject-matter expertise was verified by Dr. Boyle.
 
-\underline{\textit{\textbf{Missing values}}:} Certain columns in the data contain blank or missing values. These missing values are imputed using *defensive imputation* which assumes the worst-case scenario for the patient. For instance, if we do not have data on whether a patient has tenderness in their neck, we assume they do. Note that this does not default to imputing all missing values with "yes." We must consider what each feature is asking for and determine the worst-case scenario accordingly.
+\underline{\textit{\textbf{Missing values}}:} Certain columns in the data contain blank or missing values. Features with a proportion of missing values above 15% are removed from this analysis. The remaining missing values are imputed using *defensive imputation* which assumes the worst-case scenario for the patient. For instance, if we do not have data on whether a patient has tenderness in their neck, we assume they do. Note that this does not default to imputing all missing values with "yes." We must consider what each feature is asking for and determine the worst-case scenario accordingly.
 
 
-\underline{\textit{\textbf{Categorical features}}:} In order to create an interpretable decision rule, we convert our categorical features into binary 0-1 features, with 1 corresponding to "yes" and 0 corresponding to "no". To do this, we maintain the defensive imputation strategy by determining the worst-case outcome for each feature. Fortunately, the data contains documentation which provides meaning to the values pertaining to each feature. For most features, this consisted of mapping unknown values using defensive imputation, and mapping other variables using common sense. For example, a value of `S` which stabds for "suspected, but unknown" would map to "yes".
+\underline{\textit{\textbf{Categorical features}}:} In order to create an interpretable decision rule, we map our categorical features into binary 0-1 features, **with 1 corresponding to "yes" and 0 corresponding to "no".** To do this, we maintain the defensive imputation strategy by determining the worst-case outcome for each feature. Fortunately, the data contains documentation which provides meaning to the values pertaining to each feature. For most features, this consisted of mapping unknown values using defensive imputation, and mapping other variables using common sense. For example, a value of `S` which stabds for "suspected, but unknown" would map to "yes".
 
 \underline{\textit{\textbf{Ordinal features}}:} Our feature space contains two ordinal features: `AVPU` and `TotalGCS`. AVPU stands for "Alert, Verbal, Pain, Unresponsive", and is a widely accepted health care protocol to determine a patient's overall status. Each letter in "AVPU" corresponds to a more urgent patient status. Alertness and unresponsiveness are simply whether the patient is alert or unresponsive. "Verbal" and "Pain" correspond to whether the patient is receptive to verbal or painful stimulation. In our case, we treat anything that is not alert as the worst-case scenario and impute accordingly. Failing to respond to any stimuli whatsoever should be heavily scrutinized and our imputation takes this into account.
 
-The GCS test is...
+The Glasglow Coma Scale is a similar score used to determine one's consciousness level. It is a sum of three sub-tests and is scored on a scale from 3 (completely unconscious) to 15 (fully conscious). Here, we classify any score above 3 as the worst-case scenario.
 
 
 ## Correlation between features
@@ -153,25 +155,63 @@ Similarly, `DxCspineInjury` measures whether the patient is suspected of having 
 
 ## Frequency of feature values
 
-
-To further explore how the features are distributed, we examine the frequency of "yes" responses for the feature space. The ten features with the highest frequency of "yes" values are shown in Figure \blue{\ref{fig:feat-freq}}.
-
-
-```{r feat-freq, fig.cap="Top ten features with highest \'yes\' (1) responses.", out.width='90%', fig.width=9, fig.height=5}
-features <- all %>% select(-outcome) %>% select(!contains("2"))
-freq1 <- sort(apply(features, 2, mean), dec = TRUE)
-top <- freq1[1:8]
-names(top)[c(2, 3)] <- c("CSImmob", "LimitedRM")
-df <- data.frame("feat" = names(top), "frequency" = top)
-df %>% 
-  ggplot(aes(reorder(feat, -frequency, sum), frequency)) + 
-  geom_col(fill = "lightblue", color = "black") +
-  theme_bw() + 
-  labs(x = "Feature", y = "Frequency of Yes")
+```{r}
+outcomes <- all %>% filter(outcome == 1) %>% 
+  select(-outcome) %>% select(!contains("2"))
+freq1 <- sort(apply(outcomes, 2, mean), dec = TRUE)
+freq0 <- 1 - freq1
+outcome_freq <- data.frame(cbind(freq0, freq1)) %>% 
+  rownames_to_column("feature") %>% 
+  mutate(diff = abs(freq1 - freq0)) %>% 
+  arrange(desc(diff))
 ```
 
 
-The `PtCompPain` and `CSImmob` features have the two highest frequencies of "yes" responses. They represent whether the patient complained of pain and whether cervical spine precautions were implemented prior to arrival, respectively. These high percentages make sense because patients usually will not report to the hospital if they do not believe they are in pain. Moreover, emergency medical service technicians will likely implement CSI precautions on most patients (such as a brace or collar) since there is really no harm in doing so.
+```{r}
+controls <- all %>% filter(outcome != 1) %>% 
+  select(-outcome) %>% select(!contains("2"))
+freq1 <- sort(apply(controls, 2, mean), dec = TRUE)
+freq0 <- 1 - freq1
+control_freq <- data.frame(cbind(freq0, freq1)) %>% 
+  rownames_to_column("feature") %>% 
+  mutate(diff = abs(freq1 - freq0)) %>% 
+  arrange(desc(diff))
+```
+
+
+We further explore our data by examining the frequency of "yes" and "no" values in for each feature. The six features with the greatest and smallest *absolute differences* in relative frequency are shown in Figures \blue{\ref{fig:largediff}} and \blue{\ref{fig:smalldiff}}, respectively.
+
+```{r}
+plotRelFreq <- function(data, high = TRUE) {
+  library(tidyverse)
+  if (high) {
+    d <- head(data, 5)
+  } else {
+    d <- tail(data, 5)
+  }
+  d %>% select(-diff) %>% melt() %>% 
+    ggplot(mapping = aes(x = reorder(feature, -value, sum), y = value, fill = variable)) + 
+    geom_col(position = 'dodge') + 
+    labs(x = "Feature", y = "Relative Frequency") +
+    scale_fill_manual("Value", values = c("mediumpurple3", "mediumseagreen")) + 
+    theme_classic() + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+```
+
+```{r outcomes, fig.cap="Top five features with the greatest absolute differences in relative frequency.", out.width='90%', fig.width=9, fig.height=5}
+outcome_high <- plotRelFreq(outcome_freq)
+outcome_low <- plotRelFreq(outcome_freq, high = FALSE)
+outcome_high + outcome_low
+```
+
+```{r controls, fig.cap="Top five features with the greatest absolute differences in relative frequency.", out.width='90%', fig.width=9, fig.height=5}
+controls_high <- plotRelFreq(control_freq)
+controls_low <- plotRelFreq(control_freq, high = FALSE)
+controls_high + controls_low
+```
+
+
 
 
 # Modeling {#sec:modeling}
@@ -191,10 +231,46 @@ However, if the false negative rate is our only area of concern, there is no nee
 
 We use a combination of **logistic regression** and **backwards selection** to choose our model features. 
 
-\textcolor{red}{\textbf{ZZQ Licong, you will need to write about this since you did it. Or you can delineate the method for me.}}
+\textcolor{red}{\textbf{ZZQ Licong, you will need to write about this since you did it. Or you can delineate the method for me. Please include the best features selected.}}
+
+## Models
+
+### AdaBoost
+
+\textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
+
+### Decision Tree
+
+\textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
+
+I think a diagram for the decision tree would be helpful.
+
+### Logistic Regression
+
+\textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
 
 
 ## Best model {#sec:best}
+
+
+```{r accuracy-rates, out.width="85%", fig.width=7.5, fig.cap="Sensitivity and specificity rates for three candidate models: logistic regression, decision tree, and AdaBoost. Accuracy rates are assessed at each model's optimal hyperparameter value."}
+type <- c("AdaBoost", "Decision Tree", "Logistic Regression")
+vars <- paste0(c(16, 6, 21), " optimal features")
+sensitivity <- c(0.97196262, 0.95327103, 0.97196262)
+specificity <- c(0.78956835, 0.76438849, 0.79136691)
+names(sensitivity) <- names(specificity) <- type
+df_res <- data.frame(type, sensitivity, specificity)
+melted <- melt(df_res)
+melted %>%
+  ggplot(mapping = aes(x = type, y = value, fill = variable)) + 
+  geom_col(position = 'dodge') + 
+  labs(x = "Method", y = "Accuracy") +
+  scale_fill_manual("Accuracy Metric", values = c("#2274AE", "goldenrod2")) + 
+  theme_classic() +
+  geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) +
+  annotate("text", x = 1:3, y = 1.15, label = vars, fontface = "bold")
+```
+
 
 Our chosen model is a simple decision tree. This model achieves a **98% sensitivity rate** (predicting a CSI when the patient truly has CSI) and a **75% specificity rate** (predicting no CSI when that is truly the case). \red{(I need exact values here.)} Thus, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
