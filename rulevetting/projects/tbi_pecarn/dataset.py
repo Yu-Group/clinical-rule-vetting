@@ -103,36 +103,37 @@ class Dataset:
                 outcome = not_missing[0]
             return outcome
         
-        #######################
-        # DROP GCSSCORE < 14  #
-        #######################
-        cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, : ]
-        cleaned_data = cleaned_data.drop(columns = ['GCSTotal', 'GCSGroup'])
-        #######################
+        # judgement call - we infer missing outcomes based on other outcome variables - hosphead, intub, ...
+        if kwargs['infer_outcome']:
+            cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
         
-        # here we infer the missing outcomes based on the variables that define the outcome - hosphead, intub, ...
-        cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
-        
+        # judgement call - we drop patients with gcs <14 and thus gcs scores
+        if kwargs['drop_low_gcs']:
+            cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, :]
+            cleaned_data = cleaned_data.drop(columns = ['GCSTotal', 'GCSGroup'])  
+            gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
+            cleaned_data = cleaned_data.drop(columns=gcs_vars)
+                
+        # judgement call - impute unknowns with mode/mean/or drop patient
+        if 'impute_unknowns' in kwargs:
+            for col in cleaned_data.columns.tolist():
+                if kwargs['impute_unknowns'] == 'mode':
+                    cleaned_data.loc[cleaned_data[col] == 'Unknown', col] = cleaned_data.mode()[col][0]
+                if kwargs['impute_unknowns'] == 'drop':
+                    cleaned_data = cleaned_data[cleaned_data[col] != 'Unknown']
+            
         # renaming our target variable
         cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
-        
-        # removing gcs subcategories - several are missing and can be inferred through total
-        gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
-        cleaned_data = cleaned_data.drop(columns=gcs_vars)
         
         # removing post-ct variables that aren't the outcome
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
         
-        # removing not concrete vars and ones that are missing many points
-        # We first only consider AgeTwoPlus - a binary var representing age
+        # dropping variables that do not influence the doctors decision
         other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
                       'AgeInMonth', 'AgeinYears']
         cleaned_data = cleaned_data.drop(columns=other_vars)
         
-        # Impute unknowns with mode
-        for col in cleaned_data.columns.tolist():
-            cleaned_data.loc[cleaned_data[col] == 'Unknown', col] = cleaned_data.mode()[col][0]
-            
+        
         # Impute features that have descriptions about dealing with not applicables
         not_applicable_doc_feats = ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
                                     'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer', 
@@ -170,13 +171,18 @@ class Dataset:
         ----------
         preprocessed_data: pd.DataFrame
         kwargs: dict
-            Dictionary of hyperparameters specifying judgement calls
+            Dictionary of hyperparameters specifying judgement calls,
+            extract_features key should be a list of features/strings
 
         Returns
         -------
         extracted_features: pd.DataFrame
         """
-        return NotImplemented
+        extracted_features = preprocessed_data
+        if 'extract_features' in kwargs and len(kwargs['extract_features']) > 0:
+            extracted_features = preprocessed_data[kwargs['extract_features']]
+            
+        return extracted_features
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing.
@@ -287,24 +293,23 @@ class Dataset:
     def get_meta_keys(self) -> list:
         """Return list of keys which should not be used in fitting but are still useful for analysis
         """
-        return NotImplemented
+        return ['Ethnicity', 'Gender', 'Race']
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         """Return dictionary of keyword arguments for each function in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
-
-        Example
-        -------
+        """
         return {
             'clean_data': {},
             'preprocess_data': {
-                'imputation_strategy': ['mean', 'median'],  # first value is default
+                'infer_outcome': [True, False],
+                'drop_low_gcs': [True, False],
+                'impute_unknowns': ['mode', 'drop'],
+                'impute_not_applicables': [True, False]
             },
-            'extract_features': {},
+            'extract_features': {}
         }
-        """
-        return NotImplemented
 
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
