@@ -313,6 +313,9 @@ class Dataset:
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
+                 simple: bool = True,
+                 young: bool = True,
+                 old: bool = True,
                  run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
@@ -325,6 +328,12 @@ class Dataset:
             Path to all data
         load_csvs: bool, optional
             Whether to skip all processing and load data directly from csvs
+        simple : bool, optional
+            contains simple variables if True, contains all variables if False
+        young : bool, optional
+            use data for patients with age < 2 or not include them
+        old : bool, optional
+            use data for patients with age >= 2 or not include them
         run_perturbations: bool, optional
             Whether to run / save data pipeline for all combinations of judgement calls
 
@@ -334,6 +343,9 @@ class Dataset:
         df_tune
         df_test
         """
+        outcome_def = self.get_outcome_name()
+        simple_var_list = self.get_simple_var_list()
+        
         PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
         if load_csvs:
             return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
@@ -354,7 +366,18 @@ class Dataset:
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+            pre_data = extracted_features
+            if simple:
+                pre_data = extracted_features[simple_var_list]
+            if young and not old: 
+                pre_data = extracted_features[extracted_features['AgeTwoPlus'] == 1]
+                pre_data = extracted_features.drop(columns = ['AgeTwoPlus'])
+            if old and not young:
+                pre_data = extracted_features[extracted_features['AgeTwoPlus'] == 2]
+                pre_data = extracted_features.drop(columns = ['AgeTwoPlus'])
+                
+            df_train, df_tune, df_test = cache(self.split_data)(pre_data)
+            
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
             clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
@@ -392,4 +415,3 @@ class Dataset:
                 return dfs[list(dfs.keys())[0]]
 
         return df_train, df_tune, df_test
-
