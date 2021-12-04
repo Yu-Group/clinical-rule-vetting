@@ -2,7 +2,6 @@
 title: \textbf{ Predicting Cervical Spine Injuries in Children}
 subtitle: "Final Project: Statistics 215A, Fall 2021"
 author: "Andy Shen, Licong Lin, Seunghoon Paik"
-date: \textbf{Acknowledgments:} Michael Boyle, Chandan Singh, Omer Ronen, Bin Yu
 header-includes:
    - \usepackage{float}
    - \usepackage{bbm}
@@ -50,6 +49,8 @@ all <- rbind(train, tune, test)[, -1]
 ```
 
 
+\newpage
+
 # Introduction and Domain Problem
 
 Cervical spine injuries (CSI) include injuries sustained to the spinal cord connecting the head and neck to the rest of the body. These injuries, albeit rare, are extremely severe for children whose bodies are still developing. CSI detection strategies include the use of a **computed tomography (CT) scan**, among others. While these interventions are generally effective at pinpointing injuries, they have the potential to inadvertently expose children to ionizing radiation and cause unnecessary pain (@leonard2011factors). 
@@ -57,7 +58,7 @@ Cervical spine injuries (CSI) include injuries sustained to the spinal cord conn
 The rarity of a CSI, in conjunction with the potentially harmful effects of CSI detection methods, force clinicians and specialists to assess the risk of performing a CT scan against the potential of missing critical injury diagnoses. These judgement calls are typically supported through a **clinical decision rule (CDR)** which uses prior data of CSI injuries to predict whether a patient has sustained a true CSI or not. Doctors use the results of the CDR and their own assessment of the situation to decide if the risk of a CT scan outweighs its potential benefits. 
 \red{Include more about how to IMPROVE the current CDR, most likely after we finish our model.}
 
-In this project, we develop a CDR for predicting CSI in children, based on data provided by the Pediatric Emergency Care Applied Research Network (PECARN). The data are described in Section \blue{\ref{sec:data}}. **Our objective is to predict the true outcome of a patient's trauma (whether they truly have a CSI).** We ensure all components of our CDR are interpretable and realistically accessible to physicians when speculation of a CSI is called into question. Throughout the modeling process, we ensure that our predictions are accurate, stable, and capture the wide range of possible injuries, as well as the varying medical and demographic history of each patient.   
+In this project, we develop a CDR for predicting CSI in children, based on data provided by the Pediatric Emergency Care Applied Research Network (PECARN). The data are described in Section \blue{\ref{sec:data}}. **Our objective is to predict the true outcome of a patient's trauma (whether they truly have a CSI).** We ensure all components of our CDR are interpretable and realistically accessible to physicians when speculation of a CSI is called into question. Throughout the modeling process, we ensure that our predictions are accurate, stable, and capture the breadth of possible injuries and the varying medical and demographic history of each patient.   
 
 The structure of this report is as follows: In Section \blue{\ref{sec:data}}, we explain our data and the features used to predict CSI. In...
 
@@ -177,7 +178,7 @@ Our chosen model is a simple decision tree. This model achieves a **95% sensitiv
 
 Prior to discovering this model, we fit a decision tree with the subset of features obtained in Section \blue{\ref{sec:feat-sel}}. This decision tree achieved a higher specificity rate of roughly 80%. However, this model may not be valid in a clinical context due to certain factors that influence the reporting of a certain feature. Our initial model has a domain-specific caveats that we must adjust for and address.
 
-First, the `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has strong predictive power. This is likely due to the fact that this predictor is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. This information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Therefore, we use this variable can be utilized in a real-world context.
+First, the `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has strong predictive power. This is likely due to the fact that this predictor is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. This information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Therefore, we use this variable can be utilized in a real-world context. We discuss this concept further in Section \blue{\ref{sec:stability}}
 
 Second, some features in our data are unobservable based on the value of other features. In the case of our initial model, the `PtSensoryLoss` feature measures whether the patient 
 
@@ -204,11 +205,17 @@ Subject matter expertise tells us that
 \red{What is the randomness in this PECARN data set? Is it a random sample from a population? Which one? Why can the data be viewed as a random sample? What assumptions are being made? Can one check these conditions using the info on the data collection process?}
 
 
-# Stability
+# Stability {#sec:stability}
 
 \red{What off-the-shelf method will you use? Do different methods give the same qualitative conclusion? Perturb one’s data, for example, by adding noise or subsampling if data units are exchangeable (in general, make sure the subsamples respect the underlying structures, e.g. dependence, clustering, heterogeneity, so the subsamples are representative of the original data). Do the conclusions still hold? Only trust those that pass the stability test, which is an easy-to-implement, first defense against over-fitting or too many false positive discoveries.}
 
+# Acknowledgments
 
+The authors would like to thank Dr. Michael Boyle from the UC San Francisco School of Medicine for his expertise and extremely helpful advice in determining which judgment calls to make. This project would not have been grounded in reality without Dr. Boyle's assistance.
+
+The authors would also like to thank Chandan Singh for setting up this project and for providing streamlined modeling templates for us to use.
+
+Finally, the authors would like to express their gratitude to the STAT 215A teaching team, Dr. Bin Yu and Omer Ronen, for their support and encouragement throughout the semester. We feel comfortable tackling complex research issues like these because of what we learned in lecture and discussion. These lessons will serve us well throughout our entire PhD.
 
 # References
 
