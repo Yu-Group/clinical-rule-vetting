@@ -103,46 +103,46 @@ class Dataset:
                 outcome = not_missing[0]
             return outcome
         
-        #######################
-        # DROP GCSSCORE < 14  #
-        #######################
-        cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, : ]
-        cleaned_data = cleaned_data.drop(columns = ['GCSTotal', 'GCSGroup'])
-        #######################
+        # judgement call - we infer missing outcomes based on other outcome variables - hosphead, intub, ...
+        if kwargs['infer_outcome']:
+            cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
         
-        # here we infer the missing outcomes based on the variables that define the outcome - hosphead, intub, ...
-        cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
-        
-        # renaming our target variable
-        cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
-        
-        # removing gcs subcategories - several are missing and can be inferred through total
-        gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
-        cleaned_data = cleaned_data.drop(columns=gcs_vars)
-        
-        # removing post-ct variables that aren't the outcome
-        cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
-        
-        # removing not concrete vars and ones that are missing many points
-        # We first only consider AgeTwoPlus - a binary var representing age
-        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
-                      'AgeInMonth', 'AgeinYears']
-        cleaned_data = cleaned_data.drop(columns=other_vars)
-        
-        # Impute unknowns with mode
-        for col in cleaned_data.columns.tolist():
-            cleaned_data.loc[cleaned_data[col] == 'Unknown', col] = cleaned_data.mode()[col][0]
+        # judgement call - we drop patients with gcs <14 and thus gcs scores
+        if kwargs['drop_low_gcs']:
+            cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, :]
+            cleaned_data = cleaned_data.drop(columns = ['GCSTotal', 'GCSGroup'])  
+            gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
+            cleaned_data = cleaned_data.drop(columns=gcs_vars)
+                
+        # judgement call - impute unknowns with mode/mean/or drop patient
+        if 'impute_unknowns' in kwargs:
+            for col in cleaned_data.columns.tolist():
+                if kwargs['impute_unknowns'] == 'mode':
+                    cleaned_data.loc[cleaned_data[col] == 'Unknown', col] = cleaned_data.mode()[col][0]
+                if kwargs['impute_unknowns'] == 'drop':
+                    cleaned_data = cleaned_data[cleaned_data[col] != 'Unknown']
             
-        # Impute features that have descriptions about dealing with not applicables
+        # judgement call - impute features that have descriptions about dealing with not applicables
         not_applicable_doc_feats = ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
                                     'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer', 
                                     'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc', 
                                     'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
                                     'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
                                     'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']
-        for col in  not_applicable_doc_feats:
-            cleaned_data.loc[cleaned_data[col] == 'Not applicable', col] = 'No'
-
+        if kwargs['impute_not_applicables']:
+            for col in  not_applicable_doc_feats:
+                cleaned_data.loc[cleaned_data[col] == 'Not applicable', col] = 'No'
+            
+        # renaming our target variable
+        cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
+        
+        # removing post-ct variables that aren't the outcome
+        cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
+        
+        # dropping variables that do not influence the doctors decision
+        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
+                      'AgeInMonth', 'AgeinYears']
+        cleaned_data = cleaned_data.drop(columns=other_vars)
         
         # remapping binary variables
         bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes']).all()]
@@ -170,13 +170,18 @@ class Dataset:
         ----------
         preprocessed_data: pd.DataFrame
         kwargs: dict
-            Dictionary of hyperparameters specifying judgement calls
+            Dictionary of hyperparameters specifying judgement calls,
+            extract_features key should be a list of features/strings
 
         Returns
         -------
         extracted_features: pd.DataFrame
         """
-        return NotImplemented
+        extracted_features = preprocessed_data
+        if 'extract_features' in kwargs and len(kwargs['extract_features']) > 0:
+            extracted_features = preprocessed_data[kwargs['extract_features']]
+            
+        return extracted_features
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing.
@@ -287,28 +292,30 @@ class Dataset:
     def get_meta_keys(self) -> list:
         """Return list of keys which should not be used in fitting but are still useful for analysis
         """
-        return NotImplemented
+        return ['Ethnicity', 'Gender', 'Race']
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         """Return dictionary of keyword arguments for each function in the dataset class.
         Each key should be a string with the name of the arg.
         Each value should be a list of values, with the default value coming first.
-
-        Example
-        -------
+        """
         return {
             'clean_data': {},
             'preprocess_data': {
-                'imputation_strategy': ['mean', 'median'],  # first value is default
+                'infer_outcome': [True, False],
+                'drop_low_gcs': [True, False],
+                'impute_unknowns': ['mode', 'drop'],
+                'impute_not_applicables': [True, False]
             },
-            'extract_features': {},
+            'extract_features': {}
         }
-        """
-        return NotImplemented
 
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
+                 simple: bool = True,
+                 young: bool = True,
+                 old: bool = True,
                  run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
@@ -321,6 +328,12 @@ class Dataset:
             Path to all data
         load_csvs: bool, optional
             Whether to skip all processing and load data directly from csvs
+        simple : bool, optional
+            contains simple variables if True, contains all variables if False
+        young : bool, optional
+            use data for patients with age < 2 or not include them
+        old : bool, optional
+            use data for patients with age >= 2 or not include them
         run_perturbations: bool, optional
             Whether to run / save data pipeline for all combinations of judgement calls
 
@@ -330,6 +343,9 @@ class Dataset:
         df_tune
         df_test
         """
+        outcome_def = self.get_outcome_name()
+        simple_var_list = self.get_simple_var_list()
+        
         PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
         if load_csvs:
             return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
@@ -350,7 +366,18 @@ class Dataset:
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+            pre_data = extracted_features
+            if simple:
+                pre_data = extracted_features[simple_var_list]
+            if young and not old: 
+                pre_data = extracted_features[extracted_features['AgeTwoPlus'] == 1]
+                pre_data = extracted_features.drop(columns = ['AgeTwoPlus'])
+            if old and not young:
+                pre_data = extracted_features[extracted_features['AgeTwoPlus'] == 2]
+                pre_data = extracted_features.drop(columns = ['AgeTwoPlus'])
+                
+            df_train, df_tune, df_test = cache(self.split_data)(pre_data)
+            
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
             clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
@@ -388,4 +415,3 @@ class Dataset:
                 return dfs[list(dfs.keys())[0]]
 
         return df_train, df_tune, df_test
-

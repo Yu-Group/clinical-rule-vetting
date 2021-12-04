@@ -68,7 +68,9 @@ knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_peca
 To retrace back to our analysis of missing features, we would now like to shine some light on our judgement calls and the cleaning of the data. 
 
 For starters, we sifted through the excel sheet containing variable names and descriptions and noticed that many variables list the category "Not applicable" as "No" or "Missing". To determine which variables exactly we could impute 'Not applicable' as "No", I simply match up those "Not applicable" ones that correspond with "No" in the parent question. For instance, we have "Seiz" which indicates if the patient had a seizure or not and many subsequent questions with "Not applicable" as a response. We find all of the "child" variables can be imputed as no because they all correspond to "No" in the "parent" variable. 
-Next, we turn to impute the missing entries discussed earlier. These make up a very small percentage of the data as seen in the bar plot above. For this reason, we initially decided our judgement call would be to fill in these not described in the data description excel file with the most likely or mode. *Do I need more justification for this - it's a very small subset of our data?*
+Next, we turn to impute the missing entries discussed earlier. These make up a very small percentage of the data as seen in the bar plot above. For this reason, we initially decided our judgement call would be to fill in these not described in the data description excel file with the most likely or mode. *Do I need more justification for this - it's a very small subset of our data?* 
+
+*Insert here a summary about the two data sets that we are considering - summary statistics of the data that can easily be reproduced elsewhere. We have two data sets that we will be considering. The first, is what we describe as the simple data set and consist of just the features that are mentioned.*
 
 Finally, we pivot to discovering variables that may prove fruitful in determining whether or not a kid has ciTBI. First, we may simply analyze the features that are most correlated in absolute value to the outcome after one-hot encoding all of the variables and looking at Spearman's rho. Notably, all of the GCS (total, group, and sub rankings) alongside AMS ans SFxBas variables (and sub variables as these include multiple sub parts) are the most correlated with the outcome compared to the other features. 
 
@@ -96,6 +98,21 @@ knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_peca
 ```
 
 # Baseline Model
+
+In this section, we will discuss how exactly we decided to reformulate the baseline model as described in the paper. As discussed in the EDA section, we ensured that we were starting with the same data - as noted we found 20 missing outcomes instead of 18, but aside from this we found the data to match up nicely. To further replicate the data used, we noticed the paper transformed several variables to be binary - 'HemaLoc', 'LocLen', 'High_impact_InjSev', 'HASeverity', 'SeizLen', 'HemaSeize', 'LOCSeparate', and 'SFxPalp'. The paper binned several categories of these features together into 'Yes' and 'No' which they describe in the decision tree visuals created. After making this change, we partition the data into two groups - those with kids less than two years old and one for those that are greater than or equal to two. From here, to mimic the same results we use the same features derived in the paper alongside the same depth and class imbalances. Oddly enough, they cite weights of 500:1 "for failure to identify a patient with ciTBI versus incorrect
+classification of a patient without ciTBI". The intuition for this weighting scheme is due to the imbalances in the classes to begin with however the exact cost is rather arbitrary. Anyhow, with this in mind, we fit the two decision rules - one for young and one for old kids. The plot for children less than two is interesting as it does not match what the paper found whatsoever in terms of the order of important features while the second tree shows comparable important features. As far as scores are concerned, we obtain the following metrics (young model, old model) - AUC: (0.855, 0.853), Accuracy: (0.854, 0.853), Sensitivity: (0.855, 0.833), Specificity: (0.789, 0.796), and Balanced Accuracy: (0.822, 0.814). 
+
+```{r, fig.show='hold', out.width="49%"}
+knitr::include_graphics(c("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/<2 Years Old Tree Feature Importances.png", "/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/=>2 Years Old Tree Feature Importances.png"))
+```
+
+If we instead consider the weightings of 500:1 instead of 1:1 for the labels, then as below, we can see the ROC curve do not have meaningful shifts in AUC figures. 
+
+```{r, out.width = "300px"}
+knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/dt_roc.png")
+```
+
+However instead of trying to replicate the models fitting our own models with no certainty about their hyperparameters, we can simply traverse through the cleaned data set in the exact same fashion as they did and obtain the probabilities for each node. We carry out this and the code is embedded in the Python file and Jupyter notebook. 
 
 # Modeling
 
