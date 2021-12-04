@@ -17,8 +17,6 @@ output:
 bibliography: bibliography.bib
 ---
 
-
-
 ```{r setup, include=FALSE}
 rm(list = ls())
 library(tidyverse)
@@ -51,7 +49,7 @@ all <- rbind(train, tune, test)[, -1]
 
 \newpage
 
-# Introduction and Domain Problem
+# Introduction and Domain Problem {#sec:intro}
 
 Cervical spine injuries (CSI) include injuries sustained to the spinal cord connecting the head and neck to the rest of the body. These injuries, albeit rare, are extremely severe for children whose bodies are still developing. CSI detection strategies include the use of a **computed tomography (CT) scan**, among others. While these interventions are generally effective at pinpointing injuries, they have the potential to inadvertently expose children to ionizing radiation and cause unnecessary pain (@leonard2011factors). 
 
@@ -70,7 +68,7 @@ The structure of this report is as follows: In Section \blue{\ref{sec:data}}, we
 
 \red{INCLUDE NUMBER OF CONTROL AND CASE PATIENTS IN THE FINAL CLEANED DATA (52).}
 
-As mentioned above, our data is collected from the PECARN hospital network, which contains patient CSI data from a previous CDR study. The previous study contained children both with and without CSI. The children without CSI were grouped into various controls based on their injury mechanism and whether they had received out-of-patient emergency medical services (EMS) treatment. \red{In our study, we are only interested in distinguishing true injury from simple trauma. We group all of the sub-control groups into a single control group for more refined predictions.}
+As mentioned above, our data is collected from the PECARN hospital network, which contains patient CSI data from a previous CDR study. The previous study contained children both with and without CSI. The children without CSI were grouped into various controls based on their injury mechanism and whether they had received out-of-patient emergency medical services (EMS) treatment. \blue{In our study, we are only interested in distinguishing true injury from simple trauma. We group all of the sub-control groups into a single control group for more refined predictions.}
 
 The data consist of 12 datasets, each containing various categories of information about the patients, such as demographics, medical history, mechanism of injury, their appearance at the time of response and arrival at the hospital, among others. 
 
@@ -111,17 +109,34 @@ The data provided are relevant to our study. The features described in our model
 
 # Exploratory Data Analysis {#sec:eda}
 
-## Reducing size of feature space
+## Reducing the feature space
+
+\red{\textbf{ZZQ I want to make this a bit better.}}
 
 Our initial feature space included over 300 features and an interpretable model only requires a small fraction of these features. We trim down our initial subset of features through the consultation of domain experts in cervical spine injury. Utilizing the assistance of Dr. Michael Boyle, a physician in the UC San Francisco School of Medicine, we reduced our feature space to roughly 51 variables to perform variable selection on. The feature selection criteria is discussed in Section \blue{\ref{sec:feat-sel}}.
 
 The omitted features were mostly redundant information or information that would not be provided to a physician when making a clinical decision. These omissions were largely determined through domain-expert judgment calls. When in doubt, we retained a predictor to avoid potentially losing crucial predictive information. As discussed in Section \blue{\ref{sec:feat-sel}}, we use a variable selection process to determine our best features for modeling.
 
+
 ## Data Cleaning {#sec:clean}
+
+After reducing the feature space, we implement several layers of ***judgment calls*** in our data cleaning procedure. All judgment calls directly involving medical subject-matter expertise were verified by Dr. Boyle.
+
+\underline{\textit{\textbf{Missing values}}:} Certain columns in the data contain blank or missing values. These missing values are imputed using *defensive imputation* which assumes the worst-case scenario for the patient. For instance, if we do not have data on whether a patient has tenderness in their neck, we assume they do. Note that this does not default to imputing all missing values with "yes." We must consider what each feature is asking for and determine the worst-case scenario accordingly.
+
+
+\underline{\textit{\textbf{Categorical features}}:} In order to create an interpretable decision rule, we convert our categorical features into binary 0-1 features, with 1 corresponding to "yes" and 0 corresponding to "no". To do this, we maintain the defensive imputation strategy by determining the worst-case outcome for each feature. Fortunately, the data contains documentation which provides meaning to the values pertaining to each feature. For most features, this consisted of mapping unknown values using defensive imputation, and mapping other variables using common sense. For example, a value of `S` which stabds for "suspected, but unknown" would map to "yes".
+
+\underline{\textit{\textbf{Ordinal features}}:} Our feature space contains two ordinal features: `AVPU` and `TotalGCS`. AVPU stands for "Alert, Verbal, Pain, Unresponsive", and is a widely accepted health care protocol to determine a patient's overall status. Each letter in "AVPU" corresponds to a more urgent patient status. Alertness and unresponsiveness are simply whether the patient is alert or unresponsive. "Verbal" and "Pain" correspond to whether the patient is receptive to verbal or painful stimulation. In our case, we treat anything that is not alert as the worst-case scenario and impute accordingly. Failing to respond to any stimuli whatsoever should be heavily scrutinized and our imputation takes this into account.
+
+The GCS test is...
+
 
 ## Correlation between features
 
-Figure \blue{\ref{fig:corr-map}} shows a heatmap of the reduced feature space of `r ncol(all)` variables. While most features are not strongly correlated with each other, there are some features that exhibit high correlations. These features are typically those of the same type, such as whether the patient reported pain in their neck and whether tenderness was observed in the patient's neck. It is expected for features like these to be influenced by one another. Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating weak association throughout the feature space in general.
+Figure \blue{\ref{fig:corr-map}} shows a correlation heatmap of the reduced feature space of size `r ncol(all)`. While most features are not strongly correlated with each other, there are some features that exhibit high correlations. These features are typically those of the same type, such as whether the patient reported pain in their neck and whether tenderness was observed in the patient's neck. It is expected for features like these to be influenced by one another. 
+
+Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating weak association throughout the feature space in general. Because of this, we feel confident that we will not encounter any issues surrounding variance inflation and multicollinearity in the modeling stage.
 
 \begin{figure}[H]
 \includegraphics[height=6in, width=8in]{corr-map.png}
@@ -139,16 +154,14 @@ Similarly, `DxCspineInjury` measures whether the patient is suspected of having 
 ## Frequency of feature values
 
 
-To further explore how the features are distributed, we examine the frequency of "yes" or `1` values for the features. The top ten features with the highest frequency of `1` values are shown in Figure \blue{\ref{fig:feat-freq}}.
+To further explore how the features are distributed, we examine the frequency of "yes" responses for the feature space. The ten features with the highest frequency of "yes" values are shown in Figure \blue{\ref{fig:feat-freq}}.
 
-The features `AVPU` and `PtCompPain` have the two highest yes frequencies 
 
-```{r feat-freq, fig.cap="Top ten features with highest \"yes\" (1) responses.", out.width='75%', fig.width=9, fig.height=5}
-features <- all %>% select(-outcome) %>% 
-  select(!contains("2"))
+```{r feat-freq, fig.cap="Top ten features with highest \'yes\' (1) responses.", out.width='90%', fig.width=9, fig.height=5}
+features <- all %>% select(-outcome) %>% select(!contains("2"))
 freq1 <- sort(apply(features, 2, mean), dec = TRUE)
 top <- freq1[1:8]
-names(top)[c(3, 4)] <- c("LimitedRM", "CSImmob")
+names(top)[c(2, 3)] <- c("CSImmob", "LimitedRM")
 df <- data.frame("feat" = names(top), "frequency" = top)
 df %>% 
   ggplot(aes(reorder(feat, -frequency, sum), frequency)) + 
@@ -156,6 +169,9 @@ df %>%
   theme_bw() + 
   labs(x = "Feature", y = "Frequency of Yes")
 ```
+
+
+The `PtCompPain` and `CSImmob` features have the two highest frequencies of "yes" responses. They represent whether the patient complained of pain and whether cervical spine precautions were implemented prior to arrival, respectively. These high percentages make sense because patients usually will not report to the hospital if they do not believe they are in pain. Moreover, emergency medical service technicians will likely implement CSI precautions on most patients (such as a brace or collar) since there is really no harm in doing so.
 
 
 # Modeling {#sec:modeling}
@@ -166,19 +182,26 @@ df %>%
 
 \red{Do we have multiple reasonable translations?}
 
-## Feature selection {#sec:feat-sel}
+Our statistical goal is to accurately diagnose a cervical spine injury while keeping the Type II error rate as low as possible. In the context of CSI, a Type II error results when our CDR determines no CSI is present, when this is not the case in reality. This statistical flaw bears serious and life-threatening consequences on children, and we must pay special attention to this rate. 
+
+However, if the false negative rate is our only area of concern, there is no need for any decision rule since a clinician would diagnose a CSI and perform a CT scan for all situations. As mentioned in the Introduction (Section \blue{\ref{sec:intro}}), CT scans could result in unnecessary exposure to ionizing radiation, which is als harmful. Therefore, we must strike a balance between taking the conservative route of always diagnosing someone with CSI and the worst-case scenario of not diagnosing a serious injury. 
+
+
+## Feature and hyperparameter selection {#sec:feat-sel}
 
 We use a combination of **logistic regression** and **backwards selection** to choose our model features. 
+
+\textcolor{red}{\textbf{ZZQ Licong, you will need to write about this since you did it. Or you can delineate the method for me.}}
 
 
 ## Best model {#sec:best}
 
-Our chosen model is a simple decision tree. This model achieves a **95% sensitivity rate** (predicting a CSI when the patient truly has CSI) and a **70% specificity rate** (predicting no CSI when that is truly the case). \red{(I need exact values here.)} Thus, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. Statistically speaking, we increase the power over threefold without increasing the Type I error rate. 
+Our chosen model is a simple decision tree. This model achieves a **98% sensitivity rate** (predicting a CSI when the patient truly has CSI) and a **75% specificity rate** (predicting no CSI when that is truly the case). \red{(I need exact values here.)} Thus, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
 
 Prior to discovering this model, we fit a decision tree with the subset of features obtained in Section \blue{\ref{sec:feat-sel}}. This decision tree achieved a higher specificity rate of roughly 80%. However, this model may not be valid in a clinical context due to certain factors that influence the reporting of a certain feature. Our initial model has a domain-specific caveats that we must adjust for and address.
 
-First, the `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has strong predictive power. This is likely due to the fact that this predictor is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. This information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Therefore, we use this variable can be utilized in a real-world context. We discuss this concept further in Section \blue{\ref{sec:stability}}
+First, the `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has strong predictive power. This is likely due to the fact that this predictor is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. This information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Therefore, we use this variable can be utilized in a real-world context. We discuss this concept further in Section \blue{\ref{sec:stability}}.
 
 Second, some features in our data are unobservable based on the value of other features. In the case of our initial model, the `PtSensoryLoss` feature measures whether the patient 
 
@@ -213,7 +236,7 @@ Subject matter expertise tells us that
 
 The authors would like to thank Dr. Michael Boyle from the UC San Francisco School of Medicine for his expertise and extremely helpful advice in determining which judgment calls to make. This project would not have been grounded in reality without Dr. Boyle's assistance.
 
-The authors would also like to thank Chandan Singh for setting up this project and for providing streamlined modeling templates for us to use.
+The authors would also like to thank Chandan Singh from the Yu Group for setting up this project and for providing streamlined modeling templates for us to use.
 
 Finally, the authors would like to express their gratitude to the STAT 215A teaching team, Dr. Bin Yu and Omer Ronen, for their wisdom, support and encouragement throughout the semester. We feel comfortable tackling complex research issues like these because of what we learned in lecture and discussion. These lessons will serve us well throughout our entire PhD.
 

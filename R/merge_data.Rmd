@@ -20,22 +20,9 @@ names <- c("analysisvariables", "clinicalpresentationfield",
            "demographics", "injuryclassification", "injurymechanism",
            "kappa", "medicalhistory", "radiologyoutside", "radiologyreview",
            "radiologyonsite")
-filenames <- paste0("data/csi_pecarn/csv/", names, ".csv")
+filenames <- paste0("../../../../data/csi_pecarn/csv/", names, ".csv")
+cpSite <- read.csv(filenames[4])
 
-for (i in seq_along(filenames)) {
-  radRev <- read.csv(filenames[1])
-  cpFld <- read.csv(filenames[2])
-  cpOut <- read.csv(filenames[3])
-  cpSite <- read.csv(filenames[4])
-  dem <- read.csv(filenames[5])
-  injClass <- read.csv(filenames[6])
-  injMech <- read.csv(filenames[7])
-  kappa <- read.csv(filenames[8])
-  medHist <- read.csv(filenames[9])
-  anVar <- read.csv(filenames[10])
-  anVar <- read.csv(filenames[11])
-  anVar <- read.csv(filenames[12])
-}
 ```
 
 

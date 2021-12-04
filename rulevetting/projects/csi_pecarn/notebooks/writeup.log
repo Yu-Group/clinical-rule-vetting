@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  3 DEC 2021 19:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  4 DEC 2021 00:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -531,61 +531,61 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 
 {/Users/andyshen/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
-77.
+76.
 (/Users/andyshen/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-) [2] [3]
-<corr-map.png, id=134, 1806.75pt x 1806.75pt>
+) [2] [3] [4]
+<corr-map.png, id=145, 1806.75pt x 1806.75pt>
 File: corr-map.png Graphic file (type png)
 <use corr-map.png>
-Package pdftex.def Info: corr-map.png  used on input line 309.
+Package pdftex.def Info: corr-map.png  used on input line 353.
 (pdftex.def)             Requested size: 433.60129pt x 433.60129pt.
-[4] [5pdfTeX warning (ext4): destination with the same identifier (name{figure.
-1}) has been already used, duplicate ignored
+[5pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) 
+has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.344 T
-       he features \texttt{AVPU} and \texttt{PtCompPain} have the two highest <
-./corr-map.png>]
-<writeup_files/figure-latex/feat-freq-1.pdf, id=158, 644.4075pt x 349.305pt>
+l.373 
+       <./corr-map.png>]
+<writeup_files/figure-latex/feat-freq-1.pdf, id=159, 644.4075pt x 349.305pt>
 File: writeup_files/figure-latex/feat-freq-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/feat-freq-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/feat-freq-1.pdf  used on in
-put line 349.
-(pdftex.def)             Requested size: 352.33083pt x 190.98305pt.
+put line 390.
+(pdftex.def)             Requested size: 422.79306pt x 229.17754pt.
 [6pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.402 
+l.422 
        <./writeup_files/figure-latex/feat-freq-1.pdf>] [7] [8] (./writeup.aux)
 Package rerunfilecheck Info: File `writeup.out' has not changed.
-(rerunfilecheck)             Checksum: 7A9B210A1BFF0DB2400DCF2E8DE7670D;2697.
+(rerunfilecheck)             Checksum: 7F396ACDF0FB8BC4C47350DB5FB3AB74;2775.
  ) 
 Here is how much of TeX's memory you used:
- 11478 strings out of 480313
- 179598 string characters out of 5896366
- 475937 words of memory out of 5000000
- 29093 multiletter control sequences out of 15000+600000
- 456295 words of font info for 68 fonts, out of 8000000 for 9000
+ 11480 strings out of 480313
+ 179571 string characters out of 5896366
+ 475952 words of memory out of 5000000
+ 29094 multiletter control sequences out of 15000+600000
+ 460566 words of font info for 69 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  60i,6n,63p,606b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/Users/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/Us
-ers/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/an
-dyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/andy
-shen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}</Users/andysh
+{/Users/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Us
+ers/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/User
+s/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/Users/
+andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</Users/andysh
 en/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/andyshen
 /Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/andyshen/L
-ibrary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/andyshen/Lib
-rary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/andyshen/Librar
-y/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/T
-inyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/Tin
-yTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyT
-eX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (8 pages, 304659 bytes).
+ibrary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></Users/andyshen/Li
+brary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/andyshen/Libr
+ary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/andyshen/Library
+/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/Ti
+nyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/Tiny
+TeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTe
+X/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
+Output written on writeup.pdf (8 pages, 326503 bytes).
 PDF statistics:
- 252 PDF objects out of 1000 (max. 8388607)
- 217 compressed objects within 3 object streams
+ 258 PDF objects out of 1000 (max. 8388607)
+ 221 compressed objects within 3 object streams
  54 named destinations out of 1000 (max. 500000)
  171 words of extra memory for PDF output out of 10000 (max. 10000000)
 
