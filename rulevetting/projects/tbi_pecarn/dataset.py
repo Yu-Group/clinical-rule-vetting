@@ -122,6 +122,17 @@ class Dataset:
                 if kwargs['impute_unknowns'] == 'drop':
                     cleaned_data = cleaned_data[cleaned_data[col] != 'Unknown']
             
+        # judgement call - impute features that have descriptions about dealing with not applicables
+        not_applicable_doc_feats = ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
+                                    'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer', 
+                                    'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc', 
+                                    'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
+                                    'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
+                                    'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']
+        if kwargs['impute_not_applicables']:
+            for col in  not_applicable_doc_feats:
+                cleaned_data.loc[cleaned_data[col] == 'Not applicable', col] = 'No'
+            
         # renaming our target variable
         cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
         
@@ -132,18 +143,6 @@ class Dataset:
         other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
                       'AgeInMonth', 'AgeinYears']
         cleaned_data = cleaned_data.drop(columns=other_vars)
-        
-        
-        # Impute features that have descriptions about dealing with not applicables
-        not_applicable_doc_feats = ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
-                                    'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer', 
-                                    'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc', 
-                                    'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
-                                    'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
-                                    'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']
-        for col in  not_applicable_doc_feats:
-            cleaned_data.loc[cleaned_data[col] == 'Not applicable', col] = 'No'
-
         
         # remapping binary variables
         bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes']).all()]
