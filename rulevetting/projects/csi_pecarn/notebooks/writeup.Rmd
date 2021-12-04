@@ -111,7 +111,7 @@ The data provided are relevant to our study. The features described in our model
 
 # Exploratory Data Analysis {#sec:eda}
 
-## Reducing feature space
+## Reducing size of feature space
 
 Our initial feature space included over 300 features and an interpretable model only requires a small fraction of these features. We trim down our initial subset of features through the consultation of domain experts in cervical spine injury. Utilizing the assistance of Dr. Michael Boyle, a physician in the UC San Francisco School of Medicine, we reduced our feature space to roughly 51 variables to perform variable selection on. The feature selection criteria is discussed in Section \blue{\ref{sec:feat-sel}}.
 
@@ -119,7 +119,7 @@ The omitted features were mostly redundant information or information that would
 
 ## Data Cleaning {#sec:clean}
 
-## Correlation Heatmap
+## Correlation between features
 
 Figure \blue{\ref{fig:corr-map}} shows a heatmap of the reduced feature space of `r ncol(all)` variables. While most features are not strongly correlated with each other, there are some features that exhibit high correlations. These features are typically those of the same type, such as whether the patient reported pain in their neck and whether tenderness was observed in the patient's neck. It is expected for features like these to be influenced by one another. Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating weak association throughout the feature space in general.
 

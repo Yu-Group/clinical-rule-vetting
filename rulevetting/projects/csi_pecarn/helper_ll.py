@@ -89,6 +89,15 @@ def rename_values(df):
             1:1.,
     } 
     
+    AVPU = {
+        'A':0.,
+        'V':1.,
+        'P':1.,
+        'U':1.,
+        'N':0.,
+        0.:0.,
+    }
+    
     comppain = {
         'N': 0.,
         'Y': 1.,
@@ -129,7 +138,8 @@ def rename_values(df):
     df.MotorGCS=df.MotorGCS.map(motorgcs)
     df.PtAmbulatoryPriorArrival=df.PtAmbulatoryPriorArrival.map(Y_binary)
     df.PtCompPain=df.PtCompPain.map(comppain)
-    df.AVPU = df.AVPU.map(Y_binary)
+    df.AVPUDetails = df.AVPUDetails.fillna(0.)
+    df.AVPUDetails = df.AVPUDetails.map(AVPU)
     #df.ControlType = df.ControlType.map(outcome)
     df.ArrPtIntub = df.ArrPtIntub.map(Y_binary)
     df.DxCspineInjury = df.DxCspineInjury.map(Y_binary)

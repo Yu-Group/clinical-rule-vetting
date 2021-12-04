@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  3 DEC 2021 18:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  3 DEC 2021 19:08
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -538,34 +538,34 @@ File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 <corr-map.png, id=134, 1806.75pt x 1806.75pt>
 File: corr-map.png Graphic file (type png)
 <use corr-map.png>
-Package pdftex.def Info: corr-map.png  used on input line 307.
+Package pdftex.def Info: corr-map.png  used on input line 309.
 (pdftex.def)             Requested size: 433.60129pt x 433.60129pt.
 [4] [5pdfTeX warning (ext4): destination with the same identifier (name{figure.
 1}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.342 T
+l.344 T
        he features \texttt{AVPU} and \texttt{PtCompPain} have the two highest <
 ./corr-map.png>]
 <writeup_files/figure-latex/feat-freq-1.pdf, id=158, 644.4075pt x 349.305pt>
 File: writeup_files/figure-latex/feat-freq-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/feat-freq-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/feat-freq-1.pdf  used on in
-put line 347.
+put line 349.
 (pdftex.def)             Requested size: 352.33083pt x 190.98305pt.
 [6pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.400 
+l.402 
        <./writeup_files/figure-latex/feat-freq-1.pdf>] [7] [8] (./writeup.aux)
 Package rerunfilecheck Info: File `writeup.out' has not changed.
-(rerunfilecheck)             Checksum: 0A9F4A6CDD80D3AD132708979DA8E54A;2603.
+(rerunfilecheck)             Checksum: 7A9B210A1BFF0DB2400DCF2E8DE7670D;2697.
  ) 
 Here is how much of TeX's memory you used:
  11478 strings out of 480313
- 179564 string characters out of 5896366
- 475920 words of memory out of 5000000
+ 179598 string characters out of 5896366
+ 475937 words of memory out of 5000000
  29093 multiletter control sequences out of 15000+600000
  456295 words of font info for 68 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
@@ -582,7 +582,7 @@ y/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/T
 inyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/Tin
 yTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyT
 eX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (8 pages, 304800 bytes).
+Output written on writeup.pdf (8 pages, 304659 bytes).
 PDF statistics:
  252 PDF objects out of 1000 (max. 8388607)
  217 compressed objects within 3 object streams

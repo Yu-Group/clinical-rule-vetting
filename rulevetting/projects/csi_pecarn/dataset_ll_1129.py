@@ -66,7 +66,7 @@ class Dataset(DatasetTemplate):
         
         # SH: var_use variables only
         # SH: Why there are PainNeck and PainNeck2
-        var_as_ll = ['AVPU', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault',
+        var_as_ll = ['AVPUDetails', 'AgeInYears', 'AlteredMentalStatus', 'ArrPtIntub', 'Assault',
                      'AxialLoadAnyDoc', 'CaseID', 'CervicalSpineImmobilization', 'ChildAbuse', 'ControlType',
                      'DxCspineInjury', 'Ethnicity', 'FallDownStairs', 'FallFromElevation', 'FocalNeuroFindings',
                      'Gender', 'HeadFirst', 'HighriskDiving', 'HighriskFall', 'HighriskHanging',
@@ -107,7 +107,7 @@ class Dataset(DatasetTemplate):
         
         
            ## code for only using random control
-        
+        '''
         ind1=[True for i in range(cleaned_data.shape[0])]
         index=pd.array(ind1,dtype='boolean')
         for i in range(len(index)):
@@ -116,8 +116,7 @@ class Dataset(DatasetTemplate):
             else:
                 index[i]=False
         df=df[index]
-        
-       
+        '''
         #df=df[(df.ControlType == 'case') or (df.ControlType == 'ran')]
        
         
