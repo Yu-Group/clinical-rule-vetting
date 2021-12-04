@@ -55,7 +55,7 @@ all <- rbind(train, tune, test)[, -1]
 
 Cervical spine injuries (CSI) include injuries sustained to the spinal cord connecting the head and neck to the rest of the body. These injuries, albeit rare, are extremely severe for children whose bodies are still developing. CSI detection strategies include the use of a **computed tomography (CT) scan**, among others. While these interventions are generally effective at pinpointing injuries, they have the potential to inadvertently expose children to ionizing radiation and cause unnecessary pain (@leonard2011factors). 
 
-The rarity of a CSI, in conjunction with the potentially harmful effects of CSI detection methods, force clinicians and specialists to assess the risk of performing a CT scan against the potential of missing critical injury diagnoses. These judgement calls are typically supported through a **clinical decision rule (CDR)** which uses prior data of CSI injuries to predict whether a patient has sustained a true CSI or not. Doctors use the results of the CDR and their own assessment of the situation to decide if the risk of a CT scan outweighs its potential benefits. 
+The rarity of a CSI, in conjunction with the potentially harmful effects of CSI detection methods, force clinicians and specialists to assess the risk of performing a CT scan against the potential of missing critical injury diagnoses. Predictive capabilities in this regime are supported through a **clinical decision rule (CDR)** which uses prior data of potential CSI injuries to predict whether a patient has sustained a true CSI or not. Doctors use the results of the CDR and their own assessment of the situation to decide if the risk of a CT scan outweighs its potential benefits. 
 \red{Include more about how to IMPROVE the current CDR, most likely after we finish our model.}
 
 In this project, we develop a CDR for predicting CSI in children, based on data provided by the Pediatric Emergency Care Applied Research Network (PECARN). The data are described in Section \blue{\ref{sec:data}}. **Our objective is to predict the true outcome of a patient's trauma (whether they truly have a CSI).** We ensure all components of our CDR are interpretable and realistically accessible to physicians when speculation of a CSI is called into question. Throughout the modeling process, we ensure that our predictions are accurate, stable, and capture the breadth of possible injuries and the varying medical and demographic history of each patient.   
@@ -215,7 +215,7 @@ The authors would like to thank Dr. Michael Boyle from the UC San Francisco Scho
 
 The authors would also like to thank Chandan Singh for setting up this project and for providing streamlined modeling templates for us to use.
 
-Finally, the authors would like to express their gratitude to the STAT 215A teaching team, Dr. Bin Yu and Omer Ronen, for their support and encouragement throughout the semester. We feel comfortable tackling complex research issues like these because of what we learned in lecture and discussion. These lessons will serve us well throughout our entire PhD.
+Finally, the authors would like to express their gratitude to the STAT 215A teaching team, Dr. Bin Yu and Omer Ronen, for their wisdom, support and encouragement throughout the semester. We feel comfortable tackling complex research issues like these because of what we learned in lecture and discussion. These lessons will serve us well throughout our entire PhD.
 
 # References
 
