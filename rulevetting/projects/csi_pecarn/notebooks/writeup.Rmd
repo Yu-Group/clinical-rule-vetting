@@ -22,7 +22,7 @@ rm(list = ls())
 library(tidyverse)
 library(knitr)
 library(reshape2)
-library(patchwork)
+library(ggpubr)
 knitr::opts_chunk$set(
   echo = FALSE,  # don't print the code chunk
   warning = FALSE,  # don't print warnings
@@ -158,11 +158,11 @@ Similarly, `DxCspineInjury` measures whether the patient is suspected of having 
 ```{r}
 outcomes <- all %>% filter(outcome == 1) %>% 
   select(-outcome) %>% select(!contains("2"))
-freq1 <- sort(apply(outcomes, 2, mean), dec = TRUE)
-freq0 <- 1 - freq1
-outcome_freq <- data.frame(cbind(freq0, freq1)) %>% 
+Yes <- sort(apply(outcomes, 2, mean), dec = TRUE)
+No <- 1 - Yes
+outcome_freq <- data.frame(cbind(No, Yes)) %>% 
   rownames_to_column("feature") %>% 
-  mutate(diff = abs(freq1 - freq0)) %>% 
+  mutate(diff = abs(Yes - No)) %>% 
   arrange(desc(diff))
 ```
 
@@ -170,16 +170,16 @@ outcome_freq <- data.frame(cbind(freq0, freq1)) %>%
 ```{r}
 controls <- all %>% filter(outcome != 1) %>% 
   select(-outcome) %>% select(!contains("2"))
-freq1 <- sort(apply(controls, 2, mean), dec = TRUE)
-freq0 <- 1 - freq1
-control_freq <- data.frame(cbind(freq0, freq1)) %>% 
+Yes <- sort(apply(controls, 2, mean), dec = TRUE)
+No <- 1 - Yes
+control_freq <- data.frame(cbind(No, Yes)) %>% 
   rownames_to_column("feature") %>% 
-  mutate(diff = abs(freq1 - freq0)) %>% 
+  mutate(diff = abs(Yes - No)) %>% 
   arrange(desc(diff))
 ```
 
 
-We further explore our data by examining the frequency of "yes" and "no" values in for each feature. The six features with the greatest and smallest *absolute differences* in relative frequency are shown in Figures \blue{\ref{fig:largediff}} and \blue{\ref{fig:smalldiff}}, respectively.
+We further explore our data by examining the frequency of "yes" and "no" values for the outcome and controls group. We plot the five features with the greatest and smallest *absolute differences* in relative frequency for the outcome group in Figure \blue{\ref{fig:outcomes}} and for the controls group in Figure \blue{\ref{fig:controls}}.
 
 ```{r}
 plotRelFreq <- function(data, high = TRUE) {
@@ -190,7 +190,7 @@ plotRelFreq <- function(data, high = TRUE) {
     d <- tail(data, 5)
   }
   d %>% select(-diff) %>% melt() %>% 
-    ggplot(mapping = aes(x = reorder(feature, -value, sum), y = value, fill = variable)) + 
+    ggplot(mapping = aes(x = feature, y = value, fill = variable)) + 
     geom_col(position = 'dodge') + 
     labs(x = "Feature", y = "Relative Frequency") +
     scale_fill_manual("Value", values = c("mediumpurple3", "mediumseagreen")) + 
@@ -199,20 +199,20 @@ plotRelFreq <- function(data, high = TRUE) {
 }
 ```
 
-```{r outcomes, fig.cap="Top five features with the greatest absolute differences in relative frequency.", out.width='90%', fig.width=9, fig.height=5}
+```{r outcomes, fig.cap="Top five features with the greatest and smallest absolute differences in relative frequency for the OUTCOME group.", out.width='90%', fig.width=11, fig.height=5}
 outcome_high <- plotRelFreq(outcome_freq)
 outcome_low <- plotRelFreq(outcome_freq, high = FALSE)
-outcome_high + outcome_low
+ggarrange(outcome_high, outcome_low, ncol=2, nrow=1, common.legend = TRUE, legend="bottom")
 ```
 
-```{r controls, fig.cap="Top five features with the greatest absolute differences in relative frequency.", out.width='90%', fig.width=9, fig.height=5}
+```{r controls, fig.cap="Top five features with the greatest and smallest absolute differences in relative frequency for the CONTROLS group.", out.width='90%', fig.width=11, fig.height=5}
 controls_high <- plotRelFreq(control_freq)
 controls_low <- plotRelFreq(control_freq, high = FALSE)
-controls_high + controls_low
+ggarrange(controls_high, controls_low, ncol=2, nrow=1, common.legend = TRUE, legend="bottom")
 ```
 
 
-
+These figures show that, while there is some overlap across the two sub-groups, we cannot say that there is complete uniformity in which features stand out between the outcome and control groups. For instance, the `DxCspineInury` feature, which tells us whether the patient is arriving with a diagnosis or suspicion of a CSI, has the second-lowest difference in yes/no rate for the outcome group (48% vs 52%), whereas it is somewhere in the middle for the control group (where roughly 92% were not suspected). This feature proves to be extremely crucial in the modeling stage and it is discussed further in Section \blue{\ref{sec:stability}}.
 
 # Modeling {#sec:modeling}
 
@@ -229,9 +229,30 @@ However, if the false negative rate is our only area of concern, there is no nee
 
 ## Feature and hyperparameter selection {#sec:feat-sel}
 
-We use a combination of **logistic regression** and **backwards selection** to choose our model features. 
+We use **logistic regression** followed by **backwards selection** to select our model features. We first fit the outcome against all features with logistic regression. We then omit the feature with the smallest absolute fitted coefficient value. There is no need to scale our features since they are all binary. This process repeats until $m$ features remain, where $m$ is a pre-specified number. This variable selection process is called recursive feature elimination (RFE) in Python and can be done automatically. 
 
-\textcolor{red}{\textbf{ZZQ Licong, you will need to write about this since you did it. Or you can delineate the method for me. Please include the best features selected.}}
+To select the number of features $m$, we run logistic regression model with $m=1,2,..., 10$ features on the training data and select the one with the lowest misclassification rate on the tuning data, resulting in an optimal value of $m=9$. These 9 features correspond to:
+
+- Whether the patient was intubated or not (`ArrPtIntub`),
+
+- Whether the patient is suspected of having a CSI (`DxCspineInjury`),
+
+- Whether the patient has focal neurological deficits such as a spinal cord issue (`FocalNeuroFindings`),
+
+- If the sustained trauma was the result of diving (`HighriskDiving`),
+
+- Whether the patient required a cervical stability intervention such as a collar or brace (`IntervForCervicalStab`),
+
+- Whether the patient has extremity weakness (`PtExtremityWeakness`),
+
+- Whether the patient has sensory loss (`PtSensoryLoss`),
+
+- Whether the patient has tenderness in the extremities (`PtTenderExt`), and
+
+- If the trauma was sustained to the patient's torso or trunk (`SubInj_TorsoTrunk`).
+
+These features were discussed with Dr. Boyle, who verified their legitimacy in a real-life clinical context.
+
 
 ## Models
 
@@ -256,8 +277,8 @@ I think a diagram for the decision tree would be helpful.
 ```{r accuracy-rates, out.width="85%", fig.width=7.5, fig.cap="Sensitivity and specificity rates for three candidate models: logistic regression, decision tree, and AdaBoost. Accuracy rates are assessed at each model's optimal hyperparameter value."}
 type <- c("AdaBoost", "Decision Tree", "Logistic Regression")
 vars <- paste0(c(16, 6, 21), " optimal features")
-sensitivity <- c(0.97196262, 0.95327103, 0.97196262)
-specificity <- c(0.78956835, 0.76438849, 0.79136691)
+sensitivity <- c(0.9813084112149533, 0.9813084112149533, 0.9813084112149533)
+specificity <- c(0.7679856115107914, 0.7535971223021583, 0.7679856115107914)
 names(sensitivity) <- names(specificity) <- type
 df_res <- data.frame(type, sensitivity, specificity)
 melted <- melt(df_res)
@@ -267,8 +288,7 @@ melted %>%
   labs(x = "Method", y = "Accuracy") +
   scale_fill_manual("Accuracy Metric", values = c("#2274AE", "goldenrod2")) + 
   theme_classic() +
-  geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) +
-  annotate("text", x = 1:3, y = 1.15, label = vars, fontface = "bold")
+  geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9))
 ```
 
 

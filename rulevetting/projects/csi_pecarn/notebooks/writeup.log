@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  4 DEC 2021 15:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  5 DEC 2021 01:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -546,84 +546,84 @@ has been already used, duplicate ignored
                                                   \__shipout_drop_firstpage_...
 l.378 
        <./corr-map.png>]
-
-LaTeX Warning: Reference `fig:largediff' on page 6 undefined on input line 391.
-
-
-
-LaTeX Warning: Reference `fig:smalldiff' on page 6 undefined on input line 392.
-
-
-<writeup_files/figure-latex/outcomes-1.pdf, id=163, 627.34375pt x 340.27126pt>
+<writeup_files/figure-latex/outcomes-1.pdf, id=165, 788.9475pt x 353.32pt>
 File: writeup_files/figure-latex/outcomes-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/outcomes-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/outcomes-1.pdf  used on inp
-ut line 396.
-(pdftex.def)             Requested size: 422.78783pt x 229.32011pt.
-<writeup_files/figure-latex/controls-1.pdf, id=164, 627.34375pt x 338.26375pt>
+ut line 397.
+(pdftex.def)             Requested size: 422.77495pt x 189.33432pt.
+<writeup_files/figure-latex/controls-1.pdf, id=166, 788.9475pt x 350.30875pt>
 File: writeup_files/figure-latex/controls-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/controls-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/controls-1.pdf  used on inp
-ut line 405.
-(pdftex.def)             Requested size: 422.78783pt x 227.96718pt.
+ut line 406.
+(pdftex.def)             Requested size: 422.77495pt x 187.72067pt.
 [6pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.411 
+l.412 
        <./writeup_files/figure-latex/outcomes-1.pdf>] [7pdfTeX warning (ext4): 
 destination with the same identifier (name{figure.3}) has been already used, du
 plicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.455 ...tion{Decision Tree}\label{decision-tree}}
-                                                   <./writeup_files/figure-late
-x/controls-1.pdf>]
-<writeup_files/figure-latex/accuracy-rates-1.pdf, id=196, 525.965pt x 279.0425p
-t>
+l.461 
+       <./writeup_files/figure-latex/controls-1.pdf>]
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 4
+69.
+(/Users/andyshen/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
+File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+Overfull \hbox (41.16338pt too wide) in paragraph at lines 480--483
+[]\T1/lmr/m/n/10 Whether the pa-tient re-quired a cer-vi-cal sta-bil-ity in-ter
+-ven-tion such as a col-lar or brace (\T1/lmtt/m/n/10 IntervForCervicalStab\T1/
+lmr/m/n/10 ), 
+ []
+
+<writeup_files/figure-latex/accuracy-rates-1.pdf, id=198, 525.965pt x 277.035pt
+>
 File: writeup_files/figure-latex/accuracy-rates-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/accuracy-rates-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/accuracy-rates-1.pdf  used 
-on input line 471.
-(pdftex.def)             Requested size: 399.31218pt x 211.84883pt.
-[8pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
-has been already used, duplicate ignored
+on input line 523.
+(pdftex.def)             Requested size: 399.31218pt x 210.32474pt.
+[8] [9pdfTeX warning (ext4): destination with the same identifier (name{figure.
+4}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.505 
-       <./writeup_files/figure-latex/accuracy-rates-1.pdf>] [9] [10] (./writeup
-.aux)
-
-LaTeX Warning: There were undefined references.
-
+l.575 
+       <./writeup_files/figure-latex/accuracy-rates-1.pdf>] [10] (./writeup.aux
+)
 Package rerunfilecheck Info: File `writeup.out' has not changed.
 (rerunfilecheck)             Checksum: A31C4208F0EF35D6EF5B0579B1E60A4C;2863.
  ) 
 Here is how much of TeX's memory you used:
- 11519 strings out of 480313
- 180697 string characters out of 5896366
- 477478 words of memory out of 5000000
- 29119 multiletter control sequences out of 15000+600000
- 460566 words of font info for 69 fonts, out of 8000000 for 9000
+ 11550 strings out of 480313
+ 181545 string characters out of 5896366
+ 477552 words of memory out of 5000000
+ 29146 multiletter control sequences out of 15000+600000
+ 460931 words of font info for 70 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 60i,6n,63p,606b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/Users/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Us
-ers/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/User
-s/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/Users/
-andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</Users/andysh
-en/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/andyshen
-/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/andyshen/L
-ibrary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></Users/andyshen/Li
-brary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/andyshen/Libr
-ary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/andyshen/Library
-/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/Ti
-nyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/Tiny
-TeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTe
-X/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (10 pages, 339695 bytes).
+ 60i,6n,63p,606b,331s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/Users/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/U
+sers/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/a
+ndyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/and
+yshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/Users/andys
+hen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</Users/andyshen/Li
+brary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/andyshen/Libr
+ary/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/andyshen/Librar
+y/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></Users/andyshen/Library
+/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/andyshen/Library/T
+inyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/andyshen/Library/Tiny
+TeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/TinyTeX
+/texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/TinyTeX/t
+exmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTeX/tex
+mf-dist/fonts/type1/public/lm/lmtt10.pfb>
+Output written on writeup.pdf (10 pages, 345745 bytes).
 PDF statistics:
- 298 PDF objects out of 1000 (max. 8388607)
- 253 compressed objects within 3 object streams
+ 304 PDF objects out of 1000 (max. 8388607)
+ 258 compressed objects within 3 object streams
  66 named destinations out of 1000 (max. 500000)
  189 words of extra memory for PDF output out of 10000 (max. 10000000)
 
