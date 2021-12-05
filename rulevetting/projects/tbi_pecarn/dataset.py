@@ -187,6 +187,33 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 7: Drop missing AMS
         ################################
+        # UMBRELLA: AMSAgitated AMSSleep AMSSlow AMSRepeat AMSOth
+
+        # Union
+        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        if judg_calls["step7_AMS"] == 1 or judg_calls["step7_AMS"] == 2:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.AMSAgitated == 92) | (tbi_df.AMSSleep == 92) |
+                              (tbi_df.AMSSlow == 92) | (tbi_df.AMSRepeat == 92) |
+                              (tbi_df.AMSOth == 92)].index,
+                       ["AMSAgitated", "AMSSleep", "AMSSlow", "AMSRepeat",
+                        "AMSOth"]] = np.NaN
+
+            tbi_df = hp.union_var(tbi_df, ["AMS", "AMSAgitated", "AMSSleep",
+                                           "AMSSlow", "AMSRepeat", "AMSOth"],
+                                  'AMS')
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step7_AMS"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df.AMSAgitated.isnull()) |
+                                   (tbi_df.AMSSleep.isnull()) |
+                                   (tbi_df.AMSSlow.isnull()) |
+                                   (tbi_df.AMSRepeat.isnull()) |
+                                   (tbi_df.AMSOth.isnull())].index,
+                        inplace=True)
+        else:
+            raise NotImplementedError("Desired AMS preprocess step not implemented!")
 
         tbi_df.drop(tbi_df.loc[tbi_df['AMS'].isnull()].index, inplace=True)
 
@@ -244,13 +271,31 @@ class Dataset(DatasetTemplate):
         # unclear gets mapped to 92
 
         # treat unclear tests of skull fracture as a sign of possible presence
-        if judg_calls["step10_cautiousUncl"]:
+        # Union with (drop) SFxPalpDepress
+        if judg_calls["step10_SFx"] == 1:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.SFxPalpDepress == 92)].index,
+                       'SFxPalpDepress'] = np.NaN
+            tbi_df = hp.union_var(tbi_df, ['SFxPalp', 'SFxPalpDepress'], 'SFxPalp')
+
+        # treat unclear tests of skull fracture as a sign of possible presence
+        # Keep SFxPalpDepress
+        elif judg_calls["step10_SFx"] == 2:
             tbi_df.loc[(tbi_df['SFxPalp'] == 2), 'SFxPalp'] = 1
+            tbi_df.drop(tbi_df.loc[(tbi_df['SFxPalpDepress'].isnull())].index,
+                        inplace=True)
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step10_SFx"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df['SFxPalpDepress'].isnull())].index,
+                        inplace=True)
+        else:
+            raise NotImplementedError("Desired SFxPalp preprocess step not implemented!")
 
         # Fontanelle bulging is believed to be a good indicator so drop missing
         tbi_df.drop(tbi_df.loc[(tbi_df['SFxPalp'].isnull()) |
-                               (tbi_df['FontBulg'].isnull()) |
-                               (tbi_df['SFxPalpDepress'].isnull())].index,
+                               (tbi_df['FontBulg'].isnull())].index,
                     inplace=True)
 
         ################################
@@ -258,7 +303,32 @@ class Dataset(DatasetTemplate):
         ################################
         # UMBRELLA: SFxBasHem SFxBasOto SFxBasPer SFxBasRet SFxBasRhi
 
-        # Not possible to impute, just drop missing
+        # Union
+        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        if judg_calls["step11_SFxBas"] == 1 or judg_calls["step11_SFxBas"] == 2:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.SFxBasHem == 92) | (tbi_df.SFxBasOto == 92) |
+                              (tbi_df.SFxBasPer == 92) | (tbi_df.SFxBasRet == 92) |
+                              (tbi_df.SFxBasRhi == 92)].index,
+                       ["SFxBasHem", "SFxBasOto", "SFxBasPer", "SFxBasRet",
+                        "SFxBasRhi"]] = np.NaN
+            tbi_df = hp.union_var(tbi_df, ["SFxBas", "SFxBasHem", "SFxBasOto",
+                                           "SFxBasPer", "SFxBasRet", "SFxBasRhi"],
+                                  'SFxBas')
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step11_SFxBas"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df.SFxBasHem.isnull()) |
+                                   (tbi_df.SFxBasOto.isnull()) |
+                                   (tbi_df.SFxBasPer.isnull()) |
+                                   (tbi_df.SFxBasRet.isnull()) |
+                                   (tbi_df.SFxBasRhi.isnull())].index,
+                        inplace=True)
+        else:
+            raise NotImplementedError("Desired SFxBas preprocess step not implemented!")
+
+        # just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['SFxBas'].isnull()].index, inplace=True)
 
         ################################
@@ -266,7 +336,34 @@ class Dataset(DatasetTemplate):
         ################################
         # UMBRELLA: ClavFace ClavNeck ClavFro ClavOcc ClavPar ClavTem
 
-        # Not possible to impute, just drop missing
+        # Union
+        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        if judg_calls["step12_Clav"] == 1 or judg_calls["step12_Clav"] == 2:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.ClavFace == 92) | (tbi_df.ClavNeck == 92) |
+                              (tbi_df.ClavFro == 92) | (tbi_df.ClavOcc == 92) |
+                              (tbi_df.ClavPar == 92) | (tbi_df.ClavTem == 92)].index,
+                       ["ClavFace", "ClavNeck", "ClavFro", "ClavOcc",
+                        "ClavPar", "ClavTem"]] = np.NaN
+
+            tbi_df = hp.union_var(tbi_df, ["Clav", "ClavFace", "ClavNeck",
+                                           "ClavFro", "ClavOcc", "ClavPar", "ClavTem"],
+                                  'Clav')
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step12_Clav"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df.ClavFace.isnull()) |
+                                   (tbi_df.ClavNeck.isnull()) |
+                                   (tbi_df.ClavFro.isnull()) |
+                                   (tbi_df.ClavFro.isnull()) |
+                                   (tbi_df.ClavPar.isnull()) |
+                                   (tbi_df.ClavTem.isnull())].index,
+                        inplace=True)
+        else:
+            raise NotImplementedError("Desired Clav preprocess step not implemented!")
+
+        # just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['Clav'].isnull()].index, inplace=True)
 
         ################################
@@ -274,16 +371,62 @@ class Dataset(DatasetTemplate):
         ################################
         # UMBRELLA: NeuroDMotor NeuroDSensory NeuroDCranial NeuroDReflex NeuroDOth
 
+        # Union
+        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        if judg_calls["step13_NeuroD"] == 1 or judg_calls["step13_NeuroD"] == 2:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.NeuroDMotor == 92) | (tbi_df.NeuroDSensory == 92) |
+                              (tbi_df.NeuroDCranial == 92) | (tbi_df.NeuroDReflex == 92) |
+                              (tbi_df.NeuroDOth == 92)].index,
+                       ["NeuroDMotor", "NeuroDSensory", "NeuroDCranial", "NeuroDReflex",
+                        "NeuroDOth"]] = np.NaN
+
+            tbi_df = hp.union_var(tbi_df, ["NeuroD", "NeuroDMotor", "NeuroDSensory",
+                                           "NeuroDCranial", "NeuroDReflex", "NeuroDOth"],
+                                  'NeuroD')
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step13_NeuroD"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df.NeuroDMotor.isnull()) |
+                                   (tbi_df.NeuroDSensory.isnull()) |
+                                   (tbi_df.NeuroDCranial.isnull()) |
+                                   (tbi_df.NeuroDReflex.isnull()) |
+                                   (tbi_df.NeuroDOth.isnull())].index,
+                        inplace=True)
+        else:
+            raise NotImplementedError("Desired NeuroD preprocess step not implemented!")
+
         # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['NeuroD'].isnull()].index, inplace=True)
 
         ################################
         # Step 14: Impute/drop based on Vomiting group of variables
         ################################
+        # UMBRELLA: VomitNbr VomitStart VomitLast
+        # NOTE: Union is the default here
 
-        if not judg_calls["step14_vomitDtls"]:
-            #  UMBRELLA (if present): 'VomitStart', 'VomitLast', 'VomitNbr
-            tbi_df.drop(['VomitStart', 'VomitLast', 'VomitNbr'], axis=1, inplace=True)
+        # Union
+        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        if judg_calls["step14_Vomit"] == 1 or judg_calls["step14_Vomit"] == 2:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.VomitNbr == 92) | (tbi_df.VomitStart == 92) |
+                              (tbi_df.VomitLast == 92)].index,
+                       ["VomitNbr", "VomitStart", "VomitLast"]] = np.NaN
+
+            tbi_df = hp.union_var(tbi_df, ["Vomit", "VomitNbr", "VomitStart",
+                                           "VomitLast"],
+                                  'Vomit')
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step14_Vomit"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df.VomitNbr.isnull()) |
+                                   (tbi_df.VomitStart.isnull()) |
+                                   (tbi_df.VomitLast.isnull())].index,
+                        inplace=True)
+        else:
+            raise NotImplementedError("Desired Vomit preprocess step not implemented!")
 
         # Not possible to impute, just drop missing
         tbi_df.drop(tbi_df.loc[tbi_df['Vomit'].isnull()].index, inplace=True)
@@ -292,7 +435,6 @@ class Dataset(DatasetTemplate):
         # Step 15: Impute/drop based on Headache group of variables
         ################################
         #  UMBRELLA: HASeverity HAStart
-        # NOTE: (Andrej) This seems to me similar to HEMA, just maybe use a different default
 
         idx_verbal = (tbi_df.HA_verb != 91).index
 
@@ -346,7 +488,6 @@ class Dataset(DatasetTemplate):
         # Step 16: Impute/drop based on Seizure group of variables
         ################################
         # UMBRELLA: SeizOccur SeizLen
-        # NOTE: (Andrej) This seems to me similar to HEMA, just maybe use a different default
 
         # Judgement call: union the Seiz var with sub-vars
         if judg_calls["step16_Seiz"] == 1:
@@ -391,12 +532,30 @@ class Dataset(DatasetTemplate):
         # UMBRELLA LocLen
 
         # Judgement call: unclear counts as present
-        if judg_calls["step17_cautiousUncl"]:
+        # Union with (drop) LocLen
+        if judg_calls["step17_LOC"] == 1:
+
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.LocLen == 92)].index,
+                       'LocLen'] = np.NaN
+            tbi_df = hp.union_var(tbi_df, ['LOCSeparate', 'LocLen'], 'LOCSeparate')
+
+        # unclear counts as present
+        # Keep LocLen
+        elif judg_calls["step17_LOC"] == 2:
             tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 1
+            tbi_df.drop(tbi_df.loc[(tbi_df['LocLen'].isnull())].index,
+                        inplace=True)
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step17_LOC"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df['LocLen'].isnull())].index,
+                        inplace=True)
+        else:
+            raise NotImplementedError("Desired LOCSeparate preprocess step not implemented!")
 
         # Not possible to impute, just drop missing
-        tbi_df.drop(tbi_df.loc[(tbi_df['LOCSeparate'].isnull()) |
-                               (tbi_df['LocLen'].isnull())].index,
+        tbi_df.drop(tbi_df.loc[(tbi_df['LOCSeparate'].isnull())].index,
                     inplace=True)
 
         ################################
@@ -464,8 +623,20 @@ class Dataset(DatasetTemplate):
         df = preprocessed_data.copy()
 
         # FLATTEN UMBRELLAS:
-        if judg_calls["HEMA_umbrella"]:
 
+        if judg_calls["AMS_umbrella"]:
+            # cannot flatten if unionized
+            assert prepr_calls["step7_AMS"] == 3
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("AMS", axis=1, inplace=True)
+            # 92 is treated as 0
+            df.loc[(df.AMSAgitated == 92) | (df.AMSSleep == 92) |
+                   (df.AMSSlow == 92) | (df.AMSRepeat == 92) |
+                   (df.AMSOth == 92),
+                   ["AMSAgitated", "AMSSleep", "AMSSlow", "AMSRepeat", "AMSOth"]] = 0
+
+        if judg_calls["HEMA_umbrella"]:
             # cannot flatten if unionized
             assert prepr_calls["step9_HEMA"] != 1
 
@@ -479,8 +650,8 @@ class Dataset(DatasetTemplate):
                 df.loc[df.HemaLoc == 92, 'HemaLoc'] = 0
 
         if judg_calls["SFxPalp_umbrella"]:
-            # cannot disambiguate if unclear had been assigned to 1
-            assert not prepr_calls["step10_cautiousUncl"]
+            # cannot flatten if unionized
+            assert prepr_calls["step10_SFx"] != 1
 
             # "flatten" - drop the umbrella variable, all children are equal
             df.drop("SFxPalp", axis=1, inplace=True)
@@ -488,6 +659,9 @@ class Dataset(DatasetTemplate):
             df.loc[df.SFxPalpDepress == 92, 'SFxPalpDepress'] = 2
 
         if judg_calls["SFxBas_umbrella"]:
+            # cannot flatten if unionized
+            assert prepr_calls["step11_SFxBas"] == 3
+
             # "flatten" - drop the umbrella variable, all children are equal
             df.drop("SFxBas", axis=1, inplace=True)
             # 92 is treated as 0
@@ -497,6 +671,9 @@ class Dataset(DatasetTemplate):
                                           "SFxBasRet", "SFxBasRhi"]] = 0
 
         if judg_calls["Clav_umbrella"]:
+            # cannot flatten if unionized
+            assert prepr_calls["step12_Clav"] == 3
+
             # "flatten" - drop the umbrella variable, all children are equal
             df.drop("Clav", axis=1, inplace=True)
             # 92 is treated as 0
@@ -506,16 +683,10 @@ class Dataset(DatasetTemplate):
                    ["ClavFace", "ClavNeck", "ClavFro", "ClavOcc", "ClavPar",
                     "ClavTem"]] = 0
 
-        if judg_calls["AMS_umbrella"]:
-            # "flatten" - drop the umbrella variable, all children are equal
-            df.drop("AMS", axis=1, inplace=True)
-            # 92 is treated as 0
-            df.loc[(df.AMSAgitated == 92) | (df.AMSSleep == 92) |
-                   (df.AMSSlow == 92) | (df.AMSRepeat == 92) |
-                   (df.AMSOth == 92),
-                   ["AMSAgitated", "AMSSleep", "AMSSlow", "AMSRepeat", "AMSOth"]] = 0
-
         if judg_calls["NeuroD_umbrella"]:
+            # cannot flatten if unionized
+            assert prepr_calls["step13_NeuroD"] == 3
+
             # "flatten" - drop the umbrella variable, all children are equal
             df.drop("NeuroD", axis=1, inplace=True)
             # 92 is treated as 0
@@ -526,8 +697,8 @@ class Dataset(DatasetTemplate):
                     "NeuroDOth"]] = 0
 
         if judg_calls["Vomit_umbrella"]:
-            # the child vars must not have been removed
-            assert prepr_calls["step14_vomitDtls"]
+            # cannot flatten if unionized
+            assert prepr_calls["step14_Vomit"] == 3
 
             # "flatten" - drop the umbrella variable, all children are equal
             df.drop("Vomit", axis=1, inplace=True)
@@ -566,13 +737,14 @@ class Dataset(DatasetTemplate):
 
         if judg_calls["LOC_umbrella"]:
             # cannot disambiguate if unclear had been assigned to 1
-            assert not prepr_calls["step17_cautiousUncl"]
+            assert prepr_calls["step17_LOC"] != 1
 
             # "flatten" - drop the umbrella variable, all children are equal
             df.drop("LOCSeparate", axis=1, inplace=True)
             # assign new category to 92 - no LOC
             df.loc[df.LocLen == 92, 'LocLen'] = 0
 
+        # BINARIZE GCS:
         if judg_calls["GCS"]:
             # include all three GCS scores, minus GCSTotal, and recode as 0/1
             df.drop("GCSTotal", axis=1, inplace=True)
@@ -580,7 +752,7 @@ class Dataset(DatasetTemplate):
             df['GCSMotor'].replace((6, 5), (1, 0), inplace=True)
             df['GCSEye'].replace((4, 3), (1, 0), inplace=True)
 
-        if not judg_calls["GCS"]:
+        else:
             # include only the GCS total score, and recode as 0/1
             df.drop(["GCSVerbal", "GCSEye", "GCSMotor"], axis=1, inplace=True)
             df['GCSTotal'].replace((15, 14), (1, 0), inplace=True)
@@ -640,29 +812,33 @@ class Dataset(DatasetTemplate):
             {
                 'clean_data'      : {},
                 'preprocess_data' : {
-                    # Unionization policies:
-                    # 1: unionize - impute parent from children, drop children
+                    # Unioning policies:
+                    # 1: union - impute parent from children, drop children
                     # 2: mixed: keep (some) children & parent, impute parent from the children kept
                     # 3: no: no imputation, keep all children, drop those with N/A in any child
 
                     # include injury mechanic
-                    "step1_injMech"      : [False, True],
-                    "step5_missSubGCS"   : [True, False],
-                    "step5_fake15GCS"    : [True, False],
-                    "step5_fake14GCS"    : [True, False],
-                    "step8_missingOSI"   : [True, False],
-                    "step9_HEMA"         : [3, 1, 2],
-                    "step10_cautiousUncl": [True, False],
-                    "step14_vomitDtls"   : [False, True],
-                    "step15_HA"          : [2, 3, 1],
+                    "step1_injMech"   : [False, True],
+                    "step5_missSubGCS": [True, False],
+                    "step5_fake15GCS" : [True, False],
+                    "step5_fake14GCS" : [True, False],
+                    "step8_missingOSI": [True, False],
+                    "step7_AMS"       : [3, 1, 2],
+                    "step9_HEMA"      : [3, 1, 2],
+                    "step10_SFx"      : [2, 3, 1],
+                    "step11_SFxBas"   : [3, 2, 1],
+                    "step12_Clav"     : [3, 2, 1],
+                    "step13_NeuroD"   : [3, 2, 1],
+                    "step14_Vomit"    : [1, 2, 3],
+                    "step15_HA"       : [2, 3, 1],
                     # only affects 3 above
-                    "step15_HAStart"     : [False, True],
-                    "step16_Seiz"        : [2, 3, 1],
+                    "step15_HAStart"  : [False, True],
+                    "step16_Seiz"     : [2, 3, 1],
                     # only affects 3 above
-                    "step16_SeizOccur"   : [False, True],
-                    "step17_cautiousUncl": [True, False],
-                    "step19_Drugs"       : [False, True],
-                    "step20_ActNormal"   : [True, False],
+                    "step16_SeizOccur": [False, True],
+                    "step17_LOC"      : [2, 3, 1],
+                    "step19_Drugs"    : [False, True],
+                    "step20_ActNormal": [True, False],
 
                 },
                 'extract_features': {
