@@ -27,6 +27,8 @@ knitr::opts_chunk$set(
   out.width = '75%', 
   fig.align = "center",  # always align figure in center
   fig.pos = "H")  # don't cache results
+
+path_to_figs = "/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/"
 ```
 
 # Introduction
@@ -56,45 +58,49 @@ How were the data cleaned? By whom?
 Our data set initially consists of 43,399 patients under the age of 18 with mild head trauma evaluated in 25 PECARN emergency departments. In particular, we have 125 features filled out by trained site investigators and other emergency department physicians who recorded patient history, injury mechanism, and symptoms and signs on a standardized data form before knowing results along with the results recorded as 'PosIntTBI'. We first noticed that the data set had several variables that were not filled out - recorded as nans or np.nans. Below, we can see the fraction of missing data for each of the features. Notably, there are features "Dizzy" and "Ethnicity" that are missing in more than 35% of the points. Looking through the variable descriptions and speaking with the clinicians tells us that these are in fact not very relevant and very susceptible to change patient by patient. For these reasons, we end up dropping these variables. 
 
 ```{r, out.width = "450px"}
-knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/missingness.png")
+knitr::include_graphics(paste(path_to_figs, "missingness.png", sep = ""))
 ```
 
 Next, as reality checks, we notice that there are 20 patients with the variable 'PosIntFinal', our desired outcome, missing however in the paper however, they claim only 18 are missing. This discrepency is noted, but not much else can be done. However in the related outcome variables which consist of "Intub24Head", "Neurosurgery", "HospHeadPosCT", and "DeathTBI", their union of missing/unknowns is only one which means at most one of the 20 outcomes cannot be inferred indirectly through these. As seen below, it turns out that we can infer all of these outcomes which results in no missing outcomes from our data set. Outside of this difference between our data and the paper, we can compare the GCSTotal scores. Notably we find that there 969 GCS scores that lie between 3 and 13 as described in the paper. As an aside from the paper comparison, we notice that the main continuous variable in our repertoire is the age. The age of patients from this dataset is plotted below, and we notice a very significant chunk of patients are two years old or younger. As seen in the paper, this split in frequency is also marked by not so similar distributions of the outcome hence why the paper partitions the dataset into two groups.
 
 ```{r, out.width = "250px"}
-knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/age_dist.png")
+knitr::include_graphics(paste(path_to_figs, "age_dist.png", sep = ""))
 ```
 
 To retrace back to our analysis of missing features, we would now like to shine some light on our judgement calls and the cleaning of the data. 
 
 For starters, we sifted through the excel sheet containing variable names and descriptions and noticed that many variables list the category "Not applicable" as "No" or "Missing". To determine which variables exactly we could impute 'Not applicable' as "No", I simply match up those "Not applicable" ones that correspond with "No" in the parent question. For instance, we have "Seiz" which indicates if the patient had a seizure or not and many subsequent questions with "Not applicable" as a response. We find all of the "child" variables can be imputed as no because they all correspond to "No" in the "parent" variable. 
-Next, we turn to impute the missing entries discussed earlier. These make up a very small percentage of the data as seen in the bar plot above. For this reason, we initially decided our judgement call would be to fill in these not described in the data description excel file with the most likely or mode. *Do I need more justification for this - it's a very small subset of our data?* 
+Next, we turn to impute the missing entries discussed earlier. These make up a very small percentage of the data as seen in the bar plot above. For this reason, we initially decided our judgement call would be to fill in the features not described in the data description excel file with the most likely or mode. *Do I need more justification for this - it's a very small subset of our data?* On top of this, we decide unlike the paper, that we will not necessarily fit our model on two separate age groups. After looking at the distribution of outcomes in the two groups, the difference is not very noticeable. However, when comparing our models to the baseline, we will in fact create a fair comparison by training on the age splits referenced in the paper.
 
-*Insert here a summary about the two data sets that we are considering - summary statistics of the data that can easily be reproduced elsewhere. We have two data sets that we will be considering. The first, is what we describe as the simple data set and consist of just the features that are mentioned.*
+```{r, out.width = "250px"}
+knitr::include_graphics(paste(path_to_figs, "age_comparison.png", sep = ""))
+```
+
+From this cleaning, we have generated two data sets. The first we consider is what we shall call the simple data set. This consists of 42430 with 44 columns (including the outcome - if a patient has ciTBI or not), 0 missing entries, and all variables are binary (yes / no) as GCS scores and age were removed and other categorical variables were one-hot-encoded. The second data set we consider is if we only remove the variables that occur after CT decisions are made, those with no importance in the decision (ethnicity, race, etc.), and again one-hot encode the variables. This data set consists of 42430 patients with 120 columns (again GCS and age variables were removed with only one-hot encoded variables remaining).
 
 Finally, we pivot to discovering variables that may prove fruitful in determining whether or not a kid has ciTBI. First, we may simply analyze the features that are most correlated in absolute value to the outcome after one-hot encoding all of the variables and looking at Spearman's rho. Notably, all of the GCS (total, group, and sub rankings) alongside AMS ans SFxBas variables (and sub variables as these include multiple sub parts) are the most correlated with the outcome compared to the other features. 
 
 ```{r, out.width = "400px"}
-knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/correlation.png")
+knitr::include_graphics(paste(path_to_figs, "correlation.png", sep = ""))
 ```
 
 Interestingly enough from the plot, if we remember from our earlier analysis of missing variables, the GCS sub features are more missing than the total and they both share very strong correlations to the outcome. To reconcile which are more important (as this is necessary in several classification models such as logistic regression), we plot the correlations of these correlated variables in the heat map below. From this analysis, it is clear that the GCS variables are correlated as indicative by the blues, however what is even more correlated is the string of AMS variables. Again, as discussed earlier, the questions with nested/follow ups move hand in hand with each other. This line of reasoning forms the basis for our initial data set for modeling - strip the data to only consist of those parent questions along with those that have no follow up questions but are still relevant. 
 
 ```{r, out.width = "350px"}
-knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/heatmap.png")
+knitr::include_graphics(paste(path_to_figs, "heatmap.png", sep = ""))
 ```
 
 Finally, to close our EDA we can pivot to a more sophisticated method for explaining our data - through PCA. 
 In the first PC plot, we notice CTForm1 which determines if a CT was ordered or not contributes the most to PC1. In hindsight, this will obviously separate our outcome as it is typically decided after the decision is made. Thus, this variable along with several other will be removed for the sake of not biasing our rules.  
 
 ```{r, out.width = "200px"}
-knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/ctform_pc.png")
+knitr::include_graphics(paste(path_to_figs, "ctform_pc.png", sep = ""))
 ```
 
-In this latter PC plot, the second PC whose largest loading is OSI, which determines if another non-head substantial injury occurred. After speaking with the clinician, we decided that this variable while potentially giving of the outcome is most likely pre-CT and can thus be incorporated into our modeling.
+In this latter PC plot, the second PC whose largest loading is OSI, which determines if another non-head substantial injury occurred. After speaking with the clinician, we decided that this variable while potentially giving of the outcome is most likely pre-CT and can thus be integrated into our modeling as it separates the outcome (blue versus red) quite nicely. 
 
 ```{r, out.width = "200px"}
-knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/osi_pc.png")
+knitr::include_graphics(paste(path_to_figs, "osi_pc.png", sep = ""))
 ```
 
 # Baseline Model
@@ -103,13 +109,13 @@ In this section, we will discuss how exactly we decided to reformulate the basel
 classification of a patient without ciTBI". The intuition for this weighting scheme is due to the imbalances in the classes to begin with however the exact cost is rather arbitrary. Anyhow, with this in mind, we fit the two decision rules - one for young and one for old kids. The plot for children less than two is interesting as it does not match what the paper found whatsoever in terms of the order of important features while the second tree shows comparable important features. As far as scores are concerned, we obtain the following metrics (young model, old model) - AUC: (0.855, 0.853), Accuracy: (0.854, 0.853), Sensitivity: (0.855, 0.833), Specificity: (0.789, 0.796), and Balanced Accuracy: (0.822, 0.814). 
 
 ```{r, fig.show='hold', out.width="49%"}
-knitr::include_graphics(c("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/<2 Years Old Tree Feature Importances.png", "/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/=>2 Years Old Tree Feature Importances.png"))
+knitr::include_graphics(c(paste(path_to_figs, "less 2 Years Old Tree Feature Importances.png", sep = ""), paste(path_to_figs, "over or equal 2 Years Old Tree Feature Importances.png", sep = "")))
 ```
 
 If we instead consider the weightings of 500:1 instead of 1:1 for the labels, then as below, we can see the ROC curve do not have meaningful shifts in AUC figures. 
 
 ```{r, out.width = "300px"}
-knitr::include_graphics("/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/dt_roc.png")
+knitr::include_graphics(paste(path_to_figs, "dt_roc.png", sep = ""))
 ```
 
 However instead of trying to replicate the models fitting our own models with no certainty about their hyperparameters, we can simply traverse through the cleaned data set in the exact same fashion as they did and obtain the probabilities for each node. We carry out this and the code is embedded in the Python file and Jupyter notebook. 
