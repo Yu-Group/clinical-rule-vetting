@@ -928,32 +928,35 @@ class Dataset(DatasetTemplate):
         random.seed(0)
         CACHE_PATH = oj(data_path, 'joblib_cache')
         cache = Memory(CACHE_PATH, verbose=0).cache
-        kwargs = self.get_judgement_calls_dictionary()
-        default_kwargs = {}
-        for key in kwargs.keys():
-            func_kwargs = kwargs[key]
-            default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
-                                   for k in func_kwargs.keys()}
+        kwargs_dict = self.get_judgement_calls_dictionary()
+        if not kwargs:
+            kwargs = {}
+            for key in kwargs_dict.keys():
+                func_kwargs = kwargs_dict[key]
+                kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
+                               for k in func_kwargs.keys()}
+        print('kwargs', kwargs)
 
-        print('kwargs', default_kwargs)
         if not run_perturbations:
-            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs)
-            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs)
-            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs)
+            cleaned_data = cache(self.clean_data)(data_path=data_path, **kwargs)
+            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **kwargs)
+            extracted_features = cache(self.extract_features)(preprocessed_data, **kwargs)
             df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
-        # TODO: handle exceptions
+
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
-            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs, cache_dir=CACHE_PATH)
+            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs_dict, cache_dir=CACHE_PATH)
             cleaned_data = clean_set(data_path_arg)
-            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs,
+            # FIXME: ignore on exception
+            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs_dict,
                                         cache_dir=CACHE_PATH)
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs,
+            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs_dict,
                                      cache_dir=CACHE_PATH)
             extracted_features = extract_set(preprocessed_data)
             split_data = Vset('split_data', modules=[self.split_data])
             dfs = split_data(extracted_features)
+
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
 
@@ -963,7 +966,7 @@ class Dataset(DatasetTemplate):
                     meta_keys = rulevetting.api.util.get_feat_names_from_base_feats(df.keys(), self.get_meta_keys())
                     df.loc[:, meta_keys].to_csv(oj(PROCESSED_PATH, f'meta_{fname}'))
                     df.drop(columns=meta_keys).to_csv(oj(PROCESSED_PATH, fname))
-            if run_perturbations:
+            elif run_perturbations:
                 for k in dfs.keys():
                     if isinstance(k, tuple):
                         os.makedirs(oj(PROCESSED_PATH, 'perturbed_data'), exist_ok=True)
@@ -982,31 +985,33 @@ class Dataset(DatasetTemplate):
 
 
 if __name__ == '__main__':
-    # NOTE: for development
-    self = Dataset()
-    raw_data_path = oj(rulevetting.DATA_PATH, self.get_dataset_id(), 'raw')
+    # # NOTE: for development
+    # self = Dataset()
+    # raw_data_path = oj(rulevetting.DATA_PATH, self.get_dataset_id(), 'raw')
+    #
+    # # raw data file names to be loaded and searched over
+    # # for tbi, we only have one file
+    # fnames = sorted([
+    #     fname for fname in os.listdir(raw_data_path)
+    #     if 'csv' in fname])
+    #
+    # # read raw data
+    # cleaned_data = pd.DataFrame()
+    # for fname in tqdm(fnames):
+    #     cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
+    #
+    #
+    # prep_data = self.preprocess_data(cleaned_data, **judg_calls)
+    # final_data = self.extract_features(prep_data, **judg_calls)
 
-    # raw data file names to be loaded and searched over
-    # for tbi, we only have one file
-    fnames = sorted([
-        fname for fname in os.listdir(raw_data_path)
-        if 'csv' in fname])
-
-    # read raw data
-    cleaned_data = pd.DataFrame()
-    for fname in tqdm(fnames):
-        cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
-
-    judg_calls = self.get_judgement_calls_dictionary_default()
+    dset = Dataset()
+    # NOTE: This is just an example!
+    judg_calls = dset.get_judgement_calls_dictionary_default()
     judg_calls["preprocess_data"]["step19_Drugs"] = True
     judg_calls["preprocess_data"]["step20_ActNormal"] = False
+    df_train, df_tune, df_test = dset.get_data(save_csvs=False, run_perturbations=False,
+                                               **judg_calls)
 
-    prep_data = self.preprocess_data(cleaned_data, **judg_calls)
-    final_data = self.extract_features(prep_data, **judg_calls)
-
-    # dset = Dataset()
-    # df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
-
-    # print('successfuly processed data\nshapes:',
-    #       df_train.shape, df_tune.shape, df_test.shape,
-    #       '\nfeatures:', list(df_train.columns))
+    print('successfuly processed data\nshapes:',
+          df_train.shape, df_tune.shape, df_test.shape,
+          '\nfeatures:', list(df_train.columns))
