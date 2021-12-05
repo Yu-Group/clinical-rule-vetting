@@ -122,12 +122,12 @@ The omitted features were mostly redundant information or information that would
 
 ## Data Cleaning {#sec:clean}
 
-After reducing the feature space, we implement several layers of ***judgment calls*** in our data cleaning procedure. Any judgment call that directly involved medical subject-matter expertise was verified by Dr. Boyle.
+After reducing the feature space, we implement several layers of judgment calls in our data cleaning procedure. Any judgment call that directly involved medical subject-matter expertise was verified by Dr. Boyle.
 
 \underline{\textit{\textbf{Missing values}}:} Certain columns in the data contain blank or missing values. Features with a proportion of missing values above 15% are removed from this analysis. The remaining missing values are imputed using *defensive imputation* which assumes the worst-case scenario for the patient. For instance, if we do not have data on whether a patient has tenderness in their neck, we assume they do. Note that this does not default to imputing all missing values with "yes." We must consider what each feature is asking for and determine the worst-case scenario accordingly.
 
 
-\underline{\textit{\textbf{Categorical features}}:} In order to create an interpretable decision rule, we map our categorical features into binary 0-1 features, **with 1 corresponding to "yes" and 0 corresponding to "no".** To do this, we maintain the defensive imputation strategy by determining the worst-case outcome for each feature. Fortunately, the data contains documentation which provides meaning to the values pertaining to each feature. For most features, this consisted of mapping unknown values using defensive imputation, and mapping other variables using common sense. For example, a value of `S` which stabds for "suspected, but unknown" would map to "yes".
+\underline{\textit{\textbf{Categorical features}}:} In order to create an interpretable decision rule, we map our categorical features into binary 0-1 features, **with 1 corresponding to "yes" and 0 corresponding to "no".** To do this, we maintain the defensive imputation strategy by determining the worst-case outcome for each feature. This consisted of mapping unknown values using defensive imputation and mapping other variables using common sense. For example, a value of `S` which stands for "suspected, but unknown" would map to "yes". Fortunately, the data contains documentation which provides meaning to the possible values for each feature. 
 
 \underline{\textit{\textbf{Ordinal features}}:} Our feature space contains two ordinal features: `AVPU` and `TotalGCS`. AVPU stands for "Alert, Verbal, Pain, Unresponsive", and is a widely accepted health care protocol to determine a patient's overall status. Each letter in "AVPU" corresponds to a more urgent patient status. Alertness and unresponsiveness are simply whether the patient is alert or unresponsive. "Verbal" and "Pain" correspond to whether the patient is receptive to verbal or painful stimulation. In our case, we treat anything that is not alert as the worst-case scenario and impute accordingly. Failing to respond to any stimuli whatsoever should be heavily scrutinized and our imputation takes this into account.
 
@@ -229,7 +229,7 @@ However, if the false negative rate is our only area of concern, there is no nee
 
 ## Feature and hyperparameter selection {#sec:feat-sel}
 
-We use **logistic regression** followed by **backwards selection** to select our model features. We first fit the outcome against all features with logistic regression. We then omit the feature with the smallest absolute fitted coefficient value. There is no need to scale our features since they are all binary. This process repeats until $m$ features remain, where $m$ is a pre-specified number. This variable selection process is called recursive feature elimination (RFE) in Python and can be done automatically. 
+We use **logistic regression** followed by **backwards selection** to select our model features. We first fit the outcome against all features with logistic regression and then omit the feature with the smallest absolute fitted coefficient value. There is no need to scale our features since they are all binary. This process repeats until $m$ features remain, where $m$ is a pre-specified number. This variable selection process is called recursive feature elimination (RFE) in Python and can be done automatically. 
 
 To select the number of features $m$, we run logistic regression model with $m=1,2,..., 10$ features on the training data and select the one with the lowest misclassification rate on the tuning data, resulting in an optimal value of $m=9$. These 9 features correspond to:
 
@@ -251,7 +251,7 @@ To select the number of features $m$, we run logistic regression model with $m=1
 
 - If the trauma was sustained to the patient's torso or trunk (`SubInj_TorsoTrunk`).
 
-These features were discussed with Dr. Boyle, who verified their legitimacy in a real-life clinical context.
+These features were discussed with Dr. Boyle, who verified their legitimacy in a real-life clinical context. Moreover, common sense knowledge tells us that these features are meaningful and serious with regards to CSI's.
 
 
 ## Models
@@ -273,6 +273,8 @@ I think a diagram for the decision tree would be helpful.
 
 ## Best model {#sec:best}
 
+The sensitivity and specificity rates for all three models are shown in \blue{\ref{fig:accuracy-rates}}. The values in the figure are rounded to two significant figures but the sensitivity rates for all three models are identical. Moreover, the specificity rates for AdaBoost and Logistic Regression are identical. 
+
 
 ```{r accuracy-rates, out.width="85%", fig.width=7.5, fig.cap="Sensitivity and specificity rates for three candidate models: logistic regression, decision tree, and AdaBoost. Accuracy rates are assessed at each model's optimal hyperparameter value."}
 type <- c("AdaBoost", "Decision Tree", "Logistic Regression")
@@ -292,16 +294,12 @@ melted %>%
 ```
 
 
-Our chosen model is a simple decision tree. This model achieves a **98% sensitivity rate** (predicting a CSI when the patient truly has CSI) and a **75% specificity rate** (predicting no CSI when that is truly the case). \red{(I need exact values here.)} Thus, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
+
+We show here that a simple decision tree can achieve effectively the same error rate as something more powerful. We achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
 
-Prior to discovering this model, we fit a decision tree with the subset of features obtained in Section \blue{\ref{sec:feat-sel}}. This decision tree achieved a higher specificity rate of roughly 80%. However, this model may not be valid in a clinical context due to certain factors that influence the reporting of a certain feature. Our initial model has a domain-specific caveats that we must adjust for and address.
 
-First, the `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has strong predictive power. This is likely due to the fact that this predictor is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. This information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Therefore, we use this variable can be utilized in a real-world context. We discuss this concept further in Section \blue{\ref{sec:stability}}.
 
-Second, some features in our data are unobservable based on the value of other features. In the case of our initial model, the `PtSensoryLoss` feature measures whether the patient 
-
-Subject matter expertise tells us that
 
 
 
@@ -327,6 +325,16 @@ Subject matter expertise tells us that
 # Stability {#sec:stability}
 
 \red{What off-the-shelf method will you use? Do different methods give the same qualitative conclusion? Perturb one’s data, for example, by adding noise or subsampling if data units are exchangeable (in general, make sure the subsamples respect the underlying structures, e.g. dependence, clustering, heterogeneity, so the subsamples are representative of the original data). Do the conclusions still hold? Only trust those that pass the stability test, which is an easy-to-implement, first defense against over-fitting or too many false positive discoveries.}
+
+Our initial model has a domain-specific caveats that we must adjust for and address.
+
+First, the `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has strong predictive power. This is likely due to the fact that this predictor is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. This information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Therefore, we use this variable can be utilized in a real-world context. We discuss this concept further in Section \blue{\ref{sec:stability}}.
+
+Second, some features in our data are unobservable based on the value of other features. In the case of our initial model, the `PtSensoryLoss` feature measures whether the patient 
+
+Subject matter expertise tells us that
+
+
 
 # Acknowledgments
 
