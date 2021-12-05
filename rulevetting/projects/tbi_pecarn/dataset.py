@@ -566,6 +566,18 @@ class Dataset(DatasetTemplate):
             # assign new category to 92 - no LOC
             df.loc[df.LocLen == 92, 'LocLen'] = 0
 
+        if judg_calls["GCS"]:
+            # include all three GCS scores, minus GCSTotal, and recode as 0/1
+            df.drop("GCSTotal", axis=1, inplace=True)
+            df['GCSVerbal'].replace((5, 4), (1, 0), inplace=True)
+            df['GCSMotor'].replace((6, 5), (1, 0), inplace=True)
+            df['GCSEye'].replace((4, 3), (1, 0), inplace=True)
+
+        if not judg_calls["GCS"]:
+            # include only the GCS total score, and recode as 0/1
+            df.drop(["GCSVerbal", "GCSEye", "GCSMotor"], axis=1, inplace=True)
+            df['GCSTotal'].replace((15, 14), (1, 0), inplace=True)
+
         # binarize categoricals
         #  set correct type on categoricals
         for col in df:
@@ -657,6 +669,7 @@ class Dataset(DatasetTemplate):
                     "HA_umbrella"     : [False, True],
                     "Seiz_umbrella"   : [False, True],
                     "LOC_umbrella"    : [False, True],
+                    "GCS"             : [True, False],
                     "remove_constVal" : [True, False]
                 },
             }
