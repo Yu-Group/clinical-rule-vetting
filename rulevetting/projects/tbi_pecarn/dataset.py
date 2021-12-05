@@ -191,11 +191,15 @@ class Dataset(DatasetTemplate):
         tbi_df.drop(tbi_df.loc[tbi_df['AMS'].isnull()].index, inplace=True)
 
         ################################
-        # Step 8: Drop  those with missing OSI - other substantial injuries
+        # Step 8: Drop those with missing OSI - other substantial injuries
         ################################
 
         if judg_calls["step8_missingOSI"]:
             tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
+        # don't see any alternative than to drop the whole thing, since where
+        # could this be even imputed from
+        else:
+            tbi_df.drop(['OSI'], axis=1, inplace=True)
 
         ################################
         # Step 9: Impute/drop based on Hema variables
@@ -409,16 +413,19 @@ class Dataset(DatasetTemplate):
         ################################
         if not judg_calls["step19_Drugs"]:
             tbi_df.drop('Drugs', axis=1, inplace=True)
+        else:
+            tbi_df.drop(tbi_df.loc[tbi_df['Drugs'].isnull()].index,
+                        inplace=True)
 
         ################################
         # Step 20: Handle the ActNorm column
         ################################
         # Judgement call: N/A counts as normal
         if judg_calls["step20_ActNormal"]:
-            tbi_df.loc[tbi_df.ActNorm.isna(), 'ActNorm'] = 1
+            tbi_df.loc[tbi_df.ActNorm.isnull(), 'ActNorm'] = 1
         else:
             # N/A counts as ABnormal
-            tbi_df.loc[tbi_df.ActNorm.isna(), 'ActNorm'] = 0
+            tbi_df.loc[tbi_df.ActNorm.isnull(), 'ActNorm'] = 0
 
         tbi_df['outcome'] = tbi_df[self.get_outcome_name()]
         tbi_df.set_index('PatNum', inplace=True)
@@ -500,10 +507,10 @@ class Dataset(DatasetTemplate):
                     "ClavTem"]] = 0
 
         if judg_calls["AMS_umbrella"]:
-           # "flatten" - drop the umbrella variable, all children are equal
-           df.drop("AMS", axis=1, inplace=True)
-           # 92 is treated as 0
-           df.loc[(df.AMSAgitated == 92) | (df.AMSSleep == 92) |
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("AMS", axis=1, inplace=True)
+            # 92 is treated as 0
+            df.loc[(df.AMSAgitated == 92) | (df.AMSSleep == 92) |
                    (df.AMSSlow == 92) | (df.AMSRepeat == 92) |
                    (df.AMSOth == 92),
                    ["AMSAgitated", "AMSSleep", "AMSSlow", "AMSRepeat", "AMSOth"]] = 0
@@ -676,6 +683,24 @@ class Dataset(DatasetTemplate):
 
         return judg_calls
 
+    def get_judgement_calls_dictionary_default(self) -> Dict:
+        """
+         Returns the whole judgement calls dictionary with default values
+
+        Returns
+        -------
+        Dict[str, list]
+            Judgement calls dictionary.
+
+        """
+
+        # return the default
+        return {fname: {k: v[0] for k, v in d.items()} for fname, d
+                in self.get_judgement_calls_dictionary().items()}
+
+    # NOTE: for quick reference - this is what's inherited and gets run:
+    # NOTE: can actually override it if extra judgement call functionality needed!
+
     def get_judgement_calls_current(self) -> Dict[str, list]:
         """
          Returns the sub-dictionary of judgement calls for the calling function
@@ -684,7 +709,7 @@ class Dataset(DatasetTemplate):
         Returns
         -------
         Dict[str, list]
-            DESCRIPTION.
+            Judgement calls dictionary.
 
         """
 
@@ -693,9 +718,6 @@ class Dataset(DatasetTemplate):
 
         # return the default
         return {k: v[0] for k, v in judg_calls.items()}
-
-    # NOTE: for quick reference - this is what's inherited and gets run:
-    # NOTE: can actually override it if extra judgement call functionality needed!
 
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
@@ -743,6 +765,7 @@ class Dataset(DatasetTemplate):
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs)
             extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs)
             df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        # TODO: handle exceptions
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
             clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs, cache_dir=CACHE_PATH)
@@ -784,26 +807,30 @@ class Dataset(DatasetTemplate):
 
 if __name__ == '__main__':
     # NOTE: for development
-    # self = Dataset()
-    # raw_data_path = oj(rulevetting.DATA_PATH, self.get_dataset_id(), 'raw')
+    self = Dataset()
+    raw_data_path = oj(rulevetting.DATA_PATH, self.get_dataset_id(), 'raw')
 
-    # # raw data file names to be loaded and searched over
-    # # for tbi, we only have one file
-    # fnames = sorted([
-    #     fname for fname in os.listdir(raw_data_path)
-    #     if 'csv' in fname])
+    # raw data file names to be loaded and searched over
+    # for tbi, we only have one file
+    fnames = sorted([
+        fname for fname in os.listdir(raw_data_path)
+        if 'csv' in fname])
 
-    # # read raw data
-    # cleaned_data = pd.DataFrame()
-    # for fname in tqdm(fnames):
-    #     cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
+    # read raw data
+    cleaned_data = pd.DataFrame()
+    for fname in tqdm(fnames):
+        cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
 
-    # prep_data = self.preprocess_data(cleaned_data)
-    # final_data = self.extract_features(prep_data)
+    judg_calls = self.get_judgement_calls_dictionary_default()
+    judg_calls["preprocess_data"]["step19_Drugs"] = True
+    judg_calls["preprocess_data"]["step20_ActNormal"] = False
 
-    dset = Dataset()
-    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
+    prep_data = self.preprocess_data(cleaned_data, **judg_calls)
+    final_data = self.extract_features(prep_data, **judg_calls)
 
-    print('successfuly processed data\nshapes:',
-          df_train.shape, df_tune.shape, df_test.shape,
-          '\nfeatures:', list(df_train.columns))
+    # dset = Dataset()
+    # df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
+
+    # print('successfuly processed data\nshapes:',
+    #       df_train.shape, df_tune.shape, df_test.shape,
+    #       '\nfeatures:', list(df_train.columns))
