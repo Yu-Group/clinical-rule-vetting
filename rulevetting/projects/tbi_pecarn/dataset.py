@@ -1064,7 +1064,7 @@ class Dataset(DatasetTemplate):
         AI_split = lambda df: df.drop(
             reduce(ic, [list(df.filter(regex=c)) for c in (AgeSplit.young_features +
                                                            AgeSplit.old_features +
-                                                           ['GCSEye', 'GCSVerbal', 'GCSMotor', 'GCS'])]),
+                                                           ["GCS"])]),
             axis=1)
 
         sel = {
