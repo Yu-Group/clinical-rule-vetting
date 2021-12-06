@@ -3,11 +3,41 @@ title: 'Predicting Low Risk of Clinically-Important TBI in Children: A Re-Analys
   of the PECARN Dataset'
 author: Jimmy Butler, Andrej Leban, Ian Shen, Xin Zhou
 output: pdf_document
+bibliography: references.bib
 ---
 
 # Introduction and Problem Motivation
 
-Answer Q1
+Among children, traumatic brain injuries (TBIs) are a leading cause of injury and death,
+accounting for nearly 7400 deaths, 60000 hospital admissions, and 600000 emergency
+department visits annually (citation). Accurately diagnosing TBIs is thus a crucial
+problem, especially since the earlier a TBI is identified, the sooner potentially life-saving
+treatment can be administered. 
+
+Typically, TBIs are diagnosed via computed tomography (CT)
+scans of a patient's brain. However, performing CT scans carries the risk of radiation-induced malignancy in the patient.
+This risk is especially pertinent for children, as younger individuals are at a higher
+risk of developing such malignancies. Therefore, while it is crucial to rapidly and
+accurately diagnose TBIs, it is also imperative that CT scans are performed only when
+there is reasonable suspicion the individual has a TBI. Otherwise, the risk of
+radiation-induced complications from the CT scan will outweigh any potential benefit
+of having CT scan results.
+
+Nathan Kuppermann and his colleagues explored this problem in their 2009 Lancet paper
+("Identification of children at very low risk of clinically-important traumatic brain injuries after
+head trauma: a prospective cohort study"), seeking to develop interpretable rules
+that could be used to identify children, who, despite presenting to the emergency room
+for head trauma, are at low risk of having TBIs and thus can avoid CT scans. The purpose
+of this present study is to build on their work, developing alternative classification
+schemes and rule sets to identify children for whom CT scans are unnecessary. With an
+alternative scheme with high predictive accuracy, one can compare with Kuppermann's to see
+if similar rules were isolated, either reinforcing the importance of their identified covariates,
+or providing a new perspective on what is important in predicting TBI. Additionally,
+in this analysis, we employ our own data cleaning and preprocessing scheme that we find
+reasonable, allowing us to assess the stability of their findings subject to perturbations
+at this stage of the data science life cycle. Nonetheless, in developing new classifiers,
+priority will be placed on interpretability, brevity and simplicity, and a low
+false negative rate. 
 
 # Data
 
