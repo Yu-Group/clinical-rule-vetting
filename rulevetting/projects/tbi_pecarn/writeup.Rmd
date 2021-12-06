@@ -1,7 +1,7 @@
 ---
 title: "STAT 215A, Final Project: Classifying ciTBI in Youth"
 author: "Mark Oussoren, Sahil Saxena, Hyunsuk Kim, Florica Constantine"
-date: "12/3/2021"
+date: "12/10/2021"
 output:
   pdf_document:
     number_sections: yes
@@ -28,34 +28,53 @@ knitr::opts_chunk$set(
   fig.align = "center",  # always align figure in center
   fig.pos = "H")  # don't cache results
 
-path_to_figs = "/Users/marko/rule-vetting/rulevetting/projects/tbi_pecarn/notebooks/figs/"
+path_to_figs = "../../../rulevetting/projects/tbi_pecarn/notebooks/figs/"
 ```
 
 # Introduction
 
-## Domain problem to solve
+<!-- ## Domain problem to solve
 
 How can we best vet and/or improve the clinical decision rule for your given problem? Most importantly, the clinical decision rule should be highly predictive and minimize the amount of missed diagnoses (i.e. have a very high sensitivity). It should also be easy-to-use, using variables that clinicians can readily have access to when making their decisions. Finally, the interpretability of the rule helps to check whether its predictions will make sense for new patients and makes it easier to apply in new settings.
+-->
+
+Traumatic brain injuries, hereafter referred to as TBIs, are both commonplace and require immediate medical attention. However, diagnoses often require a CT scan to confirm the presence of a TBI [CITE 14-16 from paper]. In children, this need is problematic, as the radiation from a CT scan can lead to long-term adverse affects; hence, given a child presenting with a potential TBI, it is desirable to find a way to decide whether they actually need a CT scan. Note that forgoing a CT scan in the presence of an actual TBI is also undesirable. In this report, we revisit the data from [CITE]. That is, we derive an updated decision rule for identifying which child patients need a CT scan. 
+
+TODO: OUTLINE OF SECTIONS
+
+# Data
 
 ## Data collection
 
+The authors in [CITE] collected data in a prospective cohort study from patients younger than 18 years of age that visited a hospital within 24 hours of experiencing head trauma. The study was run across 25 pediatric emergency departments over a span of approximately 2 years, where the last few months were used to collect samples for validating the decision rules derived in the original study. Only patients with GCS scores of 14 or 15 were considered; those with scores 13 or less were enrolled but were not grouped with the others. For each patient, a trained investigator or other medical personnel recorded various prespecified details, e.g., mechanism of injury, medical history, and responses to standardized questions about the presence of several symptoms or signs of head trauma. For a small subset of patients (approximately 4%), a second assessment was performed for quality control purposes--note that we do not use this information, but that its presence is reassuring. 
+
+The study defined death, prolonged hospital admission or intubation, or the need for surgery following a CT scan as a postitive, ciTBI outcome. Other patients were assigned to the negative outcome; to find missed positives, the study coordinators performed telephone surveys to follow up with parents and tracked followup visits. If a positive outcome was missed, the patient's label was updated to positive. 
+
+Note that several variables or descriptors in the study require the ability to converse with the child for assignment, e.g., the presence of a headache. Hence, the authors chose to separate patients under the age of two (pre-verbal) from those aged two or older (verbal) in their analysis. Moreover, as children under the age of two are more sensitive to radiation, it is reasonable to consider this group separately [CITE SOMETHING].  
+
+<!--
 What are the most relevant data to collect to answer the question in (1)?
 
 Ideas from experimental design (a subfield of statistics) and active learning (a subfield of machine learning) are useful here. The above question is good to ask even if the data has already been collected because understanding the ideal data collection process might reveal shortcomings of the actual data collection process and shed light on analysis steps to follow.
 
 The questions below are useful to ask: How were the data collected? At what locations? Over what time period? Who collected them? What instruments were used? Have the operators and instruments changed over the period? Try to imagine yourself at the data collection site physically.
+-->
 
 ## Meaning
 
+<!--
 What does each variable mean in the data? What does it measure? Does it measure what it is supposed to measure? How could things go wrong? What statistical assumptions is one making by assuming things didn’t go wrong? (Knowing the data collection process helps here.)
 
 Meaning of each variable -- ask students to imagine being there at the ER and giving a Glasgow coma score, for example, and also a couple of variables -- ask students what could cause different values written down.
 
 How were the data cleaned? By whom?
+-->
 
-# Exploratory Data Analysis
+TODO: Discuss some of the variables and what they mean
 
-Our data set initially consists of 43,399 patients under the age of 18 with mild head trauma evaluated in 25 PECARN emergency departments. In particular, we have 125 features filled out by trained site investigators and other emergency department physicians who recorded patient history, injury mechanism, and symptoms and signs on a standardized data form before knowing results along with the results recorded as 'PosIntTBI'. We first noticed that the data set had several variables that were not filled out - recorded as nans or np.nans. Below, we can see the fraction of missing data for each of the features. Notably, there are features "Dizzy" and "Ethnicity" that are missing in more than 35% of the points. Looking through the variable descriptions and speaking with the clinicians tells us that these are in fact not very relevant and very susceptible to change patient by patient. For these reasons, we end up dropping these variables. 
+## Exploratory Data Analysis
+
+Our data set initially consists of 43,399 patients under the age of 18 with mild head trauma evaluated in 25 PECARN emergency departments. In particular, we have 125 features filled out by trained site investigators and other emergency department physicians who recorded patient history, injury mechanism, and symptoms and signs on a standardized data form before knowing results along with the results recorded as 'PosIntTBI'. We first noticed that the data set had several variables that were not filled out - recorded as nans. Below, we can see the fraction of missing data for each of the features. Notably, there are features "Dizzy" and "Ethnicity" that are missing in more than 35% of the points. Looking through the variable descriptions and speaking with the clinicians tells us that these are in fact not very relevant and very susceptible to change patient by patient. For these reasons, we end up dropping these variables. 
 
 ```{r, out.width = "450px"}
 knitr::include_graphics(paste(path_to_figs, "missingness.png", sep = ""))
@@ -109,7 +128,7 @@ In this section, we will discuss how exactly we decided to reformulate the basel
 classification of a patient without ciTBI". The intuition for this weighting scheme is due to the imbalances in the classes to begin with however the exact cost is rather arbitrary. Anyhow, with this in mind, we fit the two decision rules - one for young and one for old kids. The plot for children less than two is interesting as it does not match what the paper found whatsoever in terms of the order of important features while the second tree shows comparable important features. As far as scores are concerned, we obtain the following metrics (young model, old model) - AUC: (0.855, 0.853), Accuracy: (0.854, 0.853), Sensitivity: (0.855, 0.833), Specificity: (0.789, 0.796), and Balanced Accuracy: (0.822, 0.814). 
 
 ```{r, fig.show='hold', out.width="49%"}
-knitr::include_graphics(c(paste(path_to_figs, "less 2 Years Old Tree Feature Importances.png", sep = ""), paste(path_to_figs, "over or equal 2 Years Old Tree Feature Importances.png", sep = "")))
+knitr::include_graphics(c(paste(path_to_figs, "less_2_Years_Old_Tree_Feature_Importances.png", sep = ""), paste(path_to_figs, "over_or_equal_2_Years_Old_Tree_Feature_Importances.png", sep = "")))
 ```
 
 If we instead consider the weightings of 500:1 instead of 1:1 for the labels, then as below, we can see the ROC curve do not have meaningful shifts in AUC figures. 
