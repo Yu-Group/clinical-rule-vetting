@@ -1063,7 +1063,8 @@ class Dataset(DatasetTemplate):
                  axis=1)
         AI_split = lambda df: df.drop(
             reduce(ic, [list(df.filter(regex=c)) for c in (AgeSplit.young_features +
-                                                           AgeSplit.old_features)]),
+                                                           AgeSplit.old_features +
+                                                           ["GCS"])]),
             axis=1)
 
         sel = {
@@ -1105,7 +1106,7 @@ if __name__ == '__main__':
     judg_calls["preprocess_data"]["step20_ActNormal"] = False
     df_train, df_tune, df_test = dset.get_data(save_csvs=False,
                                                run_perturbations=False,
-                                               split_age=AgeSplit.NOSPLIT,
+                                               split_age=AgeSplit.AGEINVARIANT,
                                                **judg_calls)
 
     print('successfuly processed data\nshapes:',
