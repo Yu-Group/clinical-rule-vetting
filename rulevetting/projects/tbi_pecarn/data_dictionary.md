@@ -49,7 +49,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 	- Indicators for if you don't have Amnesia (Amnesia_verb_0), you do have Amnesia (Amnesia_verb_1),
 		or you are marked as pre-verbal/non-verbal (Amnesia_verb_91)
 
-* LOCSeparate*, **
+* LOCSeparate**, ***
 	- History of loss of consciousness?
 	- Coded as: (1 yes or suspected; 0 otherwise)
 		- Alternative coding by judgement call: 0 otherwise, 1 yes, 2 suspected
@@ -60,7 +60,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- Duration of loss of consciousness
 		- Coded as: (1: <5 sec, 2: 5 sec - 1 min, 3: 1 - 5 min, 4: > 5 min, or missing)
 
-* Seiz **
+* Seiz ***
 	- Whether there was a seizure
 	- Default strategy: Step 2 (SeizOccur is dropped)
 
@@ -75,7 +75,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 * ActNorm
 	- Whether the parent thinks the child is acting normally
 
-* HA_verb **
+* HA_verb ***
 	- Whether there was a headache at the time of evaluation, or
 	the child is preverbal/nonverbal
 	- Coded as: (0: no, 1: yes, 91: preverbal/nonverbal)
@@ -90,7 +90,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- Coded as: (1: Before injury, 2: within 1 hr of event, 3: 1-4 hours after, 4: >4 hours after, or missing) 
 
 
-* Vomit **
+* Vomit ***
 	- Whether the individual vomited after the injury
 	- Default strategy: Step 1
 
@@ -115,11 +115,11 @@ but note that these categorical variables are one-hot encoded in the final datas
 * GCSMotor 
 	- GCS motor score, either 5 or 6
 
-* GCSTotal*
+* GCSTotal**
 	- GCS total score, either 15 or 14
 	- Not included by default, inclusion by judgement call 'GCS'
 
-* AMS**
+* AMS***
 	- GCS < 15, or other signs of altered mental status
 	- Default strategy: Step 3
 
@@ -143,7 +143,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- Whether there is any other reason to suspect AMS
 		- Coded as: (0: no, 1: yes, or missing)
 
-* SFxPalp*, **
+* SFxPalp**, ***
 	- Palpable skull fracture?
 	- Coded as (1: yes or unclear, 0: otherwise)
 		- Alternative coding (1: yes, 0: otherwise, 2: unclear) by different judgement call
@@ -156,7 +156,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 * FontBulg
 	- Anterior fontanelle bulging? Either yes or no/closed (meaning you're older)
 
-* SFxBas**
+* SFxBas***
 	- Signs of basilar skull fracture?
 	- Default strategy: Step 3
 
@@ -180,7 +180,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- CSF rhinorrhea?
 		- Coded as: (0: no, 1: yes, or missing)
 
-* Hema**
+* Hema***
 	- Raised scalp hematoma or swelling?
 	- Default strategy: Step 3
 
@@ -192,7 +192,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- Size?
 		- Coded as: (1: small < 1cm, medium 1 - 3cm, large, >3cm, or missing)
 
-* Clav**
+* Clav***
 	- Evidence of trauma above the clavicles?
 	- Default strategy: Step 3
 
@@ -220,7 +220,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- Was it on the scalp, but temporal?
 		- Coded as: (0: no, 1: yes, or missing)
 
-* NeuroD**
+* NeuroD***
 	- Evidence of neurological deficit, besides altered mental status?
 	- Default strategy: Step 3
 
@@ -244,7 +244,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- other neurological deficit?
 		- Coded as: (0: no, 1: yes, or missing)
 
-* OSI**
+* OSI***
 	- Evidence of substantial non-head injuries
 	- Default strategy: Step 3
 
