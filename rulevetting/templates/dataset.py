@@ -137,7 +137,8 @@ class DatasetTemplate:
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
-                 run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 run_perturbations: bool = False,
+                 resampling: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
