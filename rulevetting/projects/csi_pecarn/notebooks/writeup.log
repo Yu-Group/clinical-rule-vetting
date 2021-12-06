@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  6 DEC 2021 00:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  6 DEC 2021 00:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -600,34 +600,33 @@ nput line 572.
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.594 A
-        rigorous inspection of the raw data reveals that this feature haspdfTeX
- warning (ext4): destination with the same identifier (name{figure.5}) has been
- already used, duplicate ignored
+l.603 
+      pdfTeX warning (ext4): destination with the same identifier (name{figure.
+5}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.594 A
-        rigorous inspection of the raw data reveals that this feature has <./wr
-iteup_files/figure-latex/accuracy-rates-1.pdf> <./writeup_files/figure-latex/ro
-c-curves-1.pdf>]
+l.603 
+       <./writeup_files/figure-latex/accuracy-rates-1.pdf> <./writeup_files/fig
+ure-latex/roc-curves-1.pdf>]
 <dx_survey.png, id=228, 855.195pt x 634.37pt>
 File: dx_survey.png Graphic file (type png)
 <use dx_survey.png>
-Package pdftex.def Info: dx_survey.png  used on input line 608.
+Package pdftex.def Info: dx_survey.png  used on input line 605.
 (pdftex.def)             Requested size: 340.98886pt x 252.94008pt.
 [10pdfTeX warning (ext4): destination with the same identifier (name{figure.6})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.634 
-       <./dx_survey.png>] [11] (./writeup.aux)
+l.635 \section{Conclusion}\label{conclusion}}
+                                              <./dx_survey.png>] [11] (./writeu
+p.aux)
 Package rerunfilecheck Info: File `writeup.out' has not changed.
-(rerunfilecheck)             Checksum: 7B0941C32A5954A48BEC1281848C6EA5;2796.
+(rerunfilecheck)             Checksum: 6C11854A5068CF83AB2E2B00BF51601E;2824.
  ) 
 Here is how much of TeX's memory you used:
  11563 strings out of 480313
  182079 string characters out of 5896366
- 477645 words of memory out of 5000000
+ 476650 words of memory out of 5000000
  29158 multiletter control sequences out of 15000+600000
  460931 words of font info for 70 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
@@ -646,7 +645,7 @@ TeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/TinyTeX
 /texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/TinyTeX/t
 exmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTeX/tex
 mf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (11 pages, 800577 bytes).
+Output written on writeup.pdf (11 pages, 800460 bytes).
 PDF statistics:
  311 PDF objects out of 1000 (max. 8388607)
  259 compressed objects within 3 object streams

@@ -368,11 +368,9 @@ roc_log <- plotROC(allsens_log, allspec_log, model = "Logistic Regression")
 ggarrange(roc_ada, roc_tree, roc_log, ncol = 2, nrow = 2)
 ```
 
-## Caveats {#sec:caveats}
+## Model Caveat {#sec:caveats}
 
-Despite its strong performance, our model has domain-specific caveats that we must adjust for and address.
-
-First, the `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has a unique context. This feature is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. Such a guess information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. In order to use a feature like this, we must provide a thorough investigation of the feature and ensure that it is indeed reasonable.
+The `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has a unique context. This feature is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. Such a guess information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. In order to use a feature like this, we must provide a thorough investigation of the feature and ensure that it is indeed reasonable.
 
 A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Thus, we can rely on this information to be provided in general. We then examined how this feature was recorded. Fortunately, our data documentation contains a copy of the form that a nurse or EMT fills out when examining the patient. The question of CSI suspicion appears in the survey along with the other questions that are part of our feature space. If we picture ourselves as the nurse or physician, we can see them record their personal judgment of the patient just like they will record other measurements, such as AVPU or neck tenderness, for example. A copy of the questionnaire with the `DxCspineInjury` feature is shown in Figure \blue{\ref{fig:dxcspine}}.
 
