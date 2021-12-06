@@ -26,8 +26,8 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 
 * InjuryMech**
-	  * How the injury occurred
-	-Coded as: (1 Occupant in motor vehicle collision (MVC);
+	- How the injury occurred
+	- Coded as: (1 Occupant in motor vehicle collision (MVC);
 			2 Pedestrian struck by moving vehicle;
 			3 Bike rider struck by automobile;
 			4 Bike collision or fall from bike while riding;
