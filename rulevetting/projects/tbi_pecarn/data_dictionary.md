@@ -38,39 +38,39 @@ but note that these categorical variables are one-hot encoded in the final datas
 			9 Fall down stairs
 			10 Sports
 			11 Assault
-			12 Object struck head - accidentally
-	-Inclusion by Judgement Call: step1_injMech, DEFAULT: FALSE
+			12 Object struck head - accidentally)
+	- Inclusion by Judgement Call: step1_injMech, DEFAULT: FALSE
 
-High_impact_InjSev_1, High_impact_InjSev_2, High_impact_InjSev_3
-	-Indicators for severity of injury mechanism (whether rated 1, 2, or 3)
-	-Coded as binary for each observation
+* High_impact_InjSev_1, High_impact_InjSev_2, High_impact_InjSev_3
+	- Indicators for severity of injury mechanism (whether rated 1, 2, or 3)
+	- Coded as binary for each observation
 
-Amnesia_verb_0, Amnesia_verb_1, Amnesia_verb_91
-	-Indicators for if you don't have Amnesia (Amnesia_verb_0), you do have Amnesia (Amnesia_verb_1),
+* Amnesia_verb_0, Amnesia_verb_1, Amnesia_verb_91
+	- Indicators for if you don't have Amnesia (Amnesia_verb_0), you do have Amnesia (Amnesia_verb_1),
 		or you are marked as pre-verbal/non-verbal (Amnesia_verb_91)
 
-LOCSeparate*, **
-	-History of loss of consciousness?
-	-Coded as: (1 yes or suspected; 0 otherwise)
-		-Alternative coding by judgement call: 0 otherwise, 1 yes, 2 suspected
-	-Default strategy: Step 3
+* LOCSeparate*, **
+	- History of loss of consciousness?
+	- Coded as: (1 yes or suspected; 0 otherwise)
+		- Alternative coding by judgement call: 0 otherwise, 1 yes, 2 suspected
+	- Default strategy: Step 3
 
-	LOCLen
+	* LOCLen
 
-		-Duration of loss of consciousness
-		-Coded as: (1: <5 sec, 2: 5 sec - 1 min, 3: 1 - 5 min, 4: > 5 min, or missing)
+		- Duration of loss of consciousness
+		- Coded as: (1: <5 sec, 2: 5 sec - 1 min, 3: 1 - 5 min, 4: > 5 min, or missing)
 
-Seiz **
-	-Whether there was a seizure
-	-Default strategy: Step 2 (SeizOccur is dropped)
+* Seiz **
+	- Whether there was a seizure
+	- Default strategy: Step 2 (SeizOccur is dropped)
 
-	SeizLen
+	* SeizLen
 		- Duration of the seizure
-		-Coded as: (1: <1 min, 2: 1 sec - < 5 min, 3: 5 - 15 min, 4: > 15 min, or missing)
+		- Coded as: (1: <1 min, 2: 1 sec - < 5 min, 3: 5 - 15 min, 4: > 15 min, or missing)
 
-	SeizOccur
+	* SeizOccur
 		- How long after injury did the seizure occur
-		-Coded as: (1: Immediately on contact, 2: Within 30 minutes of injury, 3: >30 minutes after injury, or missing)
+		- Coded as: (1: Immediately on contact, 2: Within 30 minutes of injury, 3: >30 minutes after injury, or missing)
 
 ActNorm
 	-Whether the parent thinks the child is acting normally
