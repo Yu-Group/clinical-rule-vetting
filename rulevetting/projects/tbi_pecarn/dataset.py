@@ -235,14 +235,37 @@ class Dataset(DatasetTemplate):
         ################################
         # Step 8: Drop those with missing OSI - other substantial injuries
         ################################
+        # UMBRELLA: OSIExtremity OSICut OSICspine OSIFlank OSIAbdomen OSIPelvis OSIOth
 
-        if judg_calls["step8_missingOSI"]:
-            tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
-        # don't see any alternative than to drop the whole thing, since where
-        # could this be even imputed from
+        # Union
+        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        if judg_calls["step8_OSI"] == 1 or judg_calls["step8_OSI"] == 2:
+            # fix so missings don't get counted as present
+            tbi_df.loc[tbi_df[(tbi_df.OSIExtremity == 92) | (tbi_df.OSICut == 92) |
+                              (tbi_df.OSICspine == 92) | (tbi_df.OSIFlank == 92) |
+                              (tbi_df.OSIAbdomen == 92) | (tbi_df.OSIPelvis == 92) |
+                              (tbi_df.OSIOth == 92)].index,
+                       ["OSIExtremity", "OSICut", "OSICspine", "OSIFlank",
+                        "OSIAbdomen", "OSIPelvis", "OSIOth"]] = np.NaN
+            tbi_df = hp.union_var(tbi_df, ["OSIExtremity", "OSICut", "OSICspine",
+                                           "OSIFlank", "OSIAbdomen", "OSIPelvis",
+                                           "OSIOth"],
+                                  'OSI')
+
+        # Judgement call: be strict about missing sub-categories
+        elif judg_calls["step8_OSI"] == 3:
+            tbi_df.drop(tbi_df.loc[(tbi_df.OSIExtremity.isnull()) |
+                                   (tbi_df.OSICut.isnull()) |
+                                   (tbi_df.OSICspine.isnull()) |
+                                   (tbi_df.OSIFlank.isnull()) |
+                                   (tbi_df.OSIAbdomen.isnull()) |
+                                   (tbi_df.OSIPelvis.isnull()) |
+                                   (tbi_df.OSIOth.isnull())].index,
+                        inplace=True)
         else:
-            tbi_df.drop(['OSI'], axis=1, inplace=True)
+            raise NotImplementedError("Desired OSI preprocess step not implemented!")s
 
+        tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
         ################################
         # Step 9: Impute/drop based on Hema variables
         ################################
@@ -638,7 +661,6 @@ class Dataset(DatasetTemplate):
         df = preprocessed_data.copy()
 
         # FLATTEN UMBRELLAS:
-
         if judg_calls["AMS_umbrella"]:
             # cannot flatten if unionized
             assert prepr_calls["step7_AMS"] == 3
@@ -650,6 +672,20 @@ class Dataset(DatasetTemplate):
                    (df.AMSSlow == 92) | (df.AMSRepeat == 92) |
                    (df.AMSOth == 92),
                    ["AMSAgitated", "AMSSleep", "AMSSlow", "AMSRepeat", "AMSOth"]] = 0
+
+        if judg_calls["OSI_umbrella"]:
+            # cannot flatten if unionized
+            assert prepr_calls["step8_OSI"] == 3
+
+            # "flatten" - drop the umbrella variable, all children are equal
+            df.drop("OSI", axis=1, inplace=True)
+            # 92 is treated as 0
+            df.loc[(df.OSIExtremity == 92) | (df.OSICut == 92) |
+                   (df.OSICspine == 92) | (df.OSIFlank == 92) |
+                   (df.OSIAbdomen == 92) | (df.OSIPelvis == 92) |
+                   (df.OSIOth == 92) ,
+                   ["OSIExtremity", "OSICut", "OSICspine","OSIFlank",
+                    "OSIAbdomen", "OSIPelvis", "OSIOth"]] = 0
 
         if judg_calls["HEMA_umbrella"]:
             # cannot flatten if unionized
@@ -831,14 +867,14 @@ class Dataset(DatasetTemplate):
                     # 1: union - impute parent from children, drop children
                     # 2: mixed: keep (some) children & parent, impute parent from the children kept
                     # 3: no: no imputation, keep all children, drop those with N/A in any child
-
-                    # include injury mechanic
+                    # Include how the injury occurred
                     "step1_injMech"   : [False, True],
+                    # Include how the injury occurred
                     "step5_missSubGCS": [True, False],
                     "step5_fake15GCS" : [True, False],
                     "step5_fake14GCS" : [True, False],
-                    "step8_missingOSI": [True, False],
                     "step7_AMS"       : [3, 1, 2],
+                    "step8_OSI"       : [3, 1, 2],
                     "step9_HEMA"      : [3, 1, 2],
                     "step10_SFx"      : [2, 3, 1],
                     "step11_SFxBas"   : [3, 2, 1],
@@ -861,6 +897,7 @@ class Dataset(DatasetTemplate):
                     "SFxPalp_umbrella": [False, True],
                     "SFxBas_umbrella" : [False, True],
                     "AMS_umbrella"    : [False, True],
+                    "OSI_umbrella"    : [False, True],
                     "Clav_umbrella"   : [False, True],
                     "NeuroD_umbrella" : [False, True],
                     "Vomit_umbrella"  : [False, True],

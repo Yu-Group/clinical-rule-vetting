@@ -2,22 +2,29 @@
 
 *Note that not all of these columns will appear in the final dataset, depending on which judgement calls have been activated.*
 
-** indicates a feature whose coding/values or presence depends on a judgement call
+\*\* indicates a feature whose coding/values or presence depends on a judgement call
 
-*** indicates an umbrella feature, meaning that it's a feature that has sub-features whose
-	values depend on the umbrella feature (for example: where basilar skull fracture
-	occurred would be a sub feature for a larger indicator on whether there was basilar skull 
-	fracture in the first place; as a default, if there is no basilar skull fracture, the sub-feature 
-	location is coded as missing). For these features, our strategies for imputing missing values are given by
-	three possible decisions, each one keeping a different subset of the original columns. First,
-	we could make a new binary umbrella variable where each observation is 1 if any of the umbrella or 
-	its subfeatures are positively marked (0 otherwise), and keep only this new column (a process we call
-	"unioning"). Second, some subfeatures may be more important than other subfeatures, so we can union
-	with respect to these more important subfeatures but keep these subfeatures as separate columns, and drop
-	the subfeatures deemed less important. Finally, we can just keep all of the columns but drop any
-	observation with a missing value among any of the subfeatures. These three decisions give different
-	imputation strategies for the umbrella variables, but regardless of the strategy, any remaining
-	missing values are always dropped. For each umbrella feature, we mark which strategy is used by default.
+\*\*\* indicates an **umbrella** feature, meaning that it's a feature that has sub-features whose
+	values depend on the umbrella feature.
+	For example: the location of basilar skull fracture occurrence would be a sub feature for a larger indicator on 
+	whether there was basilar skull fracture in the first place;
+	as a default, if there is no basilar skull fracture, the sub-feature location is coded as missing. 
+	For these features, our strategies for imputing missing values are given by	three possible decisions,
+	each one keeping a different subset of the original columns:
+
+1. First,  could make a new binary umbrella variable where each observation is 1 if any of the umbrella or 
+its subfeatures are positively marked (0 otherwise), and keep only this new column, a process we call
+"**unioning**".
+
+2. Second, some subfeatures may be more important than other subfeatures, so we can union
+with respect to these more important subfeatures but keep these subfeatures as separate columns, and drop
+the subfeatures deemed less important.
+
+3. Third, we can just keep all of the columns but drop any observation with a missing value among any of the subfeatures.
+
+
+These three decisions give different *strategies* for the umbrella variables, but regardless of the strategy, any remaining
+missing values are always dropped. For each umbrella feature, we mark which strategy is used by default.
 	
 Note: for any feature that is not already binary, we provide the categories as originally encoded, 
 but note that these categorical variables are one-hot encoded in the final dataset.
@@ -52,7 +59,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 	- History of loss of consciousness?
 	- Coded as: (1 yes or suspected; 0 otherwise)
 		- Alternative coding by judgement call: 0 otherwise, 1 yes, 2 suspected
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* LOCLen
 
@@ -61,7 +68,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * Seiz ***
 	- Whether there was a seizure
-	- Default strategy: Step 2 (SeizOccur is dropped)
+	- Default strategy: Strategy 2 (SeizOccur is dropped)
 
 	* SeizLen
 		- Duration of the seizure
@@ -78,7 +85,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 	- Whether there was a headache at the time of evaluation, or
 	the child is preverbal/nonverbal
 	- Coded as: (0: no, 1: yes, 91: preverbal/nonverbal)
-	- Default strategy: Step 2 (HAStart is dropped)
+	- Default strategy: Strategy 2 (HAStart is dropped)
 
 	* HASeverity
 		- Ranking of severity of headache
@@ -91,7 +98,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * Vomit ***
 	- Whether the individual vomited after the injury
-	- Default strategy: Step 1
+	- Default strategy: Strategy 1
 
 	* VomitStart
 		-When did the vomiting start
@@ -120,7 +127,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * AMS***
 	- GCS < 15, or other signs of altered mental status
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* AMSAgitated
 		- Whether they seem agitated as a reason for AMS
@@ -146,7 +153,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 	- Palpable skull fracture?
 	- Coded as (1: yes or unclear, 0: otherwise)
 		- Alternative coding (1: yes, 0: otherwise, 2: unclear) by different judgement call
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* SFxPalpDepress
 		- Whether the palpable skull fracture feels depressed
@@ -157,7 +164,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * SFxBas***
 	- Signs of basilar skull fracture?
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* SFxBasHem
 		- hemotympanum?
@@ -181,7 +188,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * Hema***
 	- Raised scalp hematoma or swelling?
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* HemaLoc
 		- Location?
@@ -193,7 +200,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * Clav***
 	- Evidence of trauma above the clavicles?
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* ClavFace
 		- Was it on the face?
@@ -221,7 +228,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * NeuroD***
 	- Evidence of neurological deficit, besides altered mental status?
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* NeuroDMotor
 		- Motor deficit?
@@ -245,7 +252,7 @@ but note that these categorical variables are one-hot encoded in the final datas
 
 * OSI***
 	- Evidence of substantial non-head injuries
-	- Default strategy: Step 3
+	- Default strategy: Strategy 3
 
 	* OSIExtremity
 		- an injury on the extremities?
