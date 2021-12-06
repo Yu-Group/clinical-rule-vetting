@@ -72,225 +72,223 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- How long after injury did the seizure occur
 		- Coded as: (1: Immediately on contact, 2: Within 30 minutes of injury, 3: >30 minutes after injury, or missing)
 
-ActNorm
-	-Whether the parent thinks the child is acting normally
+* ActNorm
+	- Whether the parent thinks the child is acting normally
 
-HA_verb **
-	-Whether there was a headache at the time of evaluation, or
+* HA_verb **
+	- Whether there was a headache at the time of evaluation, or
 	the child is preverbal/nonverbal
-	-Coded as: (0: no, 1: yes, 91: preverbal/nonverbal)
-	-Default strategy: Step 2 (HAStart is dropped)
+	- Coded as: (0: no, 1: yes, 91: preverbal/nonverbal)
+	- Default strategy: Step 2 (HAStart is dropped)
 
-	HASeverity
-		-Ranking of severity of headache
-		-Coded as: (1: Mild, 2: Moderate, 3: Severe, or missing)
+	* HASeverity
+		- Ranking of severity of headache
+		- Coded as: (1: Mild, 2: Moderate, 3: Severe, or missing)
 
-	HAStart
-		-How long after injury did headache start
-		-Coded as: (1: Before injury, 2: within 1 hr of event, 3: 1-4 hours after, 4: >4 hours after, or missing) 
+	* HAStart
+		- How long after injury did headache start
+		- Coded as: (1: Before injury, 2: within 1 hr of event, 3: 1-4 hours after, 4: >4 hours after, or missing) 
 
 
-Vomit **
-	-Whether the individual vomited after the injury
-	-Default strategy: Step 1
+* Vomit **
+	- Whether the individual vomited after the injury
+	- Default strategy: Step 1
 
-	Inclusion of following features by judgement call: 'step14_vomitDtls', DEFAULT = FALSE
-
-	VomitStart*
+	* VomitStart
 		-When did the vomiting start
 		-Coded as: (1: Before injury, 2: Within 1 hour after, 3: 1-4 hours after, 4: >4 hours after, or missing)
 
-	VomitLast*
+	* VomitLast
 		-How long before eval was last vomit
 		-Coded as: (1: <1 hour before eval, 2: 1-4 hours before eval, 3: > 4 hours before eval, or missing)
 
-	VomitNbr*
+	* VomitNbr
 		-How many vomiting episodes were there
 		-Coded as: (1: Once, 2: Twice, 3: >2 times, or missing)
 
-GCSEye
-	-GCS eye score, either 3 or 4
+* GCSEye
+	- GCS eye score, either 3 or 4
 
-GCSVerbal
-	-GCS verbal score, either 4 or 5
+* GCSVerbal
+	- GCS verbal score, either 4 or 5
 
-GCSMotor 
-	-GCS motor score, either 5 or 6
+* GCSMotor 
+	- GCS motor score, either 5 or 6
 
-GCSTotal*
-	-GCS total score, either 15 or 14
-	-Not included by default, inclusion by judgement call 'GCS'
+* GCSTotal*
+	- GCS total score, either 15 or 14
+	- Not included by default, inclusion by judgement call 'GCS'
 
-AMS**
-	-GCS < 15, or other signs of altered mental status
-	-Default strategy: Step 3
+* AMS**
+	- GCS < 15, or other signs of altered mental status
+	- Default strategy: Step 3
 
-	AMSAgitated
-		-Whether they seem agitated as a reason for AMS
-		-Coded as: (0: no, 1: yes, or missing)
+	* AMSAgitated
+		- Whether they seem agitated as a reason for AMS
+		- Coded as: (0: no, 1: yes, or missing)
 
-	AMSSleep
-		-Whether they seem sleepy as a reason for AMS
-		-Coded as: (0: no, 1: yes, or missing)
+	* AMSSleep
+		- Whether they seem sleepy as a reason for AMS
+		- Coded as: (0: no, 1: yes, or missing)
 
-	AMSSlow
-		-Whether they seem slow to respond as a reason for AMS
-		-Coded as: (0: no, 1: yes, or missing)
+	* AMSSlow
+		- Whether they seem slow to respond as a reason for AMS
+		- Coded as: (0: no, 1: yes, or missing)
 
-	AMSRepeat
-		-Whether they ask repetitive questions as a reason for AMS
-		-Coded as: (0: no, 1: yes, or missing)
+	* AMSRepeat
+		- Whether they ask repetitive questions as a reason for AMS
+		- Coded as: (0: no, 1: yes, or missing)
 
-	AMSOth
-		-Whether there is any other reason to suspect AMS
-		-Coded as: (0: no, 1: yes, or missing)
+	* AMSOth
+		- Whether there is any other reason to suspect AMS
+		- Coded as: (0: no, 1: yes, or missing)
 
-SFxPalp*, **
-	-Palpable skull fracture?
-	-Coded as (1: yes or unclear, 0: otherwise)
-		-Alternative coding (1: yes, 0: otherwise, 2: unclear) by different judgement call
-	-Default strategy: Step 3
+* SFxPalp*, **
+	- Palpable skull fracture?
+	- Coded as (1: yes or unclear, 0: otherwise)
+		- Alternative coding (1: yes, 0: otherwise, 2: unclear) by different judgement call
+	- Default strategy: Step 3
 
-	SFxPalpDepress
-		-Whether the palpable skull fracture feels depressed
-		-Coded as: (0: no, 1: yes, or missing)
+	* SFxPalpDepress
+		- Whether the palpable skull fracture feels depressed
+		- Coded as: (0: no, 1: yes, or missing)
 
-FontBulg
-	-Anterior fontanelle bulging? Either yes or no/closed (meaning you're older)
+* FontBulg
+	- Anterior fontanelle bulging? Either yes or no/closed (meaning you're older)
 
-SFxBas**
-	-Signs of basilar skull fracture?
-	-Default strategy: Step 3
+* SFxBas**
+	- Signs of basilar skull fracture?
+	- Default strategy: Step 3
 
-	SFxBasHem
-		-hemotympanum?
-		-Coded as: (0: no, 1: yes, or missing)
+	* SFxBasHem
+		- hemotympanum?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	SFxBasOto
-		-CSF otorrhea?
-		-Coded as: (0: no, 1: yes, or missing)
+	* SFxBasOto
+		- CSF otorrhea?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	SFxBasPer
-		-periorbital ecchymosis (raccoon eyes)?
-		-Coded as: (0: no, 1: yes, or missing)
+	* SFxBasPer
+		- periorbital ecchymosis (raccoon eyes)?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	SFxBasRet
-		-retroauricular ecchymosis (battle's sign)?
-		-Coded as: (0: no, 1: yes, or missing)
+	* SFxBasRet
+		- retroauricular ecchymosis (battle's sign)?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	SFxBasRhi
-		-CSF rhinorrhea?
-		-Coded as: (0: no, 1: yes, or missing)
+	* SFxBasRhi
+		- CSF rhinorrhea?
+		- Coded as: (0: no, 1: yes, or missing)
 
-Hema**
-	-Raised scalp hematoma or swelling?
-	-Default strategy: Step 3
+* Hema**
+	- Raised scalp hematoma or swelling?
+	- Default strategy: Step 3
 
-	HemaLoc
-		-Location?
-		-Coded as: (1: Frontal, 2: Occipital, 3: Parietal/Temporal, or missing)
+	* HemaLoc
+		- Location?
+		- Coded as: (1: Frontal, 2: Occipital, 3: Parietal/Temporal, or missing)
 
-	HemaSize
-		-Size?
-		-Coded as: (1: small < 1cm, medium 1 - 3cm, large, >3cm, or missing)
+	* HemaSize
+		- Size?
+		- Coded as: (1: small < 1cm, medium 1 - 3cm, large, >3cm, or missing)
 
-Clav**
-	-Evidence of trauma above the clavicles?
-	-Default strategy: Step 3
+* Clav**
+	- Evidence of trauma above the clavicles?
+	- Default strategy: Step 3
 
-	ClavFace
-		-Was it on the face?
-		-Coded as: (0: no, 1: yes, or missing)
+	* ClavFace
+		- Was it on the face?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	ClavNeck
-		-Was it on the neck?
-		-Coded as: (0: no, 1: yes, or missing)
+	* ClavNeck
+		- Was it on the neck?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	ClavFro
-		-Was it on the scalp, but frontal?
-		-Coded as: (0: no, 1: yes, or missing)
+	* ClavFro
+		- Was it on the scalp, but frontal?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	ClavOcc
-		-Was it on the scalp, but occipital?
-		-Coded as: (0: no, 1: yes, or missing)
+	* ClavOcc
+		- Was it on the scalp, but occipital?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	ClavPar
-		-Was it on the scalp, but parietal?
-		-Coded as: (0: no, 1: yes, or missing)
+	* ClavPar
+		- Was it on the scalp, but parietal?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	ClavTem
-		-Was it on the scalp, but temporal?
-		-Coded as: (0: no, 1: yes, or missing)
+	* ClavTem
+		- Was it on the scalp, but temporal?
+		- Coded as: (0: no, 1: yes, or missing)
 
-NeuroD**
-	-Evidence of neurological deficit, besides altered mental status?
-	-Default strategy: Step 3
+* NeuroD**
+	- Evidence of neurological deficit, besides altered mental status?
+	- Default strategy: Step 3
 
-	NeuroDMotor
-		-Motor deficit?
-		-Coded as: (0: no, 1: yes, or missing)
+	* NeuroDMotor
+		- Motor deficit?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	NeuroDSensory
-		-Sensory deficit?
-		-Coded as: (0: no, 1: yes, or missing)
+	* NeuroDSensory
+		- Sensory deficit?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	NeuroDCranial
-		-Cranial nerve?
-		-Coded as: (0: no, 1: yes, or missing)
+	* NeuroDCranial
+		- Cranial nerve?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	NeuroDReflex
-		-Reflex issue?
-		-Coded as: (0: no, 1: yes, or missing)
+	* NeuroDReflex
+		- Reflex issue?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	NeuroDOth
-		-other neurological deficit?
-		-Coded as: (0: no, 1: yes, or missing)
+	* NeuroDOth
+		- other neurological deficit?
+		- Coded as: (0: no, 1: yes, or missing)
 
-OSI**
-	-Evidence of substantial non-head injuries
-	-Default strategy: Step 3
+* OSI**
+	- Evidence of substantial non-head injuries
+	- Default strategy: Step 3
 
-	OSIExtremity
-		-an injury on the extremities?
-		-Coded as: (0: no, 1: yes, or missing)
+	* OSIExtremity
+		- an injury on the extremities?
+		- Coded as: (0: no, 1: yes, or missing)
 
-	OSICut
-		-laceration requiring OR repair
-		-Coded as: (0: no, 1: yes, or missing)
+	* OSICut
+		- laceration requiring OR repair
+		- Coded as: (0: no, 1: yes, or missing)
 
-	OSICspine
-		-injury to c-spine
-		-Coded as: (0: no, 1: yes, or missing)
+	* OSICspine
+		- injury to c-spine
+		- Coded as: (0: no, 1: yes, or missing)
 
-	OSIFlank
-		-injury to chest/back/flank
-		-Coded as: (0: no, 1: yes, or missing)
+	* OSIFlank
+		- injury to chest/back/flank
+		- Coded as: (0: no, 1: yes, or missing)
 
-	OSIAbdomen
-		-intra-abdominal injury
-		-Coded as: (0: no, 1: yes, or missing)
+	* OSIAbdomen
+		- intra-abdominal injury
+		- Coded as: (0: no, 1: yes, or missing)
 
-	OSIPelvis
-		-pelvis injury
-		-Coded as: (0: no, 1: yes, or missing)
+	* OSIPelvis
+		- pelvis injury
+		- Coded as: (0: no, 1: yes, or missing)
 
-	OSIOth
-		-another substantial non-head injury
-		-Coded as: (0: no, 1: yes, or missing)
+	* OSIOth
+		- another substantial non-head injury
+		- Coded as: (0: no, 1: yes, or missing)
 
-AgeinYears
-	-the age of the individual in years
+* AgeinYears
+	- the age of the individual in years
 
-Gender
-	-encoded as either male or female
+* Gender
+	- encoded as either male or female
 
-Race
-	-either encoded as White, Black, Asian, American Indian/Alaska Native, Pacific Islander
+* Race
+	- either encoded as White, Black, Asian, American Indian/Alaska Native, Pacific Islander
 
-Outcome
+* Outcome
 
-	-a pooled outcome variable that is completely binary (1 or 0)
-	-1 if the observation had neurological surgery, intubated > 24 hours,
+	- a pooled outcome variable that is completely binary (1 or 0)
+	- 1 if the observation had neurological surgery, intubated > 24 hours,
 	death due to TBI or in the ED, hospitalized for >= 2 nights due to injury, 
 	or already marked as 1 on PosIntFinal (Kupperman et al.'s definition of ciTBI)
 
