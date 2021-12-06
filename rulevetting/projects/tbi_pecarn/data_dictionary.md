@@ -2,8 +2,7 @@
 
 *Note that not all of these columns will appear in the final dataset, depending on which judgement calls have been activated.*
 
-** indicates a feature whose coding/values or presence depends on a judgement call. The key in our 
-	judgement call dictionary, as well as the default value, is provided
+** indicates a feature whose coding/values or presence depends on a judgement call
 
 *** indicates an umbrella feature, meaning that it's a feature that has sub-features whose
 	values depend on the umbrella feature (for example: where basilar skull fracture
