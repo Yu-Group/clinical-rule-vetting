@@ -1,6 +1,9 @@
 import inspect
 import os
 import random
+from enum import Enum
+from functools import reduce
+from operator import iconcat as ic
 from os.path import join as oj
 from typing import Dict
 
@@ -15,6 +18,18 @@ import rulevetting
 import rulevetting.api.util
 import rulevetting.projects.tbi_pecarn.helper as hp
 from rulevetting.templates.dataset import DatasetTemplate
+
+
+class AgeSplit(Enum):
+    NOSPLIT = 0
+    YOUNG = 1
+    OLD = 2
+    AGEINVARIANT = 3
+
+
+# NOTE: list of features SPECIFIC to young and older patients, respectively
+AgeSplit.young_features = ["FontBulg", ]
+AgeSplit.old_features = ["Amnesia_verb", "HA_verb", "HASeverity", "HAStart"]
 
 
 class Dataset(DatasetTemplate):
@@ -898,7 +913,9 @@ class Dataset(DatasetTemplate):
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
-                 run_perturbations: bool = False, **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 run_perturbations: bool = False,
+                 split_age=AgeSplit.NOSPLIT,
+                 **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -912,6 +929,8 @@ class Dataset(DatasetTemplate):
             Whether to skip all processing and load data directly from csvs
         run_perturbations: bool, optional
             Whether to run / save data pipeline for all combinations of judgement calls
+        split_age
+            Whether to split the resulting dataframe by age
 
         Returns
         -------
@@ -981,7 +1000,29 @@ class Dataset(DatasetTemplate):
                             df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
                 return dfs[list(dfs.keys())[0]]
 
-        return df_train, df_tune, df_test
+        # Age splitting
+        # need to filter by regex since already binarized
+        young_split = lambda df: df.loc[df.AgeinYears <= 2, :]. \
+            drop(reduce(ic, [list(df.filter(regex=c)) for c in AgeSplit.old_features])
+                 , axis=1)
+        old_split = lambda df: df.loc[df.AgeinYears > 2, :]. \
+            drop(reduce(ic, [list(df.filter(regex=c)) for c in AgeSplit.young_features]),
+                 axis=1)
+        AI_split = lambda df: df.drop(
+            reduce(ic, [list(df.filter(regex=c)) for c in (AgeSplit.young_features +
+                                                           AgeSplit.old_features)]),
+            axis=1)
+
+        sel = {
+            AgeSplit.NOSPLIT     : lambda df: df,
+            AgeSplit.YOUNG       : young_split,
+            AgeSplit.OLD         : old_split,
+            AgeSplit.AGEINVARIANT: AI_split
+        }
+
+        return sel[split_age](df_train), \
+               sel[split_age](df_tune), \
+               sel[split_age](df_test)
 
 
 if __name__ == '__main__':
@@ -1009,9 +1050,12 @@ if __name__ == '__main__':
     judg_calls = dset.get_judgement_calls_dictionary_default()
     judg_calls["preprocess_data"]["step19_Drugs"] = True
     judg_calls["preprocess_data"]["step20_ActNormal"] = False
-    df_train, df_tune, df_test = dset.get_data(save_csvs=False, run_perturbations=False,
+    df_train, df_tune, df_test = dset.get_data(save_csvs=False,
+                                               run_perturbations=False,
+                                               split_age=AgeSplit.NOSPLIT,
                                                **judg_calls)
 
     print('successfuly processed data\nshapes:',
           df_train.shape, df_tune.shape, df_test.shape,
-          '\nfeatures:', list(df_train.columns))
+          # '\nfeatures:', list(df_train.columns)
+          )
