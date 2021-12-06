@@ -194,3 +194,61 @@ def evaluate_vlist(data, v_list, method = 'one'):
     specificity = TN/(FP+TN)
     
     return [sensitivity, specificity]
+
+def simple_tree(data_list, tree_method, select_method):
+    
+    data = data_list[0]
+    v_list = list(data.columns)
+    v_list.remove('csi_injury')
+    variable_rank = []
+    if tree_method == 'one':
+        while len(v_list) > 0:
+            # result = find_best_two(data,v_list,method = "semi_gini")
+            result = find_best(data,v_list,select_method)
+            variable_rank.append(result[0])
+            v_list = result[1]
+            data = result[2]
+    elif tree_method == 'two':
+        while len(v_list) > 0:
+            result = find_best_two(data,v_list,select_method)
+            # result = find_best(data,v_list,method = select_method)
+            variable_rank.append(result[0])
+            v_list = result[1]
+            data = result[2]
+
+    l = len(variable_rank)
+    ind = range(l)
+    TPR = [0]*l
+    FPR = [0]*l
+    for i in ind:
+        r = evaluate_vlist(data,variable_rank[0:i], tree_method)
+        TPR[i] = r[0]
+        FPR[i] = 1- r[1]
+    d = {'num': ind, 'TPR': TPR, 'FPR': FPR}
+    evaluation_training = pd.DataFrame(data = d)
+
+    data = data_list[1]
+    l = len(variable_rank)
+    ind = range(l)
+    TPR = [0]*l
+    FPR = [0]*l
+    for i in ind:
+        r = evaluate_vlist(data,variable_rank[0:i], tree_method)
+        TPR[i] = r[0]
+        FPR[i] = 1- r[1]
+    d = {'num': ind, 'TPR': TPR, 'FPR': FPR}
+    evaluation_tuning = pd.DataFrame(data = d)
+
+    return [variable_rank, evaluation_training, evaluation_tuning]
+
+
+
+
+
+
+
+
+
+
+
+
