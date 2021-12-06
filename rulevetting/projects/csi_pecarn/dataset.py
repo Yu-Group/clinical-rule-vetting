@@ -111,11 +111,17 @@ class Dataset(DatasetTemplate):
         if kwargs['only_site_data']:
             df = df.drop(columns = feats2)
         else:
-            df = df.drop(columns =feats1)
+            df = df.drop(columns = feats1)
         
         # only one type of control
-        df = df[df['ControlType'].isin(['case', 'ran'])]
-        
+        if kwargs['use_control_type'] == 'ran':
+            df = df[df['ControlType'].isin(['case', 'ran'])]
+        elif kwargs['use_control_type'] == 'moi':
+            df = df[df['ControlType'].isin(['case', 'moi'])]
+        elif kwargs['use_control_type'] == 'ems':         
+            df = df[df['ControlType'].isin(['case', 'ems'])]
+
+
         df.loc[:, 'outcome'] = (df['ControlType'] == 'case').astype(int)
 
         return df
@@ -176,10 +182,11 @@ class Dataset(DatasetTemplate):
         sites = np.arange(1, 18)
         np.random.seed(42)
         np.random.shuffle(sites)
-        site_split = np.split(sites, [9, 13])
-        split = tuple([preprocessed_data[preprocessed_data['SITE'].isin(site_split[0])],
-                      preprocessed_data[preprocessed_data['SITE'].isin(site_split[1])],
-                      preprocessed_data[preprocessed_data['SITE'].isin(site_split[2])]])
+        site_split = np.split(sites, [4])
+        split = tuple(np.split(
+            preprocessed_data[preprocessed_data['SITE'].isin(site_split[1])].sample(frac=1, random_state=42), 
+            [int(.75 * sum(preprocessed_data['SITE'].isin(site_split[1])))]) +  # 60% train 20% tune
+                      [preprocessed_data[preprocessed_data['SITE'].isin(site_split[0])]]) # 20% test
         return split
     
     def get_outcome_name(self) -> str:
@@ -202,16 +209,18 @@ class Dataset(DatasetTemplate):
                 'frac_missing_allowed': [0.05, 0.10],
                 # Whether to use only data from the study site or also include field and outside hospital data
                 'only_site_data': [False, True],
-
+                # Use with control group
+                'use_control_type': ['all', 'ran', 'moi', 'ems']
+                
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
                 'drop_negative_columns': [False],  # default value comes first
             },
-            'split_data': {
-                # how do we split data
-                'data_split': ['split_by_site', 'random_split'],
-            },
+            # 'split_data': {
+            #     # how do we split data
+            #     'data_split': ['split_by_site', 'random_split'],
+            # },
         }
 
 
