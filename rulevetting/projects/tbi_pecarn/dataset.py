@@ -263,7 +263,8 @@ class Dataset(DatasetTemplate):
                                    (tbi_df.OSIOth.isnull())].index,
                         inplace=True)
         else:
-            raise NotImplementedError("Desired OSI preprocess step not implemented!")s
+            raise NotImplementedError("Desired OSI preprocess step not implemented!")
+            s
 
         tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
         ################################
@@ -683,8 +684,8 @@ class Dataset(DatasetTemplate):
             df.loc[(df.OSIExtremity == 92) | (df.OSICut == 92) |
                    (df.OSICspine == 92) | (df.OSIFlank == 92) |
                    (df.OSIAbdomen == 92) | (df.OSIPelvis == 92) |
-                   (df.OSIOth == 92) ,
-                   ["OSIExtremity", "OSICut", "OSICspine","OSIFlank",
+                   (df.OSIOth == 92),
+                   ["OSIExtremity", "OSICut", "OSICspine", "OSIFlank",
                     "OSIAbdomen", "OSIPelvis", "OSIOth"]] = 0
 
         if judg_calls["HEMA_umbrella"]:
@@ -873,22 +874,35 @@ class Dataset(DatasetTemplate):
                     "step5_missSubGCS": [True, False],
                     "step5_fake15GCS" : [True, False],
                     "step5_fake14GCS" : [True, False],
+                    # GCS < 15, or other signs of altered mental status
                     "step7_AMS"       : [3, 1, 2],
+                    # Evidence of substantial non-head injuries
                     "step8_OSI"       : [3, 1, 2],
+                    # Raised scalp hematoma or swelling?
                     "step9_HEMA"      : [3, 1, 2],
+                    # Palpable skull fracture?
                     "step10_SFx"      : [2, 3, 1],
+                    # Signs of basilar skull fracture?
                     "step11_SFxBas"   : [3, 2, 1],
+                    # Evidence of trauma above the clavicles
                     "step12_Clav"     : [3, 2, 1],
+                    # Evidence of neurological deficit, besides altered mental status
                     "step13_NeuroD"   : [3, 2, 1],
+                    # Whether the individual vomited after the injury
                     "step14_Vomit"    : [1, 2, 3],
+                    # Whether there was a headache at the time of evaluation
                     "step15_HA"       : [2, 3, 1],
                     # only affects 3 above
                     "step15_HAStart"  : [False, True],
+                    # Whether there was a seizure
                     "step16_Seiz"     : [2, 3, 1],
                     # only affects 3 above
                     "step16_SeizOccur": [False, True],
+                    # History of loss of consciousness
                     "step17_LOC"      : [2, 3, 1],
+                    # Clinical suspicion for alcohol or drug intoxication
                     "step19_Drugs"    : [False, True],
+                    # Whether the parent thinks the child is acting normally
                     "step20_ActNormal": [True, False],
 
                 },
@@ -904,7 +918,9 @@ class Dataset(DatasetTemplate):
                     "HA_umbrella"     : [False, True],
                     "Seiz_umbrella"   : [False, True],
                     "LOC_umbrella"    : [False, True],
+                    # binarize GCS
                     "GCS"             : [True, False],
+                    # remove columns with const values
                     "remove_constVal" : [True, False]
                 },
             }

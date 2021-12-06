@@ -282,6 +282,9 @@ but note that these categorical variables are one-hot encoded in the final datas
 		- another substantial non-head injury
 		- Coded as: (0: no, 1: yes, or missing)
 
+* Drugs
+	- Clinical suspicion for alcohol or drug intoxication (not by laboratory testing)?
+
 * AgeinYears
 	- the age of the individual in years
 
