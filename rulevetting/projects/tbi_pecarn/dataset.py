@@ -140,7 +140,7 @@ class Dataset:
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
         
         # dropping variables that do not influence the doctors decision
-        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Gender', 'Dizzy',
+        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
                       'AgeInMonth', 'AgeinYears']
         cleaned_data = cleaned_data.drop(columns=other_vars)
         
@@ -148,7 +148,10 @@ class Dataset:
         bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes']).all()]
         for bool_col in bool_cols:
             cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1})
-                        
+            
+        # gender has to be remapped - if we actually use it
+        cleaned_data['Gender'] = cleaned_data['Gender'].map({'Male': 0, 'Female': 1})
+            
         # one-hot encode categorical vars w/ >2 unique values
         cleaned_data = helper.one_hot_encode_df(cleaned_data)
         
