@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  6 DEC 2021 00:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  6 DEC 2021 13:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -516,121 +516,116 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 105
 .
 (/Users/andyshen/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) (./writeup.toc
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 3.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 3.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 3.
-)
-\tf@toc=\write4
-\openout4 = `writeup.toc'.
-
-[1
+) [1
 
 {/Users/andyshen/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
-79.
+73.
 (/Users/andyshen/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-) [2] [3]
-<corr-map.png, id=131, 1806.75pt x 1806.75pt>
+) [2]
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 291.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 291.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 291.
+[3]
+<corr-map.png, id=126, 1806.75pt x 1806.75pt>
 File: corr-map.png Graphic file (type png)
 <use corr-map.png>
-Package pdftex.def Info: corr-map.png  used on input line 357.
+Package pdftex.def Info: corr-map.png  used on input line 351.
 (pdftex.def)             Requested size: 397.48624pt x 397.48624pt.
-[4] [5pdfTeX warning (ext4): destination with the same identifier (name{figure.
-1}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.393 
-       <./corr-map.png>]
-<writeup_files/figure-latex/outcomes-1.pdf, id=156, 788.9475pt x 353.32pt>
-File: writeup_files/figure-latex/outcomes-1.pdf Graphic file (type pdf)
-<use writeup_files/figure-latex/outcomes-1.pdf>
-Package pdftex.def Info: writeup_files/figure-latex/outcomes-1.pdf  used on inp
-ut line 396.
-(pdftex.def)             Requested size: 422.77495pt x 189.33432pt.
-<writeup_files/figure-latex/controls-1.pdf, id=157, 788.9475pt x 350.30875pt>
-File: writeup_files/figure-latex/controls-1.pdf Graphic file (type pdf)
-<use writeup_files/figure-latex/controls-1.pdf>
-Package pdftex.def Info: writeup_files/figure-latex/controls-1.pdf  used on inp
-ut line 405.
-(pdftex.def)             Requested size: 422.77495pt x 187.72067pt.
-[6pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) 
+[4pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.431 
-      pdfTeX warning (ext4): destination with the same identifier (name{figure.
-3}) has been already used, duplicate ignored
+l.371 
+       <./corr-map.png>]
+<writeup_files/figure-latex/outcomes-1.pdf, id=142, 788.9475pt x 350.30875pt>
+File: writeup_files/figure-latex/outcomes-1.pdf Graphic file (type pdf)
+<use writeup_files/figure-latex/outcomes-1.pdf>
+Package pdftex.def Info: writeup_files/figure-latex/outcomes-1.pdf  used on inp
+ut line 390.
+(pdftex.def)             Requested size: 422.77495pt x 187.72067pt.
+<writeup_files/figure-latex/controls-1.pdf, id=143, 788.9475pt x 350.30875pt>
+File: writeup_files/figure-latex/controls-1.pdf Graphic file (type pdf)
+<use writeup_files/figure-latex/controls-1.pdf>
+Package pdftex.def Info: writeup_files/figure-latex/controls-1.pdf  used on inp
+ut line 399.
+(pdftex.def)             Requested size: 422.77495pt x 187.72067pt.
+[5pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) 
+has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.431 
-       <./writeup_files/figure-latex/outcomes-1.pdf> <./writeup_files/figure-la
-tex/controls-1.pdf>]
+l.405 
+       <./writeup_files/figure-latex/outcomes-1.pdf>] [6pdfTeX warning (ext4): 
+destination with the same identifier (name{figure.3}) has been already used, du
+plicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.457 T
+       hese splits were determined randomly as there is no underlying temporal 
+<./writeup_files/figure-latex/controls-1.pdf>]
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 4
-86.
+80.
 (/Users/andyshen/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-Overfull \hbox (41.16338pt too wide) in paragraph at lines 497--500
+Overfull \hbox (41.16338pt too wide) in paragraph at lines 491--494
 []\T1/lmr/m/n/10 Whether the pa-tient re-quired a cer-vi-cal sta-bil-ity in-ter
 -ven-tion such as a col-lar or brace (\T1/lmtt/m/n/10 IntervForCervicalStab\T1/
 lmr/m/n/10 ), 
  []
 
 [7]
-<writeup_files/figure-latex/accuracy-rates-1.pdf, id=191, 525.965pt x 277.035pt
+<writeup_files/figure-latex/accuracy-rates-1.pdf, id=188, 525.965pt x 277.035pt
 >
 File: writeup_files/figure-latex/accuracy-rates-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/accuracy-rates-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/accuracy-rates-1.pdf  used 
-on input line 563.
+on input line 557.
 (pdftex.def)             Requested size: 399.31218pt x 210.32474pt.
-[8]
-<writeup_files/figure-latex/roc-curves-1.pdf, id=206, 445.665pt x 279.0425pt>
+<writeup_files/figure-latex/roc-curves-1.pdf, id=189, 445.665pt x 279.0425pt>
 File: writeup_files/figure-latex/roc-curves-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/roc-curves-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/roc-curves-1.pdf  used on i
-nput line 572.
+nput line 566.
 (pdftex.def)             Requested size: 399.29951pt x 250.01184pt.
-[9pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
+[8pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.603 
-      pdfTeX warning (ext4): destination with the same identifier (name{figure.
-5}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.603 
-       <./writeup_files/figure-latex/accuracy-rates-1.pdf> <./writeup_files/fig
-ure-latex/roc-curves-1.pdf>]
-<dx_survey.png, id=228, 855.195pt x 634.37pt>
+l.572 
+       <./writeup_files/figure-latex/accuracy-rates-1.pdf>]
+<dx_survey.png, id=205, 855.195pt x 634.37pt>
 File: dx_survey.png Graphic file (type png)
 <use dx_survey.png>
-Package pdftex.def Info: dx_survey.png  used on input line 605.
+Package pdftex.def Info: dx_survey.png  used on input line 599.
 (pdftex.def)             Requested size: 340.98886pt x 252.94008pt.
-[10pdfTeX warning (ext4): destination with the same identifier (name{figure.6})
- has been already used, duplicate ignored
+[9pdfTeX warning (ext4): destination with the same identifier (name{figure.5}) 
+has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.635 \section{Conclusion}\label{conclusion}}
-                                              <./dx_survey.png>] [11] (./writeu
-p.aux)
+l.604 
+       <./writeup_files/figure-latex/roc-curves-1.pdf>] [10pdfTeX warning (ext4
+): destination with the same identifier (name{figure.6}) has been already used,
+ duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.642 
+       <./dx_survey.png>] [11] (./writeup.aux)
 Package rerunfilecheck Info: File `writeup.out' has not changed.
-(rerunfilecheck)             Checksum: 6C11854A5068CF83AB2E2B00BF51601E;2824.
+(rerunfilecheck)             Checksum: 08D580DD48BD59CA8CAF2D242A19DFDA;3287.
  ) 
 Here is how much of TeX's memory you used:
- 11563 strings out of 480313
- 182079 string characters out of 5896366
- 476650 words of memory out of 5000000
+ 11559 strings out of 480313
+ 182084 string characters out of 5896366
+ 477663 words of memory out of 5000000
  29158 multiletter control sequences out of 15000+600000
  460931 words of font info for 70 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 60i,6n,63p,606b,397s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 60i,6n,63p,606b,361s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/Users/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/U
 sers/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/a
 ndyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/and
@@ -645,10 +640,10 @@ TeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/TinyTeX
 /texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/TinyTeX/t
 exmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTeX/tex
 mf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (11 pages, 800460 bytes).
+Output written on writeup.pdf (11 pages, 798036 bytes).
 PDF statistics:
- 311 PDF objects out of 1000 (max. 8388607)
- 259 compressed objects within 3 object streams
- 65 named destinations out of 1000 (max. 500000)
- 183 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 300 PDF objects out of 1000 (max. 8388607)
+ 248 compressed objects within 3 object streams
+ 64 named destinations out of 1000 (max. 500000)
+ 207 words of extra memory for PDF output out of 10000 (max. 10000000)
 

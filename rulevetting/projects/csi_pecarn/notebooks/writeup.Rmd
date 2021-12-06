@@ -13,7 +13,7 @@ header-includes:
 output: 
   pdf_document:
     number_sections: true
-    toc: true
+    toc: false
 bibliography: bibliography.bib
 ---
 
@@ -50,7 +50,6 @@ all <- rbind(train, tune, test)[, -1]
 ```
 
 
-\newpage
 
 # Introduction and Domain Problem {#sec:intro}
 
@@ -245,7 +244,7 @@ To select the number of features $m$, we run logistic regression model with $m=1
 These features were discussed with Dr. Boyle, who verified their legitimacy in a real-life clinical context. Moreover, common sense knowledge tells us that these features are meaningful and serious with regards to CSI's.
 
 
-## Models
+## Candidate Models
 
 ### AdaBoost
 
@@ -262,7 +261,7 @@ I think a diagram for the decision tree would be helpful.
 \textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
 
 
-## Best model {#sec:best}
+## Best Model {#sec:best}
 
 The sensitivity and specificity rates for all three models are shown in \blue{\ref{fig:accuracy-rates}}. The values in the figure are rounded to two significant figures but the sensitivity rates for all three models are identical. Moreover, the specificity rates for AdaBoost and Logistic Regression are identical. 
 
