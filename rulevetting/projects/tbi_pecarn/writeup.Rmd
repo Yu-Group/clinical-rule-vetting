@@ -35,24 +35,91 @@ if similar rules were isolated, either reinforcing the importance of their ident
 or providing a new perspective on what is important in predicting TBI. Additionally,
 in this analysis, we employ our own data cleaning and preprocessing scheme that we find
 reasonable, allowing us to assess the stability of their findings subject to perturbations
-at this stage of the data science life cycle. Nonetheless, in developing new classifiers,
-priority will be placed on interpretability, brevity and simplicity, and a low
-false negative rate. 
+at this stage of the data science life cycle.
+
+In addition to vetting their classification rules, another goal of this analysis
+is to offer some improvement on their classification strategy. Kuppermann and his
+colleagues developed rule sets for children aged two or younger and children
+older than two, the reason being that younger children are pre-verbal and thus require
+a different set of standards to identify TBIs than older children who can verbalize
+symptoms important to diagnosing TBIs (citation). We seek to develop a single age-invariant
+classifier using covariates common to both primary age groups. We hope that such
+a classifier will not only identify common predictors of TBI across all ages, but also
+simplify the decision-making process by obviating the need for a second classifier.
+Nonetheless, in developing new classifiers, priority will be placed on interpretability, 
+brevity and simplicity, and a low false negative rate. 
 
 # Data
 
-## Description
+## Data Collection
 
-Insert a few paragraphs or so describing the data of the original study (unclean/unprocessed),
-including details on how it was collected (the who, what, when, and where information
-about the dataset)
+Before going into extensive detail about the dataset used in this analysis, as
+well as our cleaning and preprocessing steps, we first offer our own thoughts
+on what data would be most relevant for vetting previous classifiers and developing
+an age-invariant classifier. 
 
-Answer Q2 - Q3 - Q4 - Q5, - Q6, 
+Besides needing a dataset similar in nature
+to the dataset on which the original classifiers were based (comprised of children
+presenting to ER with head trauma, etc.), to vet the previous
+classifiers, we need a dataset that will enable us to develop classifiers with
+high predictive accuracy and maximal generalizability so as to compare with previous classifiers. 
+For instance, we would need
+need a dataset containing covariates that are both relevant to the presence
+of TBIs and can be measured at the time a child is ushered into the ER. From common
+sense, it seems important information might be the injury mechanism (and a rating of
+severity), any symptoms such as headache or amnesia, and any results of a physical
+examination that may indicate neurological deficits or skull injury. For both
+vetting the clinical decision rule and developing an age-invariant rule, it would
+be preferable to have covariates that are as objective as possible so as to avoid
+issues with interrater reliability and improve generalizability of the rules to 
+new, real-world settings. It would also be preferable to both have details on covariates 
+invariant to gender, race, ethnicity, or any other such characteristic
+of the population of interest and a population with gender, age, and racial diversity,
+to reduce the potential of systematic misdiagnoses in these groups
+should the rule be applied in future settings. Finally, we wish to identify children
+who do not need CT scans among a population where there is already some doubt
+as to whether the CT scan will be worth the risk of radiation induced malignancy.
+So, the ideal dataset will consist of children who are not critically injured
+and who could conceivably be TBI-free.
+
+To develop an age-invariant classifier, the above points are certainly relevant.
+However, specific to an age-invariant classifier, we would also need covariates
+whose presence or values are not age-dependent.
+
+The dataset used in this analysis is the same one used by Kuppermann and his colleagues
+to develop their classification rules, consisting of 43399 children who presented
+to the emergency room for head trauma at one of the PECARN network hospitals
+between 2004 and 2006. For each
+child, the data were collected by physicians who filled out standardized sheets detailing the
+child's condition, including both questions for the child ('Do you have a headache?')
+and results of a physician examination ('Palpable skull fracture?'). Additionally,
+the dataset contains information that would be available after the decision to
+pursue a CT scan has been made, such as the reasons why a CT scan is being pursued,
+whether a child will need to be sedated for a CT scan, and whether there were 
+any traumatic findings on the scan. The outcome variable (TBI) was obtained by
+tracking the child's progress in the hospital after the initial examination 
+(whether they were admitted for neurological surgery, or died in the ED, for example)
+or, if the child left the hospital, following-up with the child's parents, the medical record,
+emergency department process improvement records, and county morgue records to ensure
+no TBI diagnoses were missed. In total, there are 125 covariates, including the outcome.
+
+It seems that in this dataset, most of the variables we conjecture are important
+for predicting TBIs are present, but that there are many covariates whose information
+would not be known at the time our classifier would be implemented. Additionally,
+many covariates seem more objective than others ('Palpable skull fracture?' vs. 
+'Is the child acting normally?'). There are also many variables which are not invariant
+to age. For instance, the ability to say you have a headache is reserved for verbal
+children who must be above a certain age. These variables and decisions on what to do
+with them will be discussed at length in Cleaning and Preprocessing, as well as
+Post-Processing EDA. The dataset also provides demographic characteristics such as
+age, gender, race, and ethnicity. This information will be discussed at length in 
+Post-Processing EDA.
 
 ## Cleaning and Preprocessing
 
 Insert the cleaning and preprocessing steps here (stick with describing the canonical default
 judgement calls, but maybe map out specifically what kind of judgement calls we could implement)
+Discuss the meaning of the variables as you go through the steps (answer the questions about each variable).
 
 Justify each preprocessing/cleaning step, and justify why we decided to make a judgement call juncture/switch
 for this particular decision.
@@ -63,6 +130,8 @@ so like we could turn them on or off)
 Give a short description of the final preprocessed data post-all of these judgement calls.
 
 ## Post-Processing EDA
+
+Make sure you talk a bit about Relevance based on the EDA here.
 
 This takes care of Q7
 
@@ -82,9 +151,10 @@ Currently, I'm thinking:
 Conclude with our feature extraction judgement calls: we will either include only the umbrella variables,
 or all of them including subcategories, or just collapse the umbrellas into the subcategories (not sure how this last one will fit in, but we can see)
 
-## Data Discussion
+## Post-Processing Discussion
 
-Answer Question 8 about randomness
+Answer Q4, Q5, Q6 here, and make sure the answers connect with what predictor/model
+we will end up choosing.
 
 # Models
 
@@ -104,10 +174,11 @@ Give the performance of the baseline model on the original data
 
 ## Proposed Model
 
-### Description
-
 Describe the proposed model, it's advantages, disadvantages, how it might compare
 to the original model, etc.
+
+Justify the proposed model, and refer back to discussion in Post-Processing Discussion
+for justification whila also answering Q8 about any randomness assumptions. 
 
 ### Procedure and Performance
 
