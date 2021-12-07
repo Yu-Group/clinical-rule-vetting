@@ -162,7 +162,7 @@ def fit_eval_lr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = [0.05, 0
     best_lamb = lamb_vec[np.argmax(np.array(roc_tune))]
       
     # With the best lambda
-    logreg_model = LogisticRegression(solver='liblinear', random_state = 0, C = best_lamb).fit(X_train, y_train)
+    logreg_model = LogisticRegression(solver='liblinear', penalty="l1", random_state = 0, C = best_lamb).fit(X_train, y_train)
 
     # statistics update
     stats = predict_stats(logreg_model, X_tune, y_tune)
