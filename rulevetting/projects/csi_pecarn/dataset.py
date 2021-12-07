@@ -219,19 +219,8 @@ class Dataset(DatasetTemplate):
         df = df.drop(avpu_columns,axis = 1)
         df = df.join(avpu_one_hot)
         
-        pd.options.mode.chained_assignment = None
+        df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0]) # re-caluclated if we impute
         
-        gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
-        for gcs_col in gcs_columns:
-            max_gcs = df[gcs_col].max()
-            df[gcs_col][(df['AlteredMentalStatus'] == 0.0) & (pd.isna(df[gcs_col]))] = max_gcs
-        
-        #
-        # Judgement call to fill ~2% of units without these outcomes as normal
-        df['posthoc_OutcomeStudySiteMobility'][(pd.isna(df['posthoc_OutcomeStudySiteMobility']))] = 'N'
-        df['posthoc_OutcomeStudySiteNeuro'][(pd.isna(df['posthoc_OutcomeStudySiteNeuro']))] = 'NR'
-        
-        pd.options.mode.chained_assignment = 'warn'
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
         
         df = helper.build_robust_binary_covariates(df)
@@ -274,11 +263,25 @@ class Dataset(DatasetTemplate):
         # TODO: discuss with Gabriel
         # For now, impute subgroup GCS with maximum and recalcualte total
         
+        pd.options.mode.chained_assignment = None
+        
+        gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
+        for gcs_col in gcs_columns:
+            max_gcs = df[gcs_col].max()
+            df[gcs_col][(df['AlteredMentalStatus'] == 0.0) & (pd.isna(df[gcs_col]))] = max_gcs
+        
+        #
+        # Judgement call to fill ~2% of units without these outcomes as normal
+        df['posthoc_OutcomeStudySiteMobility'][(pd.isna(df['posthoc_OutcomeStudySiteMobility']))] = 'N'
+        df['posthoc_OutcomeStudySiteNeuro'][(pd.isna(df['posthoc_OutcomeStudySiteNeuro']))] = 'NR'
+        
+        pd.options.mode.chained_assignment = 'warn'
+        
         df[['GCSEye','MotorGCS','VerbalGCS']] = \
             df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
         df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS']
         
-        df['GCS15'] = (df['TotalGCS']== 15).replace([True,False],[1,0])   
+        df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])   
         
         '''
         df['GCS_NA_total'] = pd.isna(df['TotalGCS']).replace([True,False],[1,0])
@@ -291,7 +294,7 @@ class Dataset(DatasetTemplate):
             char_column = df[column] # select column
             unique_values = pd.unique(char_column) # get unique entries
         '''
-        
+
         df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
 
         # df.fillna(0, inplace=True) # deprecated all NA filled by this step
@@ -386,7 +389,8 @@ class Dataset(DatasetTemplate):
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
                  run_perturbations: bool = False,
-                 control_types=['ran','moi','ems']) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 control_types=['ran','moi','ems'],
+                 keep_na = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -429,7 +433,9 @@ class Dataset(DatasetTemplate):
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             featurized_data = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-            imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'])
+            if not keep_na:
+                imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'])
+            else: imputed_data = featurized_data
             df_train, df_tune, df_test = cache(self.split_data)(imputed_data, **{'control_types': control_types})
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
