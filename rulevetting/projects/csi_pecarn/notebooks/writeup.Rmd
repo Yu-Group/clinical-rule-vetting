@@ -267,7 +267,7 @@ I think a diagram for the decision tree would be helpful.
 
 The sensitivity and specificity rates for all three models are shown in \blue{\ref{fig:accuracy-rates}}. The values in the figure are rounded to two significant figures but the sensitivity rates for all three models are identical. Moreover, the specificity rates for AdaBoost and Logistic Regression are identical. 
 
-The Receiver Operating Characteristic (ROC) curves for all three models are shown in Figure \blue{\ref{fig:roc-curves}}. We show here that a simple decision tree can achieve effectively the same error rate as something more powerful. We achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
+The Receiver Operating Characteristic (ROC) curves for all three models are shown in Figure \blue{\ref{fig:roc-curves}}. We show here that a simple decision tree can achieve effectively the same error rate as something more powerful. We achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. The results from @leonard2011factors are shown in the black dot. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
 **Ultimately, we believe the decision tree is the best model for a clinical decision rule.** The model is interpretable, easy-to-follow, while sacrificing a truly negligible amount of specificity. A clinician at a patient's bedside can quickly reach a decision simply by answering a series of yes or no questions, which is effectively what a classification tree is. 
 
@@ -289,10 +289,7 @@ melted %>%
 ```
 
 
-
-
-
-```{r roc-curves, fig.width=6.3, fig.cap="ROC curves for the three candidate models.", out.width='85%'}
+```{r}
 allsens_tree <- c(1.0, 0.9813084112149533, 0.9532710280373832, 
                   0.9252336448598131, 0.9158878504672897, 0.8411214953271028, 
                   0.8130841121495327, 0.8037383177570093, 0.5887850467289719, 
@@ -363,13 +360,38 @@ allspec_log <- c(0.14568345323741008, 0.7068345323741008, 0.710431654676259,
                  0.9910071942446043, 0.9964028776978417, 0.9964028776978417, 
                  0.9964028776978417, 0.9964028776978417, 0.9982014388489209, 
                  0.9982014388489209, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+```
+
+
+
+```{r roc-curves, fig.width=6.3, fig.cap="ROC curves for the three candidate models. The black dot represents the results from Leonard et al.", out.width='85%'}
 roc_tree <- plotROC(allsens_tree, allspec_tree)
 roc_ada <- plotROC(allsens_ada, allspec_ada, model = "AdaBoost")
 roc_log <- plotROC(allsens_log, allspec_log, model = "Logistic Regression")
 ggarrange(roc_ada, roc_tree, roc_log, ncol = 2, nrow = 2)
 ```
 
-## Model Caveat {#sec:caveats}
+
+```{r roc-curves2, fig.width=7.3, eval=FALSE,fig.cap="ROC curves for the three candidate models.", out.width='85%'}
+df_tree <- data.frame(Sensitivity = allsens_tree, Specificity = allspec_tree, 
+                      type = "Decision Tree")
+df_ada <- data.frame(Sensitivity = allsens_ada, Specificity = allspec_ada,
+                     type = "AdaBoost")
+df_log <- data.frame(Sensitivity = allsens_log, Specificity = allspec_log,
+                     type = "Logistic Regression")
+df <- rbind(df_tree, df_ada, df_log)
+df %>% ggplot(mapping = aes(Sensitivity, Specificity)) + 
+  geom_point(size = 1, color = "firebrick2") + 
+  geom_path(color = "firebrick2") +
+  labs(x = "Sensitivity", y = "Specificity") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  facet_wrap(~type)
+```
+
+
+
+## Subjective Features {#sec:caveats}
 
 The `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has a unique context. This feature is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. Such a guess information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. In order to use a feature like this, we must provide a thorough investigation of the feature and ensure that it is indeed reasonable.
 
@@ -383,7 +405,9 @@ A rigorous inspection of the raw data reveals that this feature has **zero** mis
 \end{figure}
 
 
-Moreover, as depicted in Figures \blue{\ref{fig:outcomes}} and \blue{\ref{fig:controls}}, the true diagnosis is only confirmed about 50% of the time in the outcomes group compared to 92% of the time in the controls group. We can infer from these results that most of these guesses are not in favor of a CSI. This is indeed true, and roughly 85% of all patients are not predicted to have a CSI.     
+Moreover, subject-matter expertise tells us that there does indeed exist precedents for utilizing judgment calls in decision rules. Dr. Boyle verified that many current decision instruments utilize physician suspicion, such as the [Wells' Criteria for Pulmonary Embolism](https://www.mdcalc.com/wells-criteria-pulmonary-embolism) and the [HEART Score](https://www.mdcalc.com/heart-score-major-cardiac-events). Seeing that such features are utilized in everyday medical practice, there is no reason to exclude it from a decision rule.
+
+Statistically speaking, as depicted in Figures \blue{\ref{fig:outcomes}} and \blue{\ref{fig:controls}}, the true diagnosis is only confirmed about 50% of the time in the outcomes group compared to 92% of the time in the controls group. We can infer from these results that most of these guesses are not in favor of a CSI. This is indeed true, and roughly 85% of all patients are not predicted to have a CSI.     
 
 All of the arguments above were discussed in detail with Dr. Boyle. Therefore, we are confident that this feature can be utilized in a real-world context. Not only is its distribution statistically reasonable, but we have no reason to believe that this feature is fundamentally different from other features in terms of how it is documented. The only difference is that it relies on a human judgment call, but such a judgment call is being made by a trained professional such as a nurse or EMT.
 
