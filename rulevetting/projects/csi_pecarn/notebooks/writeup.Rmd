@@ -246,6 +246,8 @@ These features were discussed with Dr. Boyle, who verified their legitimacy in a
 
 ## Candidate Models
 
+We create three candidate CDR's using three different learning techniques: AdaBoost, Classification Trees, and Logistic Regression. Each model has their own strengths and weaknesses in terms of interpretability and predictability.
+
 ### AdaBoost
 
 \textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
