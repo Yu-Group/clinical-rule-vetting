@@ -17,7 +17,7 @@ class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         fnames = sorted(glob.glob(f'{raw_data_path}/*'))
-        dfs = [pd.read_csv(fname) for fname in fnames]
+        dfs = [pd.read_csv(fname, encoding="ISO-8859-1") for fname in fnames]
 
         clean_key_col_names = lambda df: df.rename(columns={'site': 'SITE',
                                                             'caseid': 'CaseID',
@@ -44,21 +44,21 @@ class Dataset(DatasetTemplate):
             how='left', on=['SITE', 'CaseID', 'StudySubjectID'])
         
         # + Intervention after inital evaluation?
-        result_df['Immobilization'] = 0
-        result_df.loc[(site_df['CervicalSpineImmobilization'].isin(['YD', 'YND'])), 'Immobilization'] = 1
-        result_df['Immobilization2'] = result_df['Immobilization']
-        result_df.loc[(outside_df['CervicalSpineImmobilization'].isin(['YD', 'YND'])), 'Immobilization2'] = 1
+        if kwargs['include_intervention']:
+            result_df['Immobilization'] = 0
+            result_df.loc[(site_df['CervicalSpineImmobilization'].isin([1, 2])), 'Immobilization'] = 1
+            result_df['Immobilization2'] = result_df['Immobilization']
+            result_df.loc[(outside_df['CervicalSpineImmobilization'].isin(['YD', 'YND'])), 'Immobilization2'] = 1
+
+            result_df['MedsRecd'] = 0
+            result_df.loc[(site_df['MedsRecdPriorArrival'] == 'Y'), 'MedsRecd'] = 1
+            result_df['MedsRecd2'] = result_df['MedsRecd']
+            result_df.loc[(outside_df['MedsRecdPriorArrival'] == 'Y'), 'MedsRecd2'] = 1
         
         # result_df['Precaution'] = 0
-        # result_df.loc[(outside_df['CervicalSpinePrecautions'].isin(['YD', 'YND'])), 'Precaution'] = 1
+        # result_df.loc[(site_df['CSpinePrecautions'].isin(['YD', 'YND'])), 'Precaution'] = 1
         # result_df['Precaution2'] = result_df['Precaution']
-        # result_df.loc[(field_df['CervicalSpinePrecautions'].isin(['YD', 'YND'])), 'Precaution2'] = 1
-        
-        result_df['MedsRecd'] = 0
-        result_df.loc[(site_df['MedsRecdPriorArrival'] == 'Y'), 'MedsRecd'] = 1
-        result_df['MedsRecd2'] = result_df['MedsRecd']
-        result_df.loc[(outside_df['MedsRecdPriorArrival'] == 'Y'), 'MedsRecd2'] = 1
-        # result_df['MedsGivenGlu'] = site_df['MedsGivenGlu']
+        # result_df.loc[(outside_df['CervicalSpinePrecautions'].isin(['YD', 'YND'])), 'Precaution2'] = 1
         
         # + Gender and age
         demog_df = clean_key_col_names(dfs[4])
@@ -98,15 +98,34 @@ class Dataset(DatasetTemplate):
         unclear_feats = ['AlteredMentalStatus', 'AlteredMentalStatus2', 'ambulatory', 'PainNeck', 'PainNeck2', 'PosMidNeckTenderness', 'PosMidNeckTenderness2', 'TenderNeck', 'TenderNeck2']
         df[liberal_feats] = df[liberal_feats].fillna(0)
         df[conserv_feats] = df[conserv_feats].fillna(1)
+        
+        # drop missing values
         #df = df.dropna(axis=0)
         unclear_feat_default = kwargs['unclear_feat_default']
         df[unclear_feats] = df[unclear_feats].fillna(unclear_feat_default)
 
        #  # don't use features end with 2
        #  df <- df.filter(regex = '[^2]$', axis = 1)
+
+        # Use only on-site data or also outside + field
+        feats1 = ['AlteredMentalStatus', 'FocalNeuroFindings', 'Torticollis', 'PainNeck', 'TenderNeck', 'PosMidNeckTenderness', 'SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk', 'Immobilization', 'MedsRecd']
+        feats2 = ['AlteredMentalStatus2', 'FocalNeuroFindings2', 'Torticollis2', 'PainNeck2', 'TenderNeck2', 'PosMidNeckTenderness2', 'subinj_Head2', 'subinj_Face2', 'subinj_Ext2', 'subinj_TorsoTrunk2', 'Immobilization2', 'MedsRecd2']
+        feats1 = list(set(feats1) & set(df.columns))
+        feats2 = list(set(feats2) & set(df.columns))
+        if kwargs['only_site_data'] == 2:
+            df = df.drop(columns = feats2)
+        elif kwargs['only_site_data'] == 1:
+            df = df.drop(columns = feats1)
         
         # only one type of control
-        # df = df[df['ControlType'].isin(['case', 'ran'])]
+        if kwargs['use_control_type'] == 'ran':
+            df = df[df['ControlType'].isin(['case', 'ran'])]
+        elif kwargs['use_control_type'] == 'moi':
+            df = df[df['ControlType'].isin(['case', 'moi'])]
+        elif kwargs['use_control_type'] == 'ems':         
+            df = df[df['ControlType'].isin(['case', 'ems'])]
+
+
         df.loc[:, 'outcome'] = (df['ControlType'] == 'case').astype(int)
 
         return df
@@ -125,12 +144,55 @@ class Dataset(DatasetTemplate):
         # if kwargs['drop_negative_columns']:
          #    df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
 
-        # remove site, case ID, subject ID, control type
+        # remove (site), case ID, subject ID, control type
         feats = df.keys()[4:]
-        # feats = feats.append(pd.Index(['SITE']))
+        feats = feats.append(pd.Index(['SITE']))
 
         return df[feats]
 
+    def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+        """Split into 3 sets: training, tuning, testing.
+        Do not modify (to ensure consistent test set).
+        Keep in mind any natural splits (e.g. hospitals).
+        Ensure that there are positive points in all splits.
+
+        Parameters
+        ----------
+        preprocessed_data
+        kwargs: dict
+            Dictionary of hyperparameters specifying judgement calls
+
+        Returns
+        -------
+        df_train
+        df_tune
+        df_test
+        """
+        # if kwargs['data_split'] == 'split_by_site':
+        #     sites = np.arange(1, 18)
+        #     np.random.seed(42)
+        #     np.random.shuffle(sites)
+        #     site_split = np.split(sites, [9, 13])
+        #     split = tuple(preprocessed_data[preprocessed_data['SITE'].isin(site_split[0])],
+        #                  preprocessed_data[preprocessed_data['SITE'].isin(site_split[1])],
+        #                  preprocessed_data[preprocessed_data['SITE'].isin(site_split[2])])
+        # elif kwargs['data_split'] == 'random_split':
+        #     split = tuple(np.split(
+        #     preprocessed_data.sample(frac=1, random_state=42),
+        #     [int(.6 * len(preprocessed_data)),  # 60% train
+        #      int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
+        # ))
+        
+        sites = np.arange(1, 18)
+        np.random.seed(42)
+        np.random.shuffle(sites)
+        site_split = np.split(sites, [4])
+        split = tuple(np.split(
+            preprocessed_data[preprocessed_data['SITE'].isin(site_split[1])].sample(frac=1, random_state=42), 
+            [int(.75 * sum(preprocessed_data['SITE'].isin(site_split[1])))]) +  # 60% train 20% tune
+                      [preprocessed_data[preprocessed_data['SITE'].isin(site_split[0])]]) # 20% test
+        return split
+    
     def get_outcome_name(self) -> str:
         return 'csi'  # return the name of the outcome we are predicting
 
@@ -142,15 +204,26 @@ class Dataset(DatasetTemplate):
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
-            'clean_data': {},
+            'clean_data': {
+                # Include features about clinical intervention received before arrival
+                'include_intervention': [True, False],
+            },
             'preprocess_data': {
                 # for unclear features whether to impute conservatively or liberally
                 'unclear_feat_default': [0, 1], 
+                # Whether to use only data from the study site or also include field and outside hospital data
+                'only_site_data': [False, True],
+                # Use with control group
+                'use_control_type': ['all', 'ran', 'moi', 'ems']
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
                 'drop_negative_columns': [False],  # default value comes first
             },
+            # 'split_data': {
+            #     # how do we split data
+            #     'data_split': ['split_by_site', 'random_split'],
+            # },
         }
 
 
