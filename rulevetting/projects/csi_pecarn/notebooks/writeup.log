@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  6 DEC 2021 21:14
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  7 DEC 2021 00:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -531,7 +531,7 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <5> on input line 291.
 [3]
-<corr-map.png, id=126, 1806.75pt x 1806.75pt>
+<corr-map.png, id=110, 1806.75pt x 1806.75pt>
 File: corr-map.png Graphic file (type png)
 <use corr-map.png>
 Package pdftex.def Info: corr-map.png  used on input line 351.
@@ -542,13 +542,16 @@ has been already used, duplicate ignored
                                                   \__shipout_drop_firstpage_...
 l.371 
        <./corr-map.png>]
-<writeup_files/figure-latex/outcomes-1.pdf, id=142, 788.9475pt x 350.30875pt>
+
+LaTeX Warning: Reference `sec:best' on page 5 undefined on input line 375.
+
+<writeup_files/figure-latex/outcomes-1.pdf, id=125, 788.9475pt x 350.30875pt>
 File: writeup_files/figure-latex/outcomes-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/outcomes-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/outcomes-1.pdf  used on inp
 ut line 390.
 (pdftex.def)             Requested size: 422.77495pt x 187.72067pt.
-<writeup_files/figure-latex/controls-1.pdf, id=143, 788.9475pt x 350.30875pt>
+<writeup_files/figure-latex/controls-1.pdf, id=126, 788.9475pt x 350.30875pt>
 File: writeup_files/figure-latex/controls-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/controls-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/controls-1.pdf  used on inp
@@ -579,50 +582,54 @@ lmr/m/n/10 ),
  []
 
 [7]
-<writeup_files/figure-latex/accuracy-rates-1.pdf, id=187, 525.965pt x 277.035pt
+<writeup_files/figure-latex/accuracy-rates-1.pdf, id=169, 598.235pt x 421.575pt
 >
 File: writeup_files/figure-latex/accuracy-rates-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/accuracy-rates-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/accuracy-rates-1.pdf  used 
-on input line 563.
-(pdftex.def)             Requested size: 399.31218pt x 210.32474pt.
-<writeup_files/figure-latex/roc-curves-1.pdf, id=188, 445.665pt x 279.0425pt>
+on input line 545.
+(pdftex.def)             Requested size: 399.30006pt x 281.38594pt.
+<writeup_files/figure-latex/roc-curves-1.pdf, id=170, 448.67625pt x 423.5825pt>
+
 File: writeup_files/figure-latex/roc-curves-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/roc-curves-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/roc-curves-1.pdf  used on i
-nput line 572.
-(pdftex.def)             Requested size: 399.29951pt x 250.01184pt.
+nput line 554.
+(pdftex.def)             Requested size: 399.30692pt x 376.97432pt.
 [8pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.578 
+l.560 
        <./writeup_files/figure-latex/accuracy-rates-1.pdf>]
-<dx_survey.png, id=205, 855.195pt x 634.37pt>
+<dx_survey.png, id=184, 855.195pt x 634.37pt>
 File: dx_survey.png Graphic file (type png)
 <use dx_survey.png>
-Package pdftex.def Info: dx_survey.png  used on input line 605.
+Package pdftex.def Info: dx_survey.png  used on input line 587.
 (pdftex.def)             Requested size: 340.98886pt x 252.94008pt.
 [9pdfTeX warning (ext4): destination with the same identifier (name{figure.5}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.610 
+l.592 
        <./writeup_files/figure-latex/roc-curves-1.pdf>] [10pdfTeX warning (ext4
 ): destination with the same identifier (name{figure.6}) has been already used,
  duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.659 
+l.641 
        <./dx_survey.png>] [11] (./writeup.aux)
+
+LaTeX Warning: There were undefined references.
+
 Package rerunfilecheck Info: File `writeup.out' has not changed.
-(rerunfilecheck)             Checksum: FF790B7C1D17771CE9A26B28EEC139DE;3322.
+(rerunfilecheck)             Checksum: EC708F77838973611301DEEA8A79E644;2801.
  ) 
 Here is how much of TeX's memory you used:
- 11559 strings out of 480313
- 182084 string characters out of 5896366
- 477727 words of memory out of 5000000
- 29158 multiletter control sequences out of 15000+600000
+ 11544 strings out of 480313
+ 181840 string characters out of 5896366
+ 477529 words of memory out of 5000000
+ 29151 multiletter control sequences out of 15000+600000
  460931 words of font info for 70 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  60i,6n,63p,606b,361s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -640,10 +647,10 @@ TeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/andyshen/Library/TinyTeX
 /texmf-dist/fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/TinyTeX/t
 exmf-dist/fonts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTeX/tex
 mf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (11 pages, 799442 bytes).
+Output written on writeup.pdf (11 pages, 801163 bytes).
 PDF statistics:
- 302 PDF objects out of 1000 (max. 8388607)
- 250 compressed objects within 3 object streams
- 64 named destinations out of 1000 (max. 500000)
- 207 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 280 PDF objects out of 1000 (max. 8388607)
+ 228 compressed objects within 3 object streams
+ 56 named destinations out of 1000 (max. 500000)
+ 175 words of extra memory for PDF output out of 10000 (max. 10000000)
 
