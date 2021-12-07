@@ -71,6 +71,11 @@ class Dataset(DatasetTemplate):
             how='left', on=['SITE', 'CaseID', 'StudySubjectID'])
         result_df = result_df.loc[(result_df['gender_F'] == 1) | (result_df['gender_M'] == 1)].drop(columns='gender_M').reset_index(drop=True)
 
+        site_meta_keys = ['EDDisposition', 'IntervForCervicalStab', 'IntervForCervicalStabSCollar', 'IntervForCervicalStabRCollar', 'IntervForCervicalStabBrace', 'IntervForCervicalStabTraction', 'IntervForCervicalStabSurgical', 'IntervForCervicalStabHalo', 'IntervForCervicalStabIntFix', 'IntervForCervicalStabIntFixtxt', 'IntervForCervicalStabOther', 'IntervForCervicalStabOthertxt', 'LongTermRehab', 'OutcomeStudySiteNeuro', 'OutcomeStudySiteMobility', 'OutcomeStudySiteMobility1', 'OutcomeStudySiteMobility2', 'OutcomeStudySiteBowel', 'OutcomeStudySiteUrine']
+        
+        result_df = pd.concat([result_df, site_df[site_meta_keys]], axis = 1)
+        
+        
         return result_df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -98,11 +103,15 @@ class Dataset(DatasetTemplate):
         unclear_feats = ['AlteredMentalStatus', 'AlteredMentalStatus2', 'ambulatory', 'PainNeck', 'PainNeck2', 'PosMidNeckTenderness', 'PosMidNeckTenderness2', 'TenderNeck', 'TenderNeck2']
         df[liberal_feats] = df[liberal_feats].fillna(0)
         df[conserv_feats] = df[conserv_feats].fillna(1)
+        unclear_feat_default = kwargs['unclear_feat_default']
+        df[unclear_feats] = df[unclear_feats].fillna(unclear_feat_default)
+        
+        # Impute others to be 0
+        df = df.fillna(0)
         
         # drop missing values
         #df = df.dropna(axis=0)
-        unclear_feat_default = kwargs['unclear_feat_default']
-        df[unclear_feats] = df[unclear_feats].fillna(unclear_feat_default)
+
 
        #  # don't use features end with 2
        #  df <- df.filter(regex = '[^2]$', axis = 1)
@@ -112,9 +121,9 @@ class Dataset(DatasetTemplate):
         feats2 = ['AlteredMentalStatus2', 'FocalNeuroFindings2', 'Torticollis2', 'PainNeck2', 'TenderNeck2', 'PosMidNeckTenderness2', 'subinj_Head2', 'subinj_Face2', 'subinj_Ext2', 'subinj_TorsoTrunk2', 'Immobilization2', 'MedsRecd2']
         feats1 = list(set(feats1) & set(df.columns))
         feats2 = list(set(feats2) & set(df.columns))
-        if kwargs['only_site_data'] == 2:
+        if kwargs['only_site_data'] == True:
             df = df.drop(columns = feats2)
-        elif kwargs['only_site_data'] == 1:
+        elif kwargs['only_site_data'] == False:
             df = df.drop(columns = feats1)
         
         # only one type of control
@@ -200,7 +209,8 @@ class Dataset(DatasetTemplate):
         return 'csi_pecarn'  # return the name of the dataset id
 
     def get_meta_keys(self) -> list:
-        return ['SITE', 'CaseID']  # keys which are useful but not used for prediction
+        site_keys = ['EDDisposition', 'IntervForCervicalStab', 'IntervForCervicalStabSCollar', 'IntervForCervicalStabRCollar', 'IntervForCervicalStabBrace', 'IntervForCervicalStabTraction', 'IntervForCervicalStabSurgical', 'IntervForCervicalStabHalo', 'IntervForCervicalStabIntFix', 'IntervForCervicalStabIntFixtxt', 'IntervForCervicalStabOther', 'IntervForCervicalStabOthertxt', 'LongTermRehab', 'OutcomeStudySiteNeuro', 'OutcomeStudySiteMobility', 'OutcomeStudySiteMobility1', 'OutcomeStudySiteMobility2', 'OutcomeStudySiteBowel', 'OutcomeStudySiteUrine']
+        return site_keys + ['SITE', 'StudySubjectID']  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
