@@ -273,28 +273,33 @@ class Dataset(DatasetTemplate):
         
         # TODO: discuss with Gabriel
         # For now, impute subgroup GCS with maximum and recalcualte total
-        '''
-        TODO: GCS
+        
         df[['GCSEye','MotorGCS','VerbalGCS']] = \
             df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
         df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS']
+        
+        df['GCS15'] = (df['TotalGCS']== 15).replace([True,False],[1,0])   
+        
         '''
         df['GCS_NA_total'] = pd.isna(df['TotalGCS']).replace([True,False],[1,0])
         df['GCS_NA_eye'] = pd.isna(df['GCSEye']).replace([True,False],[1,0])
         df['GCS_NA_motor'] = pd.isna(df['MotorGCS']).replace([True,False],[1,0])
         df['GCS_NA_verbal'] = pd.isna(df['VerbalGCS']).replace([True,False],[1,0])
         
-        '''
+    
         for column in df.columns:
             char_column = df[column] # select column
             unique_values = pd.unique(char_column) # get unique entries
         '''
         
         df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
-        #df.fillna(0, inplace=True)
+
+        # df.fillna(0, inplace=True) # deprecated all NA filled by this step
+        
         numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
         numeric_data = numeric_data.astype(float)
         char_data = df.select_dtypes([np.object]) # gets columns encoded as strings
+        
         df = pd.merge(numeric_data,char_data,how="left",left_index=True,right_index=True)
         
         return df

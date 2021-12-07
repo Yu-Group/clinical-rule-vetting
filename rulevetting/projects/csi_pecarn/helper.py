@@ -273,7 +273,6 @@ def impute_missing_binary(df, n = 0.05):
                                                                  (len(pd.unique(df[col_name]))==3))]
     # fill other NaN by "0"
     df[binary_covariates] = df[binary_covariates].fillna(0)
-
     return df
     '''
     # drop observations
