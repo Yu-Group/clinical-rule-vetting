@@ -7,9 +7,9 @@ bibliography: references.bib
 
 # Introduction and Problem Motivation
 
-Among children, traumatic brain injuries (TBIs) are a leading cause of injury and death,
-accounting for nearly 7400 deaths, 60000 hospital admissions, and 600000 emergency
-department visits annually (citation). Accurately diagnosing TBIs is thus a crucial
+Among children ages 0-14, traumatic brain injuries (TBIs) are a leading cause of injury and death,
+accounting for over 2100 deaths, 35,000 hospital admissions, and 470,000 emergency
+department visits annually (Faul, Xu, Wald, & Coronado, 2010). Accurately diagnosing TBIs is thus a crucial
 problem, especially since the earlier a TBI is identified, the sooner potentially life-saving
 treatment can be administered. 
 
@@ -59,14 +59,14 @@ an age-invariant classifier.
 
 Besides needing a dataset similar in nature
 to the dataset on which the original classifiers were based (comprised of children
-presenting to the ER with head trauma, etc.), we need a dataset that will enable us to develop classifiers with
-high predictive accuracy and maximal generalizability. Then, we may compare this new classifier
-to previous classifiers to get a sense of how accurate or generalizable they are.
-For instance, we would need need a dataset containing covariates that are both relevant to the presence
+presenting to ER with head trauma, etc.), to vet the previous
+classifiers, we need a dataset that will enable us to develop classifiers with
+high predictive accuracy and maximal generalizability so as to compare with previous classifiers. 
+For instance, we would need a dataset containing covariates that are both relevant to the presence
 of TBIs and can be measured at the time a child is ushered into the ER. From common
-sense, it seems the injury mechanism (and a rating of
+sense, it seems important information might be the injury mechanism (and a rating of
 severity), any symptoms such as headache or amnesia, and any results of a physical
-examination that may indicate neurological deficits or skull injury are important. For both
+examination that may indicate neurological deficits or skull injury. For both
 vetting the clinical decision rule and developing an age-invariant rule, it would
 be preferable to have covariates that are as objective as possible so as to avoid
 issues with interrater reliability and improve generalizability of the rules to 
