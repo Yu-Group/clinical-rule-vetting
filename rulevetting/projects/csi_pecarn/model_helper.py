@@ -252,4 +252,4 @@ def print_metrics(suffix, X_train, X_tune, y_train, y_tune, MODELS_DIR):
                 
     stats = pd.DataFrame.from_dict(vals)
     stats.index = fnames
-    return (stats).round(2).transpose()
+    return (stats).round(5).transpose()

@@ -248,22 +248,9 @@ These features were discussed with Dr. Boyle, who verified their legitimacy in a
 
 We create three candidate CDR's using three different learning techniques: AdaBoost, Classification Trees, and Logistic Regression. Each model has their own strengths and weaknesses in terms of interpretability and predictability.
 
-### AdaBoost
-
-\textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
-
-### Decision Tree
-
-\textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
-
-I think a diagram for the decision tree would be helpful.
-
-### Logistic Regression
-
-\textcolor{red}{\textbf{ZZQ Licong or Hoon, please provide a description for each, as well as diagrams if applicable.}}
 
 
-## Best Model {#sec:best}
+For clarity, we also include Bin's models.
 
 The sensitivity and specificity rates for all three models are shown in \blue{\ref{fig:accuracy-rates}}. The values in the figure are rounded to two significant figures but the sensitivity rates for all three models are identical. Moreover, the specificity rates for AdaBoost and Logistic Regression are identical. 
 
@@ -272,10 +259,11 @@ The Receiver Operating Characteristic (ROC) curves for all three models are show
 **Ultimately, we believe the decision tree is the best model for a clinical decision rule.** The model is interpretable, easy-to-follow, while sacrificing a truly negligible amount of specificity. A clinician at a patient's bedside can quickly reach a decision simply by answering a series of yes or no questions, which is effectively what a classification tree is. 
 
 ```{r accuracy-rates, out.width="85%", fig.width=7.5, fig.cap="Sensitivity and specificity rates for three candidate models: logistic regression, decision tree, and AdaBoost. Accuracy rates are assessed at each model's optimal hyperparameter value."}
-type <- c("AdaBoost", "Decision Tree", "Logistic Regression")
+type <- c("AdaBoost", "Decision Tree", "Logistic Regression", 
+          "Bayesian Rule List", "GRL", "RuleFit")
 vars <- paste0(c(16, 6, 21), " optimal features")
-sensitivity <- c(0.9813084112149533, 0.9813084112149533, 0.9813084112149533)
-specificity <- c(0.7679856115107914, 0.7535971223021583, 0.7679856115107914)
+sensitivity <- c(0.99065, 0.98131, 0.99065, 0.95327, 0.99065, 0.95327)
+specificity <- c(0.72842, 0.75360, 0.72842, 0.77158, 0.70683, 0.82554)
 names(sensitivity) <- names(specificity) <- type
 df_res <- data.frame(type, sensitivity, specificity)
 melted <- melt(df_res)
