@@ -14,7 +14,7 @@ class Baseline(ModelTemplate):
                 ('HemaLoc == [2, 3]', 1.9),
                 ('LocLen == [2, 3, 4]', 2.0),
                 ('High_impact_InjSev == 3', 0.5),
-                ('SFxPalp == 1', 33.3),
+                ('SFxPalp == [1,2]', 4.8),
                 ('ActNorm == 0', 0.4),
 
                 # final condition is just something that is always true
