@@ -136,7 +136,7 @@ def predict_stats(model, X_tune, y_tune,  min_sens = 0.95, verbose = True) :
         print(f'NPV             : {npv:.3f}')
 
     return {'AUC' : auc, 'Accuracy' : acc, 'Balanced Accuracy' : balacc, 
-            "Sensitivity" : sens, "Specificity" : spec, "NPV" : npv}
+            "Sensitivity" : sens, "Specificity" : spec, "NPV" : npv, "threshold" : thresh_val}
 
 
 def fit_eval_lr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = [0.05, 0.1, 0.2, 0.4, 0.7, 1, 1.3]):
