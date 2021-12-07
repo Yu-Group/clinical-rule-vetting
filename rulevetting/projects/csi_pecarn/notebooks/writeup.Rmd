@@ -22,6 +22,7 @@ rm(list = ls())
 library(tidyverse)
 library(knitr)
 library(reshape2)
+library(patchwork)
 library(ggpubr)
 knitr::opts_chunk$set(
   echo = FALSE,  # don't print the code chunk
@@ -66,7 +67,9 @@ The structure of this report is as follows: In Section \blue{\ref{sec:data}}, we
 
 # Data Collection {#sec:data}
 
-Our data is provided by the Pediatric Emergency Care Applied Research Network (PECARN), which contains patient CSI information from a previous CDR study. The previous study contained children both with and without CSI. The children without CSI were grouped into various controls based on their injury mechanism and whether they had received out-of-patient emergency medical services (EMS) treatment. \blue{In our study, we are only interested in distinguishing true injury from simple trauma. We group all of the sub-control groups into a single control group for more refined predictions.}
+Our data is provided by the Pediatric Emergency Care Applied Research Network (PECARN), which contains patient CSI information from a previous CDR study. The previous study contained children both with and without CSI. The children without CSI were grouped into various controls based on their injury mechanism and whether they had received out-of-patient emergency medical services (EMS) treatment. The controls groups are based on *mechanism of injury (MOI)*, where a non-injured patient was matched to an injured patient with a similar injury mechanism and *emergency medical services (EMS)*, where non-injured patients who required EMS out-of-hospital care were matched to an injured patient who also required this service. The random control group is simply a random matching of patients were who were not injured to patients who were injured.
+
+In our study, we are only interested in distinguishing true injury from simple trauma. We group all of the sub-control groups into a single control group for more refined predictions.
 
 The data consist of 12 datasets, each containing various categories of information about the patients, such as demographics, medical history, mechanism of injury, their appearance at the time of response and arrival at the hospital, among others. 
 
@@ -97,7 +100,8 @@ By assuming our data is correct, we are assuming that no errors were made in the
 
 The data provided are relevant to our study. The features described in our model are all accessible to a physician when they make their clinical decision. If any additional data is necessary, it could include other potentially useful features that are typically made available to a physician at the time of making the clinical decision. We do not collect any more data since we are provided with all of the data recorded by PECARN and it is highly unlikely that additional data that is pertinent to this study even exists.
 
-\red{What is the randomness in this PECARN data set? Is it a random sample from a population? Which one? Why can the data be viewed as a random sample? What assumptions are being made? Can one check these conditions using the info on the data collection process?}
+
+This problem is an observational study. Patients are assigned to case or control group based on whether they have a CSI, and each patient in the case group has several matching controls. Thus, the patients in our data cannot be treated as totally independent observations from a population. However, the dependence among the patients only exists within each matching pair, and different matching pairs can be treated as independent. By using random splitting (discussed in Section \blue{\ref{sec:comparability}}), we can ensure that our training, validation and test sets have roughly the same distribution conditioned on the given data, and therefore we can hope that the models fitted using training data generalize well to the test set.
 
 
 
@@ -105,7 +109,6 @@ The data provided are relevant to our study. The features described in our model
 
 ## Reducing the feature space
 
-\red{\textbf{ZZQ I want to make this a bit better.}}
 
 Our initial feature space included over 300 features and an interpretable model only requires a small fraction of these features. We trim down our initial subset of features through the consultation of domain experts in cervical spine injury. Utilizing the assistance of Dr. Michael Boyle, a physician in the UC San Francisco School of Medicine, we reduced our feature space to roughly 51 variables to perform variable selection on.
 
@@ -114,16 +117,15 @@ The omitted features were mostly redundant information or information that would
 
 ## Data Cleaning {#sec:clean}
 
-After reducing the feature space, we implement several layers of judgment calls in our data cleaning procedure. Any judgment call that directly involved medical subject-matter expertise was verified by Dr. Boyle.
+In order to create an interpretable decision rule, we map our categorical features into binary 0-1 features, **with 1 corresponding to "yes" and 0 corresponding to "no".** However, not all features can be uniformly binarized with this mapping, so we implement several layers of judgment calls described below.
+
+
+\underline{\textit{\textbf{Ambiguous values}}:} Certain features convey a degree of ambiguity in the recorded value. This could indicate a variety of things,m such as the data was unavailable to the nurse or EMT, or the patient is in a state where a reliable response cannot be elicited (such as being inebriated or unconscious). These values are imputed using *defensive imputation* which assumes the worst-case scenario for the patient. For example, a value of `S` which stands for "suspected, but unknown" would map to "yes". Fortunately, the data contains documentation which provides meaning to the possible values for each feature. Note that this does not default to imputing all missing values with "yes." We must consider what each feature is asking for and determine the worst-case scenario accordingly.
 
 
 
-\underline{\textit{\textbf{Ambiguous values}}:} Certain features convey a degree of ambiguity in the recorded value. This could indicate a variety of things,m such as the data was unavailable to the nurse or EMT, or the patient is in a state where a reliable response cannot be elicited (such as being inebriated or unconscious). These values are imputed using *defensive imputation* which assumes the worst-case scenario for the patient. For instance, if we do not have data on whether a patient has tenderness in their neck, we assume they do. Note that this does not default to imputing all missing values with "yes." We must consider what each feature is asking for and determine the worst-case scenario accordingly.
+\underline{\textit{\textbf{Missing values}}:} Certain columns in the data contain blank or missing values. Features with a proportion of missing values above 15% are removed from this analysis. The remaining missing values are imputed using the *median* value of the binary features. In other words, we impute missing values with whatever response (0 or 1) has the highest frequency for the non-missing values. For instance, if we do not have data on whether a patient has tenderness in their neck, we impute based on which value occurs most frequently. 
 
-
-\underline{\textit{\textbf{Categorical features}}:} In order to create an interpretable decision rule, we map our categorical features into binary 0-1 features, **with 1 corresponding to "yes" and 0 corresponding to "no".** To do this, we maintain the defensive imputation strategy by determining the worst-case outcome for each feature. This consisted of mapping unknown values using defensive imputation and mapping other variables using common sense. For example, a value of `S` which stands for "suspected, but unknown" would map to "yes". Fortunately, the data contains documentation which provides meaning to the possible values for each feature. 
-
-\underline{\textit{\textbf{Missing values}}:} Certain columns in the data contain blank or missing values. Features with a proportion of missing values above 15% are removed from this analysis. The remaining missing values are imputed using the *median* value of the binary features. In other words, we impute missing values with whatever response (0 or 1) has the highest frequency for the non-missing values.
 
 \underline{\textit{\textbf{Ordinal features}}:} Our feature space contains two ordinal features: `AVPU` and `TotalGCS`. AVPU stands for "Alert, Verbal, Pain, Unresponsive", and is a widely accepted health care protocol to determine a patient's overall status. Each letter in "AVPU" corresponds to a more urgent patient status. Alertness and unresponsiveness are simply whether the patient is alert or unresponsive. "Verbal" and "Pain" correspond to whether the patient is receptive to verbal or painful stimulation. In our case, we treat anything that is not alert as the worst-case scenario and impute accordingly. Failing to respond to any stimuli whatsoever should be heavily scrutinized and our imputation takes this into account.
 
@@ -132,6 +134,8 @@ num_control <- all %>% filter(outcome == 0) %>% nrow()
 num_case <- all %>% filter(outcome == 1) %>% nrow()
 ```
 
+
+Note that all judgment calls that directly involved medical subject-matter expertise was verified by Dr. Boyle.
 
 Our final cleaned data contains `r num_control` control patients and `r num_case` patients who were truly injured with CSI. 
 
@@ -153,7 +157,7 @@ Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating wea
 
 After seeing which features are associated with each other, we then examine the correlation of each feature with respect to the outcome variable (whether the patient truly has a CSI). We find that most features are not highly correlated with the outcome in either direction, with some exceptions: the `IntervForCervicalStab` feature, which tells whether the patient underwent any cervical stabilization measures at the site, has the highest correlation (above 0.60) with the outcome. This should not be surprising since a cervical stabilization measure is only imposed on a patient if a medical official on-site thinks it is necessary, thus we expect most true injuries to be highly associated with this intervention. 
 
-Similarly, `DxCspineInjury` measures whether the patient is suspected of having a CSI. This has the second-highest correlation of roughly 0.45, which also should not be surprising. We discuss this variable in more detail in Section \blue{\ref{sec:best}}. 
+Similarly, `DxCspineInjury` measures whether the patient is suspected of having a CSI. This has the second-highest correlation of roughly 0.45, which also should not be surprising.
 
 ## Frequency of feature values
 
@@ -202,20 +206,21 @@ These figures show that, while there is some overlap across the two sub-groups, 
 
 # Modeling {#sec:modeling}
 
-## Translation and Comparability
+## Translation and Comparability {#sec:comparability}
 
-\red{How should one translate the question in (1) into a statistical question regarding the data to best answer the original question? Are there multiple translations? For example, can we translate the question into a prediction problem or an inference problem regarding a statistical model? List the pros and cons of each translation relative to answering the substantive question before choosing a model.}
+Our statistical goal is to accurately diagnose a cervical spine injury (minimize Type I error) while also keeping the Type II error rate as low as possible. In the context of CSI, a Type I error occurs when our CDR determines no CSI is present when this is truly not the case. This statistical flaw bears serious and life-threatening consequences on children and we must pay special attention to this rate. A Type II error results when our CDR determines CSI is present, though the patient is actually not injured.  
 
-Our statistical goal is to accurately diagnose a cervical spine injury while keeping the Type II error rate as low as possible. In the context of CSI, a Type II error results when our CDR determines no CSI is present, when this is truly not the case. This statistical flaw bears serious and life-threatening consequences on children and we must pay special attention to this rate. 
-
-However, if the false negative rate is our only area of concern, there is no need for any decision rule since a clinician would diagnose a CSI and perform a CT scan for all situations. As mentioned in the Introduction (Section \blue{\ref{sec:intro}}), CT scans could result in unnecessary exposure to ionizing radiation, which is also harmful. Therefore, we must strike a balance between taking the conservative route of always diagnosing someone with CSI and the worst-case scenario of not diagnosing a serious injury. 
+Reducing Type II error can reduce the number of unnecessary CT scans and hence improve the efficiency. In this report, we will focus on the equivalent measurements of Type I and Type II errors, sensitivity and specificity, and our goal is translated into *maximizing specificity while maintaining a sufficiently high sensitivity*. ^[Here we slightly abuse the concept of Type I and II error since there is no distributional assumptions in our problem.] 
 
 
+Note that if the false negative rate is our only area of concern, there is no need for any decision rule since a clinician would diagnose a CSI and perform a CT scan for all situations. As mentioned in the Introduction (Section \blue{\ref{sec:intro}}), CT scans could result in unnecessary exposure to ionizing radiation, which is also harmful. Therefore, we must strike a balance between taking the conservative route of always diagnosing someone with CSI and the worst-case scenario of not diagnosing a serious injury. 
 
-Regarding comparability, the training and test data come from the PECARN sites and are independent. We have no reason to assume that the data comes from another distribution. Moreover, the injury status of one patient is independent of another patient's injury status. Even if two children were injured from one another (colliding heads in soccerm for example), whether one child sustains a CSI has no bearing on whether the other child does. This is an extreme example and most data points are indeed completely independent.
 
 
-Prior to modeling, we split our data into *training*, *tuning*, and *testing* sets. The training set will be used to construct our candidate models. The tuning set will be used to select an optimal model, and the testing set will be used to corroborate the performance of our best model.
+Regarding comparability, the training and test data come from the PECARN sites and are independent. We have no reason to assume that the data comes from another distribution. Moreover, the injury status of one patient is independent of another patient's injury status. Even if two children were injured from one another (colliding heads in soccer for example), whether one child sustains a CSI has no bearing on whether the other child does. This is an extreme example and most data points are indeed completely independent.
+
+
+Prior to modeling, we split our data into *training* (60% of data), *tuning* (20% of data), and *testing* (20% of data) sets. The training set will be used to construct our candidate models. The tuning set will be used to select an optimal model, and the testing set will be used to corroborate the performance of our best model.
 
 These splits were determined randomly as there is no underlying temporal or spatial phenomena that makes the outcome of one patient dependent on another. 
 
@@ -250,11 +255,11 @@ These features were discussed with Dr. Boyle, who verified their legitimacy in a
 
 We create three candidate CDR's using three different learning techniques: AdaBoost, Decision Trees, and Logistic Regression. Each model has their own strengths and weaknesses in terms of interpretability and predictability. For completeness, we also include the Bayesian Rule List, Greedy Rule List (GRL), and RuleFit models provided in the code skeleton.
 
-\red{\textbf{ZZQ Loicong: write your portion and EMAIL IT TO ME. DO NOT EDIT THE RMD.}}
+*Remark on Adaboost:* here Adaboost is implemented by averaging the outcomes of 100 adaptively generated one-step decision trees that classify the patient using the value of *a single feature*. The weak learner in Adaboost is the one-step decision tree.  
 
-The sensitivity and specificity rates for all three models are shown in \blue{\ref{fig:accuracy-rates}}. The values in the figure are rounded to two significant figures but the sensitivity rates for all three models are identical. Moreover, the specificity rates for AdaBoost and Logistic Regression are identical. 
+The sensitivity and specificity rates for all three models are shown in Figure \blue{\ref{fig:accuracy-rates}}. These values are from the tune dataset. The values in the figure are rounded to two significant figures but the sensitivity rates for all three models are identical. Moreover, the specificity rates for AdaBoost and Logistic Regression are identical. 
 
-The Receiver Operating Characteristic (ROC) curves for all three models are shown in Figure \blue{\ref{fig:roc-curves}}. In general, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. The results from @leonard2011factors are shown in the black dot. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
+The corresponding Receiver Operating Characteristic (ROC) curves for all three models are shown in Figure \blue{\ref{fig:roc-curves}}. In general, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. The results from @leonard2011factors are shown in the black dot. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
 **Ultimately, we believe AdaBoost is the best model for a clinical decision rule.** The model is interpretable and easy-to-follow without sacrificing any specificity. A clinician at a patient's bedside can quickly reach a decision simply by answering a series of yes or no questions, which is effectively what AdaBoost is. 
 
@@ -262,8 +267,8 @@ The Receiver Operating Characteristic (ROC) curves for all three models are show
 type <- c("AdaBoost", "Decision Tree", "Logistic Regression", 
           "Bayesian Rule List", "GRL", "RuleFit")
 vars <- paste0(c(16, 6, 21), " optimal features")
-sensitivity <- c(0.99065, 0.98131, 0.99065, 0.95327, 0.99065, 0.95327)
-specificity <- c(0.72842, 0.75360, 0.72842, 0.77158, 0.70683, 0.82554)
+sensitivity <- c(0.99065, 0.98131, 0.99065, 0.95327, 0.99065, 0.96262)
+specificity <- c(0.72842, 0.73921, 0.72482, 0.77158, 0.70683, 0.82554)
 names(sensitivity) <- names(specificity) <- type
 df_res <- data.frame(type, sensitivity, specificity)
 melted <- melt(df_res)
@@ -319,8 +324,94 @@ All of the arguments above were discussed in detail with Dr. Boyle. Therefore, w
 \red{What off-the-shelf method will you use? Do different methods give the same qualitative conclusion? Perturb one’s data, for example, by adding noise or subsampling if data units are exchangeable (in general, make sure the subsamples respect the underlying structures, e.g. dependence, clustering, heterogeneity, so the subsamples are representative of the original data). Do the conclusions still hold? Only trust those that pass the stability test, which is an easy-to-implement, first defense against over-fitting or too many false positive discoveries.}
 
 
+## Diffeent control groups
 
-\red{\textbf{ZZQ Seunghoon}}
+In this section, we check our models' stability by using  only one type of control with the case group to fit them. Namely, we fit the models with 9 selected features using case and RANDOM, case and EMS, case and MOI control. The results are shown in Figure \blue{\ref{fig:diff-cont}}.
+
+```{r}
+diff_control_tree <- data.frame(
+  Random = c(0.973, 0.771),
+  EMS = c(0.967, 0.738),
+  MOI = c(0.930, 0.740),
+  All = c(0.981, 0.739)
+)
+diff_control_ada <- data.frame(
+  Random = c(0.973, 0.786),
+  EMS = c(0.975, 0.690),
+  MOI = c(0.974, 0.730),
+  All = c(0.981, 0.757)
+)
+diff_control_log <- data.frame(
+  Random = c(0.973, 0.786),
+  EMS = c(0.975, 0.690),
+  MOI = c(0.974, 0.730),
+  All = c(0.981, 0.757)
+)
+rownames(diff_control_tree) <- rownames(diff_control_log) <- 
+  rownames(diff_control_ada) <- c("Sensitivity", "Specificity")
+diff_control_tree <- diff_control_tree %>% rownames_to_column("type")
+diff_control_ada <- diff_control_ada %>% rownames_to_column("type")
+diff_control_log <- diff_control_log %>% rownames_to_column("type")
+```
+
+
+```{r}
+melt_ada <- melt(diff_control_ada)
+melt_log <- melt(diff_control_log)
+melt_tree <- melt(diff_control_tree)
+```
+
+
+```{r diff-cont, out.width="90%", fig.width=12.5, fig.height=8, fig.cap="Sensitivity and specificity rates for three models with varying control types."}
+dc_ada <- melt_ada %>%
+  ggplot(mapping = aes(x = variable, y = value, fill = type)) + 
+  geom_col(position = 'dodge') + 
+  labs(x = "Coontrol Type", y = "Accuracy", title = "AdaBoost") +
+  scale_fill_manual("Accuracy Metric", values = c("#003262", "#00A598")) + 
+  theme_classic() +
+  geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+dc_log <- melt_log %>%
+  ggplot(mapping = aes(x = variable, y = value, fill = type)) + 
+  geom_col(position = 'dodge') + 
+  labs(x = "Coontrol Type", y = "Accuracy", title = "Logistic Regression") +
+  scale_fill_manual("Accuracy Metric", values = c("#003262", "#00A598")) + 
+  theme_classic() +
+  geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+dc_tree <- melt_tree %>%
+  ggplot(mapping = aes(x = variable, y = value, fill = type)) + 
+  geom_col(position = 'dodge') + 
+  labs(x = "Coontrol Type", y = "Accuracy", title = "Decision Tree") +
+  scale_fill_manual("Accuracy Metric", values = c("#003262", "#00A598")) + 
+  theme_classic() +
+  geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+(dc_ada + dc_tree) / (dc_log + plot_spacer())
+```
+
+
+We see that for all three models, the sensitivity are higher ($>0.98$) if we use group all control uniformly. This makes sense since the prediction accuracy is likely to increase if we have a larger training set. When comparing one control at a time, all three models can achieve sensitivity above 97% with about 70% specificity except for the decision tree with MOI control. 
+
+In general, this stability check demonstrates that our models are robust to the choice of control group in almost every case. The only counterexample here is probably due to the discrete nature of decision tree, in which the confidence output (the confidence of the model that a patient has a cervical injury) takes its value in a finite set whose cardinality is the number of leaves. The performance of Adaboost and Logistic are identical in all cases. This suggests that Adaboost and Logistic can converge to the same model after training in our specific problem.
+
+
+# Test set performance
+
+
+As a final step, we evaluate the performance of AdaBoost on the test dataset, the results of which are reported in Table \blue{\ref{tab:test-res}}. We see that AdaBoost achieves sensitivity above 98% on the test set with over 76% specificity. This results is comparable with its counterpart on the tuning set which indicates that our models do not suffer from overfitting and generalize well to new data from the same population.
+
+
+```{r test-res}
+test_results <- data.frame(
+  AdaBoost = paste0(c(0.983, 0.763) * 100, "%"),
+  Tree = paste0(c(0.983, 0.742) * 100, "%"),
+  Logistic = paste0(c(0.983, 0.763) * 100, "%")
+)
+rownames(test_results) <- c("Sensitivity", "Specificity")
+test_results <- t(test_results) %>% data.frame()
+test_results %>% knitr::kable(caption = "\\label{tab:test-res}Performance of AdaBoost on test data.")
+```
 
 # Conclusion
 
