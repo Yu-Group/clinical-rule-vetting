@@ -255,7 +255,11 @@ variable does not have much predictive value for older children.
 
 *SFxBas* is an indicator if the physician has determined there is basilar skull fracture
 present, or a fracture at the base of the skull. The rest of the variables indicate
-possible signs that go along with basilar skull fracture (hemotympanum, otorrhea, raccoon eyes, Battle's sign, rhinorrhea). This is known to be quite an important predictor of
+common indicators of basilar skull fracture (hemotympanum, otorrhea, raccoon eyes, Battle's sign, rhinorrhea).
+More specifically, hemotympanum is when blood is found in the middle ear, otorrhea is when spinal fluid drains
+from the ear, raccoon eyes is when internal bleeding occurs below the eye, Battle's sign is a bruise at the 
+bottom of the skull, and rhinorrhea is when spinal fluid leaks out the nose.
+This is known to be quite an important predictor of
 TBI, so we wish to make these variables as complete as possible for an ideal dataset.
 To do so, we follow the same procedure for *AMS* and its subvariables, regarding missingness.
 
@@ -379,34 +383,153 @@ the data into a training set (19947 observations), a validation set (6649 observ
 and a test set (6649 observations). For post-processing EDA, we only consider
 the training set, only using the test set to check model accuracy.
 
-## Post-Processing EDA
+## Exploratory Data Analysis
 
+Data Collection detailed a list of characteristics of an ideal dataset to vet and
+improve upon the original decision rule, according to the goals outlined in Introduction
+and Problem Motivation.
+In this section, we explore the relevance of the cleaned and preprocessed data to answer
+the question at hand, assessing how the data meets these ideals via exploratory plots. 
+The results of our exploratory analysis
+will then be used to motivate decisions regarding feature inclusion and sample splitting
+as we build our classifiers.
 
+Of course, the dataset already meets some of these conditions by virtue of our cleaning
+process: the cleaned dataset only includes individuals with GCS scores of 14 or 15,
+and individuals who were not so injured as to be intubated, pharmacologically paralyzed,
+or sedated at the time of evaluation. Additionally, since we are using the same original
+dataset as Kuppermann et al., where children presented to the ER with head trauma,
+our results can be suitably compared to theirs. Furthermore, since our data was cleaned
+differently from theirs, we get an added stability assessment of their decision rule for
+free, a crucial element of vetting their work.
 
-Make sure you talk a bit about Relevance based on the EDA here.
+As mentioned in Data Collection, one of the primary criteria of a good dataset
+for this problem is a dataset which is diverse in demographic characteristics,
+including age, race, and gender. This is crucial for generalizability of our work.
 
-This takes care of Q7
+![(#fig:demographics) Distributions of various demographic variables in the training dataset, after cleaning and preprocessing.](figs/demographics.png)
+Figure \ref(fig:demographics) shows distributions of various demographic variables
+in the cleaned training dataset. In the top-left plot, we see that younger ages
+are generally represented more than older ages. However, younger children (2 or younger)
+share many characteristics, including that they are likely preverbal, whereas older
+children (older than 2) are likely verbal. With this split, it seems like there would
+be sufficient representation for each age group. Regardless, there are at least 1500
+observations for each age out of 19947 total observations, which we find to be sufficient
+representation.
 
-Show some post-processing EDA plots and descriptions of the data (cleaned according to canonical steps)
+In the top-right plot, we see that there are about 8000 females and 12000 males in the dataset.
+While we wouldn't expect different indicators for traumatic brain injury by gender,
+the dataset is a bit lopsided in this regard. Similarly, in the bottom-right plot
+we see that the vast majority of observations are White or Black, while
+other races are quite underrepresented by comparison. Once again, we would not expect
+a race-dependence of the indicators for TBIs, but like with the observed gender imbalance, 
+we will explore the potential impact of this racial imbalance in Post-Hoc Analysis.
 
-Currently, I'm thinking:
+In the bottom left plot, we see that almost 20% of the TBIs observed are in children
+aged 0, and that the number of TBIs decreases as age increases, flatlining on average
+for children older than 2. Similarly with the age imbalance, if we were to split
+by young children versus older children, the number of TBIs in each age group
+would be more balanced and likely sufficient to generate a classification rule.
 
-1. Show general plots of counts for different categories, etc.
-2. Show plots of correlations between variables and with the outcome for just the umbrella variables
-  -to justify only using the umbrella variables in our classifier
-  -also possibly make some plots of conditioning on one umbrella variable and finding correlations between outcomes
-  to justify the rules/sequences of decisions
-3. Show plots of correlations between variables and with the outcome for the umbrella subcategories
-  -to justify possibly including the subcategories as well, may provide different information
-  -depends on what the domain expert says, though
+While an imbalance in outcome across ages may skew our
+age-invariant classifier to detect rules relevant for one age group versus another,
+we should be careful to only include predictors whose relationships with the outcome
+are invariant by age. The next few plots provide evidence of age dependence
+and lack thereof for certain variables, motivating the use of certain features
+for an age-invariant classifier. 
 
-Conclude with our feature extraction judgement calls: we will either include only the umbrella variables,
-or all of them including subcategories, or just collapse the umbrellas into the subcategories (not sure how this last one will fit in, but we can see)
+First, Figure \ref(fig:age_preverb) shows
+the distribution of 'verbal' vs. 'non-verbal' or 'pre-verbal' in response
+to the physician asking the child if they have amnesia or any headache symptoms.
+We clearly see that, among children aged two or younger, more than 80% of them
+were marked as non-verbal in response to both questions. So, a rule based on
+whether or not the individual has a headache or amnesia would be useless for these
+individuals. However, among children older than aged two, more than 90% of 
+individuals were able to verbalize answers to these questions. These variables
+would likely be good predictors of a TBI, so for a classifier only on older individuals,
+these variables would be useful to include. However, they should not be included
+in any classifier for younger children, or for an age-invariant classifier.
 
-## Post-Processing Discussion
+![(#fig:age_preverb) Distributions of 'Verbal' or 'Non-Verbal/Pre-Verbal' responses to questions on amnesia and headache symptoms, by age.](figs/age_preverb.png)
 
-Answer Q4, Q5, Q6 here, and make sure the answers connect with what predictor/model
-we will end up choosing.
+Next, we recall that, according to Kuppermann et al., for children two years and younger,
+a Pediatric GCS score was assigned, whereas for children older than two, a standard
+GCS score was assigned. In essence, these are two different standards for evaluating
+the consciousness of children, since children of different ages have different
+abilities in expressing their consciousness. However, because the standards are
+different across these two age groups, we fear that a suboptimal score with regard
+to one standard might be more indicative of a TBI than a suboptimal score with respect
+to the other standard. If GCS scores are included in an age-invariant classifier, 
+this presents a potential comparability issue, where the rule that is learned may be
+applicable to one age-group but not the other. Figure \@ref{fig:gcs_age} shows the
+distribution of the outcome variable for suboptimal versus optimal scores of each
+GCS category (row) for the different age groups (column).
+
+![(#fig:gcs_age) Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).](figs/gsc_age_dep.png)
+In this figure, we see that, for the GCS Eye scores and the GCS Verbal scores, the outcome conditional on suboptimal versus
+optimal scores is distributed similarly across both age groups. This indicates that
+there is no age group dependence on the relationship between GCS score in these categories
+and the outcome. However, for the GCS Motor scores, we see that the distributions
+are not the same. In fact, it seems like for individuals older than age 2, half
+of individuals that had a suboptimal GCS Motor score ended up having a TBI, whereas
+among children two or younger, a much smaller proportion of those with a suboptimal GCS Motor
+score had a TBI. This tells us that there is likely some age dependence in how this
+variable is related to TBI. So, when building an age-invariant classifier we also
+wish to exclude the GCS scores.
+
+Before moving on, we should also establish the age-invariant relationships of other
+variables of interest with the outcome variable. Figure \ref{fig:no_age_dependence}
+shows that the distributions of the outcome conditional on having neurological deficits
+or not, and having basilar skull fracture or not, are not age-dependent. Since
+the relationship of these indicators with the outcome are invariant to age,
+we should certainly include variables like these in an age-invariant classifier.
+
+![(#fig:no_age_dep) Distributions of outcome conditional on neurological deficit and basilar skull fracture, across both age groups (1 indicates the presence of neurological deficit/basilar skull fracture)](figs/no_age_dep.png)
+
+Finally, in making a classifier to vet and possibly improve upon that of Kuppermann et al.,
+we explore the potential impact of including and excluding subvariable details. Recall
+from Cleaning and Preprocessing that there are many categories which can be thought
+of as parent categories (Altered mental status? Neurological Deficit? Basilar skull fracture?),
+with children subcategories that provide more detailed information about the parent
+category (if altered mental status, is it because you are sleepy? agitated? asking repetetive questions?).
+In making an interpretable classifier with high predictive accuracy and a low false
+negative rate with which to compare to Kuppermann's, there are arguments for and 
+against including this subvariable information.
+
+On the one hand, it is possible that certain subvariables are more predictive
+of the outcome than other subvariables. Consider Figure \ref{fig:subvariable_arg},
+which shows the correlations of the different subvariables for two parent variables, altered mental status
+and basilar skull fracture, with the outcome. Each subvariable is binary encoded:
+if the individual has any of the qualities, it is marked as 1, otherwise, it is marked
+as 0. For AMS, it seems 'Sleepy', 'Slow to Respond', and 'Agitated' are much more correlated
+with the outcome than 'Repetitive'. Even more so, for basilar skull fracture, it seems
+'Hemotympanum' is much more highly correlated with the outcome than the other
+variables. If we were to exclude this subvariable information in lieu of only including
+an indicator for basilar skull fracture, it is possible that we could over-indicate
+TBIs. Imagine if a child came into the emergency room with CSF Rhinorrhea, 
+but our classifier only considers whether there is a sign of skull fracture.
+Skull fracture might be an important predictor but only because hemotympanum is so correlated
+with the outcome, so the child would probably be recommended to have a CT scan. However,
+the child may not have had a TBI in the first place because CSF Rhinorrhea is not
+very correlated with the outcome. Since we would be giving a child an unneeded CT scan,
+it could be important to include this subvariable information in an ideal dataset.
+
+![(#fig:subvariable_arg) Subvariables of AMS (altered mental status) and basilar skull fracture are correlated differently with the outcome.](figs/subvariable_arg.png)
+
+However, a clear argument against including this subvariable information is that
+including too many variables may lead to very uninterpretable and nonsensical rules
+that are the result of overfitting. Additionally, it seems like the parent variables alone
+have substantial correlation with the outcome, as is shown in Figures \ref{fig:younger_corr}
+and \ref{fig:older_corr}. So, in order to achieve a suitable dataset to make
+interpretable and accurate classifiers with which to vet and improve upon Kuppermann's, it seems like
+it may be suitable to just include the parent variables. Note also that the following two
+plots further show the dataset is suitable for making an age-invariant classifier:
+among the age-invariant variables, the correlations with the outcome are almost
+identical across age groups.
+
+![(#fig:younger_corr) Among children 2 and younger, relevant parent variables seem substantially correlated with the outcome.](figs/parent_younger.png)
+![(#fig:older_corr) Among children older than 2, relevant parent variables seem substantially correlated with the outcome.](figs/parent_older.png)
+NOTE: inserting some discussion about comparability and translation (Q5 and Q6)?
 
 # Models
 
