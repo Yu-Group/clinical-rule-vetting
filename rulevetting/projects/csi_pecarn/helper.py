@@ -269,9 +269,11 @@ def impute_missing_binary(df, n = 0.05):
     df.drop('missing_rate', axis=1, inplace=True)
     pd.options.mode.chained_assignment = 'warn'
     
+    binary_covariates = [col_name for col_name in df.columns if ((len(pd.unique(df[col_name]))==2) |\
+                                                                 (len(pd.unique(df[col_name]))==3))]
     # fill other NaN by "0"
-    df.fillna(0, inplace=True)
-    
+    df[binary_covariates] = df[binary_covariates].fillna(0)
+
     return df
     '''
     # drop observations

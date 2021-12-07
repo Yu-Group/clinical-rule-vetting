@@ -189,6 +189,7 @@ class Dataset(DatasetTemplate):
         numeric_as_str_cols = ['TotalGCS', 'ModeArrival']
         for col_name in numeric_as_str_cols: # .to_numeric only works on series
             df[col_name] = pd.to_numeric(df[col_name], errors='coerce') # coerce makes non-numeric to NA
+        
         df.loc[:,'EMSArrival'] = df.loc[:,'ModeArrival'].replace([1,2],[1,0]) # did patient arrive via EMS?
         df.drop(['ModeArrival'], axis=1, inplace=True)
         
@@ -219,6 +220,7 @@ class Dataset(DatasetTemplate):
         df = df.join(avpu_one_hot)
         
         pd.options.mode.chained_assignment = None
+        
         gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
         for gcs_col in gcs_columns:
             max_gcs = df[gcs_col].max()
@@ -233,7 +235,7 @@ class Dataset(DatasetTemplate):
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
         
         df = helper.build_robust_binary_covariates(df)
-
+        
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -251,12 +253,10 @@ class Dataset(DatasetTemplate):
             
         '''
         # bin useful continuous variables age
-        # TODO: make cutoffs a judgement call
         binning_dict = {}
         binning_dict['AgeInYears'] = (2,6,12)        
         df = helper.bin_continuous_data(df, binning_dict)
-        '''
-        
+        ''' 
 
         return df
     
@@ -273,20 +273,25 @@ class Dataset(DatasetTemplate):
         
         # TODO: discuss with Gabriel
         # For now, impute subgroup GCS with maximum and recalcualte total
+        '''
+        TODO: GCS
         df[['GCSEye','MotorGCS','VerbalGCS']] = \
             df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
         df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS']
+        '''
+        df['GCS_NA_total'] = pd.isna(df['TotalGCS']).replace([True,False],[1,0])
+        df['GCS_NA_eye'] = pd.isna(df['GCSEye']).replace([True,False],[1,0])
+        df['GCS_NA_motor'] = pd.isna(df['MotorGCS']).replace([True,False],[1,0])
+        df['GCS_NA_verbal'] = pd.isna(df['VerbalGCS']).replace([True,False],[1,0])
         
         '''
         for column in df.columns:
             char_column = df[column] # select column
             unique_values = pd.unique(char_column) # get unique entries
-            print(column,unique_values)
         '''
         
         df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
-        df.fillna(0, inplace=True)
-        
+        #df.fillna(0, inplace=True)
         numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
         numeric_data = numeric_data.astype(float)
         char_data = df.select_dtypes([np.object]) # gets columns encoded as strings
@@ -415,6 +420,7 @@ class Dataset(DatasetTemplate):
                                    for k in func_kwargs.keys()}
 
         if not run_perturbations:
+            pass
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             featurized_data = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
