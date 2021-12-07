@@ -196,9 +196,9 @@ class Dataset(DatasetTemplate):
         df.loc[:,'CervicalSpineImmobilization'] = df.loc[:,'CervicalSpineImmobilization'].replace([1,2,3],[1,1,0])
         
         # change binary variable label so that 1 is abnormal condition
-        df.loc[:,'NonAmbulatory'] = df.loc[:,'ambulatory'].replace([True,False],[False,True])
+        df.loc[:,'NonAmbulatory'] = df.loc[:,'ambulatory'].replace([1,0],[0,1])
         df.drop(['ambulatory'], axis=1, inplace=True)
-        pass
+        
         # change gender in to binary indicator for male (60% majority category)
         df.loc[:,'male'] = df.loc[:,'Gender'].replace(['M','F','ND'],[True,False,False])
         df.drop(['Gender'], axis=1, inplace=True)
@@ -207,7 +207,7 @@ class Dataset(DatasetTemplate):
         # should be 0
         no_information_columns = df.columns[df.nunique() <= 1]
         df.drop(no_information_columns, axis=1, inplace=True)
-        assert(len(no_information_columns)==0)
+        assert(len(no_information_columns) == 0)
                  
         # create one-hot encoding of AVPU data
         avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
