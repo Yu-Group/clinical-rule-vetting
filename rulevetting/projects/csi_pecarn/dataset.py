@@ -21,8 +21,7 @@ class Dataset(DatasetTemplate):
         os.makedirs(raw_data_path, exist_ok=True)
         
         # all the fnames to be loaded and searched over        
-        #fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
-        fnames = ['analysisvariables.csv', 'clinicalpresentationsite.csv','clinicalpresentationoutside.csv','clinicalpresentationfield.csv', 'demographics.csv', 'injuryclassification.csv', 'injurymechanism.csv','kappa.csv', 'medicalhistory.csv', 'radiologyoutside.csv', 'radiologyreview.csv', 'radiologysite.csv']
+        fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
         # read through each fname and save into the r dictionary
         r = {}
         print('read all the csvs...\n', fnames)
@@ -32,145 +31,270 @@ class Dataset(DatasetTemplate):
         # replace studysubjectid cases with id
         for fname in tqdm(fnames):
             df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
-            df.rename(columns={'StudySubjectID': 'id'}, inplace=True)
-            df.rename(columns={'studysubjectid': 'id'}, inplace=True)
-            pass
+            df.columns = [re.sub('StudySubjectID','id',x,flags=re.IGNORECASE) for x in df.columns]
             df.columns = [re.sub('SITE','site',x) for x in df.columns]
-            df.columns = [re.sub('CaseID','case_id',x) for x in df.columns]
-            df.columns = [re.sub('CSpine','CervicalSpine',x) for x in df.columns]
+            df.columns = [re.sub('CaseID','case_id',x,flags=re.IGNORECASE) for x in df.columns]
             df.columns = [re.sub('ControlType','control_type',x,flags=re.IGNORECASE) for x in df.columns]
-            
-            if fname == "clinicalpresentationfield.csv": 
-                print("There")
-                df.iloc[:,4:] = df.add_suffix('_ems')
-                print(df.iloc[:,4:].head())
-            if fname == "clinicalpresentationoutside.csv":
-                df.iloc[:,4:] = df.add_suffix('_outside')
-            if fname == "clinicalpresentationsite.csv":
-                df.iloc[:,4:] = df.add_suffix('_site')
-                
-            assert ('id' in df.keys())   
-            print(df.head())
+            df.columns = [re.sub('CSpine','CervicalSpine',x) for x in df.columns]
+            df.columns = [re.sub('subinj_','SubInj_',x) for x in df.columns]
+                            
+            assert ('id' in df.keys())
+            df = df.set_index(['id','case_id','site','control_type']) # use a multiIndex
             r[fname] = df
 
         # Get filenames we consider in our covariate analysis
-        # We do not consider radiology data or injury classification because this data is not
-        # available at decision time in the ED.
-        fnames_small = [fname for fname in fnames
-                        if not 'radiology' in fname
-                        and not 'injuryclassification' in fname
-                        and not 'kappa' in fname]
-        
-        df_features = r[fnames[0]] # keep `site`, `case id`, and `control type` covar from first df
-        
-        print('merging all of the dfs...')
-        for i, fname in tqdm(enumerate(fnames_small)):
-            df2 = r[fname].copy()
+        # We do not consider radiology review data at this time
 
-            # if subj has multiple entries, only keep first
-            # there are no duplicates in this dataset but we keep this code for robustness to future data
-            df2 = df2.drop_duplicates(subset=['id'], keep='last')
-            df2_features = df2.iloc[:,3:] # ignore `site`, `case id` and `contol type`
-            # don't save duplicate columns; the above line catches errors from different cased var names
-            df_features = df_features.set_index('id').combine_first(df2_features.set_index('id')).reset_index()
+        df_features = r['analysisvariables.csv'] # keep `site`, `case id`, and `control type` covar from first df
         
-        # set_index commands merge but do not properly set index
-        # use a multi-indexing for easily work with binary features
-        df_features = df_features.set_index(['id','case_id','site','control_type']) # use a multiIndex
         
-        # remove variables collected after the intervention
-        posthoc_columns = df_features.columns[df_features.columns.str.startswith('IntervFor')].union( \
-            df_features.columns[df_features.columns.str.contains('LongTerm')]).union( \
-            df_features.columns[df_features.columns.str.contains('Outcome')])
-        df_features.drop(posthoc_columns, axis=1, inplace=True)
+        # New Data Source
+        # the second most useful predictive covariates are those collected at the study site
+        ss_data = r['clinicalpresentationsite.csv']
         
-        # change binary variable label so that 1 is negative result
-        df_features.loc[:,'NonAmbulatory'] = df_features.loc[:,'ambulatory'].replace([1,0],[0,1])
-        df_features.drop(['ambulatory'], axis=1, inplace=True)
+        # first we hand-select features after conversations with Dr. Devlin about how a patient arrives to the ED
+        # note we do not include `DxCspineInjury` at Dr. Devlin's suggestion despite its strong predictive power
+        ss_arrival_features = ['ModeArrival','ReceivedInTransfer','PtAmbulatoryPriorArrival','CervicalSpineImmobilization',\
+                           'ArrPtIntub']
+        ss_arrival_data = ss_data[ss_arrival_features]
+        df_features = pd.merge(df_features,ss_arrival_data,how="left",left_index=True,right_index=True)
         
-        # judgement call to get analysis variable columns that end with 2 (more robust)
-        # first standardize column names
-        df_features.columns = [re.sub('subinj_','SubInj_',x) for x in df_features.columns]
-        # then get relavent columns
-        robust_av_columns = df_features.columns[df_features.columns.str.endswith('2')]\
-            .drop(['PtTenderNeckLevelC2','ICD9Location2','ICD9MechInjury2']) # endswith 2 regex is too strong
-        nonrobust_av_columns = [col_name[:-1] for col_name in robust_av_columns] 
-        # drop columns for jdugement call
-        if kwargs['use_robust_av']: df_features.drop(nonrobust_av_columns, axis=1, inplace=True)
-        else: df_features.drop(robust_av_columns, axis=1, inplace=True)
+        # next get AVPU and GCS test results
+        ss_eval_results = ['GCSEye','MotorGCS','VerbalGCS','TotalGCS','AVPUDetails']
+        ss_eval_data = ss_data[ss_eval_results]
+        df_features = pd.merge(df_features,ss_eval_data,how="left",left_index=True,right_index=True)
+        
+        # the analysis variables consider neck pain and we case a wider net because young children are not good
+        # at localizing where pain is coming from. Tenderness is pain observed by doctor, not self-reported
+        ss_pain_features = ['PtCompPainNeck','PtCompPainFace','PtCompPainHead','PtCompPainNeckMove',\
+                            'PtTenderNeck','PtTenderFace','PtTenderHead']
+        ss_pain_data = ss_data[ss_pain_features]
+        df_features = pd.merge(df_features,ss_pain_data,how="left",left_index=True,right_index=True)
+                
+        # other covariates about localized neck tenderness, major injuries, and focal neurological findings are
+        # summarzied by analysis variables already
+        
+        # features about the study site outcomes are not used in prediciton but are useful to test the efficacy of our preds.
+        ss_outcome_precautions = [col for col in ss_data if col.startswith('CervicalSpinePrecautions')]
+        ss_outcome_intervention = [col for col in ss_data if col.startswith('IntervForCervical')]
+        ss_outcomes = [col for col in ss_data if col.startswith('OutcomeStudySite')]
+        ss_outcomes_other = ['MedsGiven','IntubatedSS','LongTermRehab','TrfToLongTermRehab']
+        posthoc_outcomes_all = ss_outcome_precautions+ss_outcome_intervention+ss_outcomes+ss_outcomes_other
+        posthoc_features  = ss_data[posthoc_outcomes_all]
+        posthoc_features.columns = 'posthoc_' + posthoc_features.columns.astype(str)
+        df_features = pd.merge(df_features,posthoc_features,how="left",left_index=True,right_index=True)
+        
+        # New Data Source
+        # as the outside and field datasets contain the same covariates collected before arrival at the study site
+        # we only use this data as a robustness check. This decision was approved by Dr. Devlin
+        # we do not include medsgiven and a prior hospital or EMS, nor do we include the GCS or AVPU score outside the study site
+        # TODO: justify
             
-        # judgement call to use kappa variables where appropriate
+        all_auxiliary_features = ss_arrival_features + ss_pain_features
+        outside_data = r['clinicalpresentationoutside.csv']
+        ems_data = r['clinicalpresentationfield.csv']
+       
+        outside_covariates = [col for col in outside_data if col in all_auxiliary_features]
+        ems_covariates = [col for col in ems_data if col in all_auxiliary_features]
+        # TODO: sedatives and GCS?
+        
+        outside_included_data = outside_data[outside_covariates]
+        outside_included_data.columns = outside_included_data.columns.astype(str) + '_outside'
+        ems_included_data = ems_data[ems_covariates]
+        ems_included_data.columns = ems_included_data.columns.astype(str)  + '_ems'
+        df_features = pd.merge(df_features,outside_included_data,how="left",left_index=True,right_index=True)
+        df_features = pd.merge(df_features,ems_included_data,how="left",left_index=True,right_index=True)
+        
+        
+        # New Data Source
+        # the only demographic features we consider are AgeInYear and Gender
+        # we include Race and PayorType as meaningful posthoc_covariates to evaluate fairness
+        demographic_data = r['demographics.csv']
+        demographic_features = ['AgeInYears','Gender','Race','PayorType']
+        demographic_included_data = demographic_data[demographic_features].rename\
+        (columns={"Race": "posthoc_Race", "PayorType": "posthoc_PayorType"})
+        df_features = pd.merge(df_features,demographic_included_data,how="left",left_index=True,right_index=True)
+        
+        
+        # New Data Source
+        # The injry classification contains posthoc data to evaluate how our predicitons vary by injury type
+        injuryclassification_data = r['injuryclassification.csv']
+        ic_summary_data = injuryclassification_data[["CSFractures","Ligamentoptions","CervicalSpineSignalChange"]]
+        ic_summary_data.rename(columns={"CSFractures": "CervicalSpineFractures",\
+                                        "Ligamentoptions": "LigamentInjury"},inplace=True)
+        ic_summary_data.columns = 'posthoc_' + ic_summary_data.columns.astype(str)
+        df_features = pd.merge(df_features,ic_summary_data,how="left",left_index=True,right_index=True)
+        
+        # New Data Source
+        # The injry mechanism is well-summarized by analysis variables, which indidate high risk isntance.
+        # We include some covariates from this dataset hich add nunace to the injury
+        # such as wheter the patient was wearing a helmet
+        injurymechanism_data = r['injurymechanism.csv']
+        im_features = ['PassRestraint','Assault','ChildAbuse','helmet','FallDownStairs']
+        im_included_data = injurymechanism_data[im_features]
+        df_features = pd.merge(df_features,im_included_data,how="left",left_index=True,right_index=True)
+    
+    
+        # New Data Source
+        # Analysis variables summarizes a patient's medical history well, especially for predisposing conditions.
+        # We include additional binary indicators which indicate any prior abnormal medical history
+        medicalhistory_data = r['medicalhistory.csv']
+        mh_features = ['HEENT','Cardiovascular','Respiratory','Gastrointestinal',\
+                           'Musculoskeletal','Neurological','Medications']
+        mh_included_data = medicalhistory_data[mh_features]
+                
+        df_features = pd.merge(df_features,mh_included_data,how="left",left_index=True,right_index=True)
+
+        # New Data Source
+        # Patients treated first at another hospital may have had radiology there. These covariates will help
+        # determine if this information affects the radiology decisions made by study site doctors
+        radiologyoutside_data = r['radiologyoutside.csv']
+        radiologyoutside_included_data  = radiologyoutside_data[["Xrays","CTPerformed","MRIPerformed"]]
+        radiologyoutside_included_data.columns = radiologyoutside_included_data.columns.astype(str) + '_outside'
+        df_features = pd.merge(df_features,radiologyoutside_included_data,how="left",left_index=True,right_index=True)
+        
+        # New Data Source
+        # For post-hoc evaluation we consider what radiological tests were ordered at the study site
+        radiologysite_data= r['radiologysite.csv']
+        radiologysite_icluded_data = radiologysite_data[["Xrays","CTPerformed","MRIPerformed"]]
+        radiologysite_icluded_data.columns = 'posthoc_' + radiologysite_icluded_data.columns.astype(str) + '_site'
+        df_features = pd.merge(df_features,radiologysite_icluded_data,how="left",left_index=True,right_index=True)
+
+        
+        # New Data Source
+        # judgement call to use re-abstracted kappa infromation for appropriate units and features
         if kwargs['use_kappa']:
             kappa_data = r['kappa.csv']
-            kappa_data = kappa_data.set_index('id')
             # drop kappa columns not in full dataset
             to_drop_kappa_cols = kappa_data.columns.difference(df_features.columns)
             kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
             # replace with kappa data at relavent locations
             df_features.loc[kappa_data.index,kappa_data.columns] = kappa_data
-
+        
+        
+        print("{0} Raw Covariates Selected".format(df_features.shape[1]))
         return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         
-        # create one-hot encoding of AVPU data
-        cleaned_data['AVPUDetails'] = cleaned_data['AVPUDetails'].replace('N',np.NaN)
-        cleaned_data['AVPUDetails'] = 'AVPU_' + cleaned_data['AVPUDetails'].astype(str)
-        avpu_one_hot = pd.get_dummies(cleaned_data['AVPUDetails'])
-        cleaned_data = cleaned_data.drop(['AVPU','AVPUDetails'],axis = 1)
-        cleaned_data = cleaned_data.join(avpu_one_hot)
-        
-        df = helper.extract_numeric_data(cleaned_data)
-                
-        # impute missing values
-        df = helper.impute_missing(df, n=kwargs['frac_missing_allowed']) # drop some observations and impute other missing values 
-        # drop cols with vals missing this percent of the time
-        #df = df.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
-
+        # list of categorical columns to ignore
+        categorical_covariates = ['posthoc_Race','posthoc_PayorType',\
+                                  'posthoc_OutcomeStudySite','posthoc_OutcomeStudySiteMobility','posthoc_OutcomeStudySiteNeuro']
+        df = cleaned_data
+        #
         # add a binary outcome variable for CSI injury 
         df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
+
+        # convert numeric columns encoded as strings
+        numeric_as_str_cols = ['TotalGCS', 'ModeArrival']
+        for col_name in numeric_as_str_cols: # .to_numeric only works on series
+            df[col_name] = pd.to_numeric(df[col_name], errors='coerce') # coerce makes non-numeric to NA
+        df.loc[:,'EMSArrival'] = df.loc[:,'ModeArrival'].replace([1,2],[1,0]) # did patient arrive via EMS?
+        df.drop(['ModeArrival'], axis=1, inplace=True)
+        
+        # correct encoding for indicator of cspine immobilization
+        df.loc[:,'CervicalSpineImmobilization'] = df.loc[:,'CervicalSpineImmobilization'].replace([1,2,3],[1,1,0])
+        
+        # change binary variable label so that 1 is abnormal condition
+        df.loc[:,'NonAmbulatory'] = df.loc[:,'ambulatory'].replace([True,False],[False,True])
+        df.drop(['ambulatory'], axis=1, inplace=True)
+        pass
+        # change gender in to binary indicator for male (60% majority category)
+        df.loc[:,'male'] = df.loc[:,'Gender'].replace(['M','F','ND'],[True,False,False])
+        df.drop(['Gender'], axis=1, inplace=True)
         
         # drop uniformative columns which only contains a single value
+        # should be 0
         no_information_columns = df.columns[df.nunique() <= 1]
         df.drop(no_information_columns, axis=1, inplace=True)
+        assert(len(no_information_columns)==0)
+                 
+        # create one-hot encoding of AVPU data
+        avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
+        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN)
+
+        df[avpu_columns] = 'AVPU_' + df[avpu_columns].astype(str)
+        avpu_one_hot = pd.get_dummies(df[avpu_columns])
+        df = df.drop(avpu_columns,axis = 1)
+        df = df.join(avpu_one_hot)
         
-        # bin useful continuous variables Age and (perhaps) EMSArrivalTime
-        # TODO: make cutoffs a judgement call
-        binning_dict = {}
-        binning_dict['AgeInYears'] = (2,5,13)        
-        df = helper.bin_continuous_data(df, binning_dict)
+        pd.options.mode.chained_assignment = None
+        gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
+        for gcs_col in gcs_columns:
+            max_gcs = df[gcs_col].max()
+            df[gcs_col][(df['AlteredMentalStatus'] == 0.0) & (pd.isna(df[gcs_col]))] = max_gcs
         
+        #
+        # Judgement call to fill ~2% of units without these outcomes as normal
+        df['posthoc_OutcomeStudySiteMobility'][(pd.isna(df['posthoc_OutcomeStudySiteMobility']))] = 'N'
+        df['posthoc_OutcomeStudySiteNeuro'][(pd.isna(df['posthoc_OutcomeStudySiteNeuro']))] = 'NR'
+        
+        pd.options.mode.chained_assignment = 'warn'
+        df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
+        
+        df = helper.build_robust_binary_covariates(df)
+
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         # add engineered featuures
-        df = helper.derived_feats(preprocessed_data)
+        df = preprocessed_data     
+        df = helper.rename_values(df)
+        df = helper.derived_feats(df)
+        
+        robust_columns = df.columns[df.columns.str.endswith('2')]\
+            .drop(['posthoc_OutcomeStudySiteMobility2']) # endswith 2 regex is too strong
+        nonrobust_columns = [col_name[:-1] for col_name in robust_columns] 
+        # drop columns for jdugement call
+        if kwargs['use_robust_av']: df.drop(nonrobust_columns, axis=1, inplace=True)
+        else: df.drop(robust_columns, axis=1, inplace=True)
+            
+        '''
+        # bin useful continuous variables age
+        # TODO: make cutoffs a judgement call
+        binning_dict = {}
+        binning_dict['AgeInYears'] = (2,6,12)        
+        df = helper.bin_continuous_data(df, binning_dict)
+        '''
+        
 
-        # convert feats to dummy
-        df = pd.get_dummies(df, dummy_na=True)  # treat na as a separate category
-
-        # remove any col that is all 0s
-        df = df.loc[:, (df != 0).any(axis=0)]
-
-        # remove the _no columns
-        if kwargs['drop_negative_columns']:
-            df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
-
-        # narrow to good keys
-        feat_names = [k for k in df.keys()  # features to use
-                      if not 'iai' in k.lower()]
-        base_feat_names = []
-        base_feat_names += ['AbdDistention', 'AbdTenderDegree', 'AbdTrauma', 'AbdTrauma_or_SeatBeltSign',
-                            'AbdomenPain', 'Costal', 'DecrBreathSound', 'DistractingPain',
-                            'FemurFracture', 'GCSScore', 'Hypotension', 'LtCostalTender',
-                            'MOI', 'RtCostalTender', 'SeatBeltSign', 'ThoracicTender',
-                            'ThoracicTrauma', 'VomitWretch', 'Age', 'Sex']
-        base_feat_names += self.get_meta_keys()
-        feats = rulevetting.api.util.get_feat_names_from_base_feats(feat_names,
-                                                                    base_feat_names=base_feat_names) + ['outcome']
-        return df[feats]
+        return df
     
-    def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
+    def impute_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        df = preprocessed_data
+        
+        # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
+        # and we make a judgement call to assune that all relavent abnormal information is recorded
+      
+        
+        #pd.set_option("display.max_rows", None, "display.max_columns", None)
+        #print((df.isna().sum(axis = 0)/df.shape[0]).sort_values())
+        #df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
+        
+        # TODO: discuss with Gabriel
+        # For now, impute subgroup GCS with maximum and recalcualte total
+        df[['GCSEye','MotorGCS','VerbalGCS']] = \
+            df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
+        df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS']
+        
+        '''
+        for column in df.columns:
+            char_column = df[column] # select column
+            unique_values = pd.unique(char_column) # get unique entries
+            print(column,unique_values)
+        '''
+        
+        df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
+        df.fillna(0, inplace=True)
+        
+        numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
+        numeric_data = numeric_data.astype(float)
+        char_data = df.select_dtypes([np.object]) # gets columns encoded as strings
+        df = pd.merge(numeric_data,char_data,how="left",left_index=True,right_index=True)
+        
+        return df
+    
+    def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing.
         Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
@@ -188,11 +312,32 @@ class Dataset(DatasetTemplate):
         df_tune
         df_test
         """
-        return tuple(np.split(
-            preprocessed_data.sample(frac=1, random_state=42),
-            [int(.6 * len(preprocessed_data)),  # 60% train
-             int(.8 * len(preprocessed_data))]  # 20% tune, 20% test
-        ))
+        print('split_data kwargs', kwargs)
+        
+        col_names = ['id','case_id','site','control_type'] + list(preprocessed_data.columns.copy())
+        df_train = pd.DataFrame(columns=col_names)
+        df_train = df_train.set_index(['id','case_id','site','control_type'])
+        df_tune = pd.DataFrame(columns=col_names)
+        df_tune = df_tune.set_index(['id','case_id','site','control_type'])
+        df_test = pd.DataFrame(columns=col_names)
+        df_test = df_test.set_index(['id','case_id','site','control_type'])
+        
+        study_site_list = [i for i in range(1,18)]
+        print(kwargs['control_types'])
+        selected_control_types = ['case']+kwargs['control_types']
+        
+        for ss in study_site_list:
+            for ct in selected_control_types:
+                split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'), drop_level=False) # subset to split
+                
+                # do the splitting below
+                split_data = np.split(split_subset.sample(frac=1, random_state=42),
+                                      [int(.6 * len(split_subset)), int(.8 * len(split_subset))])
+                df_train = pd.concat([df_train,split_data[0]])
+                df_tune = pd.concat([df_tune,split_data[1]])
+                df_test = pd.concat([df_test,split_data[2]])
+                
+        return tuple([df_train,df_tune,df_test])
 
     def get_outcome_name(self) -> str:
         return 'csi_injury'  # return the name of the outcome we are predicting
@@ -205,30 +350,33 @@ class Dataset(DatasetTemplate):
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
-            'clean_data': {
-                # Kappa data is re-abstracted by an indepedent doctor on a subset of `ClinicalPresentationSite.csv` data 
-                # If true, use this data for relavent units
+            'clean_data': { 
                 'use_kappa':[False, True],
-                
+            },
+            'preprocess_data': {             
+            },'extract_features': { 
                 # some variables from `AnaylsisVariables.csv` end with a 2
                 # using positive findings from field or outside hospital documentation these have 
                 # the response to YES from NO or MISSING. The Leonard (2011) study considers them more robust
-                'use_robust_av':[True, False],
+                # use mirror this perturbation for our own derived features
+                'use_robust_av':[False, True],
             },
-            'preprocess_data': {
+            'impute_data': { 
+                # drop units with missing this percent of analysis variables or more
+
+                'frac_missing_allowed': [0.05, 0.1],
+            },
+            'split_data': {
                 # drop cols with vals missing this percent of the time
-                'frac_missing_allowed': [0.05, 0.10],
-            },
-            'extract_features': {
-                # whether to drop columns with suffix _no
-                'drop_negative_columns': [False],  # default value comes first
+                'control_types': [['ran','moi','ems']],
             }
         }
     
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
-                 run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 run_perturbations: bool = False,
+                 control_types=['ran','moi','ems']) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -242,7 +390,8 @@ class Dataset(DatasetTemplate):
             Whether to skip all processing and load data directly from csvs
         run_perturbations: bool, optional
             Whether to run / save data pipeline for all combinations of judgement calls
-
+        control_types: list of str, optional
+            Which control types (Random, Mechanism of Injury, EMS) to include
         Returns
         -------
         df_train
@@ -265,12 +414,12 @@ class Dataset(DatasetTemplate):
             default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
 
-        print('kwargs', default_kwargs)
         if not run_perturbations:
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-            #extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-            #df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+            featurized_data = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
+            imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'])
+            df_train, df_tune, df_test = cache(self.split_data)(imputed_data, **{'control_types': control_types})
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
             clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
@@ -278,7 +427,7 @@ class Dataset(DatasetTemplate):
             preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
                                         cache_dir=CACHE_PATH)
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
+            extract_set = build_Vset('extract_features', self.extract_features, param_dict==kwargs['split_data'],
                                      cache_dir=CACHE_PATH)
             extracted_features = extract_set(preprocessed_data)
             split_data = Vset('split_data', modules=[self.split_data])
@@ -307,7 +456,7 @@ class Dataset(DatasetTemplate):
                             df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
                 return dfs[list(dfs.keys())[0]]
 
-        return preprocessed_data #df_train, df_tune, df_test
+        return df_train, df_tune, df_test
 
 
 if __name__ == '__main__':

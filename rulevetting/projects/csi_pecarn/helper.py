@@ -2,6 +2,7 @@ from os.path import join as oj
 
 import numpy as np
 import pandas as pd
+import re
 
 '''Helper functions for dataset.py.
 This file is optional.
@@ -17,34 +18,47 @@ def assign_binary_outcome(s):
         return 1
     return 0
 
-def extract_numeric_data(input_df):
+def extract_numeric_data(input_df,categorical_covariates):
     '''
     This function returns a dataframe with all character columns dropped.
     Character variables which can be converted to binary such as 'Y'/'N' are mutated and kept
+    Column names in categorical_covariates are unchachanged by this method
     '''
-    numeric_data = input_df.select_dtypes([np.number]) # separate data that is already numeric
-    char_data = input_df.select_dtypes([np.object]) # gets columns encoded as strings
+    categorical_data = input_df[categorical_covariates]
+    noncat_data = input_df.drop(categorical_covariates,axis=1)
+
+    numeric_data = noncat_data.select_dtypes([np.number]) # separate data that is already numeric
+    char_data = noncat_data.select_dtypes([np.object]) # gets columns encoded as strings
     
-    binary_data = pd.DataFrame(index=input_df.index) # init with study subject ID as index
+    binary_data = pd.DataFrame(index=noncat_data.index) # init with study subject ID as index
     
     for column in char_data:
+        if 'txt' in column: continue # don't process long-form text columns
         char_column = char_data[column] # select column
         unique_values = pd.unique(char_column) # get unique entries
-        print('----')
-        print(column)
+        
         # encode yes as 1, no as 0
-        if (('Y' in unique_values)|('A' in unique_values)) & ('N' in unique_values):
+        if (('Y' in unique_values)|('A' in unique_values)|('YND' in unique_values)) & \
+        (('N' in unique_values)|('ND' in unique_values)):
             conditions  = [char_column == 'Y',char_column == 'YD',char_column == 'YND',char_column == 'A',char_column == 'N']
             encodings = [1,1,1,1,0]
             binary_encoded = np.select(conditions, encodings, default=np.nan)
             col_name = column+"_binary"
-            print("Accepted")
             binary_data.loc[:,col_name] = binary_encoded.copy()
-            
-    # add in newly created binary columns        
-    numeric_data.loc[:, binary_data.columns] = binary_data.copy()
+        # for clarity we convert the strings of post hoc outcomes into binary in the following loop
+        else:
+            conditions  = [char_column == 'Y', char_column == 'N',char_column == 'I',char_column == 'C',\
+                           char_column == 'INTUB',char_column == 'EXTUB',char_column == 'NOTUB']
+            encodings = [1,0,1,1,1,1,0]
+            binary_encoded = np.select(conditions, encodings, default=np.nan)
+            col_name = column+"_binary"
+            binary_data.loc[:,col_name] = binary_encoded.copy()
 
-    return numeric_data
+    # add in newly created binary columns and removed categorical ones 
+    output_df = pd.merge(numeric_data,binary_data,how="left",left_index=True,right_index=True)
+    output_df = pd.merge(output_df,categorical_data,how="left",left_index=True,right_index=True)
+    
+    return output_df
 
 def bin_continuous_data(input_df, binning_dict):
     '''
@@ -86,63 +100,72 @@ def bin_continuous_data(input_df, binning_dict):
 
     return input_df
 
-def get_outcomes(RAW_DATA_PATH, NUM_PATIENTS=12044):
-    """Read in the outcomes
-    Returns
-    -------
-    outcomes: pd.DataFrame
-        iai (has 761 positives)
-        iai_intervention (has 203 positives)
-    """
+def build_robust_binary_covariates(df):
+    '''
+    Leonard et al. (2011) build robust versions of features derived solely on study site data.
+    If a feature is an indicator of some condition at the study site, e.g. MedsGiven, then
+    the robust version will be an indicator of the feature at the study site, outside hospital, or EMS.
     
-    form4abdangio = pd.read_csv(oj(RAW_DATA_PATH, 'form4bother_abdangio.csv')).rename(columns={'subjectid': 'id'})
-    form6b = pd.read_csv(oj(RAW_DATA_PATH, 'form6b.csv')).rename(columns={'SubjectID': 'id'})
-    form6c = pd.read_csv(oj(RAW_DATA_PATH, 'form6c.csv')).rename(columns={'subjectid': 'id'})
+    
+    '''
+    # TODO: functionalize
+    # TODO: add comments
+    
+    covariates = df.columns
+    ems_binary_var = pd.Series(covariates[covariates.str.endswith('_ems_binary')])
+    site_covariates = covariates.difference(ems_binary_var)
+    ems_binary_var = ems_binary_var.str.replace('_ems_binary', '', regex=True)
+    
+    outside_binary_var = pd.Series(covariates[covariates.str.endswith('_outside_binary')])
+    site_covariates = site_covariates.difference(outside_binary_var)
+    outside_binary_var = outside_binary_var.str.replace('_outside_binary', '', regex=True)
 
-    # (6b) Intra-abdominal injury diagnosed in the ED/during hospitalization by any diagnostic method
-    # 1 is yes, 761 have intra-abdominal injury
-    # 2 is no -> remap to 0, 841 without intra-abdominal injury
+    binary_var = pd.Series(site_covariates[site_covariates.str.endswith('_binary')]).replace('_binary', '', regex=True)
+    
+    pd.options.mode.chained_assignment = None
+    robust_var = set(binary_var).intersection(set(ems_binary_var).union(set(outside_binary_var)))
+    
+    for var in robust_var:
+        robust_var = var + '_binary2'
+        df[robust_var] = df[var+'_binary'].copy()
+        if var + '_outside_binary' in covariates:
+            df[robust_var] += df[var+'_outside_binary'].copy().fillna(0)
+            df.drop(var+'_outside_binary',axis = 1, inplace=True)
+        if var + '_ems_binary' in covariates:
+            df[robust_var] += df[var+'_ems_binary'].copy().fillna(0)
+            df.drop(var+'_ems_binary',axis = 1, inplace=True)
+        df[robust_var][df[robust_var] >= 1] = 1.0
+     
+    covariates = df.columns
+    ems_binary_var = pd.Series(covariates[covariates.str.endswith('_ems')])
+    site_covariates = covariates.difference(ems_binary_var)
+    ems_binary_var = ems_binary_var.str.replace('_ems', '', regex=True)
+    
+    outside_binary_var = pd.Series(covariates[covariates.str.endswith('_outside')])
+    site_covariates = site_covariates.difference(outside_binary_var)
+    outside_binary_var = outside_binary_var.str.replace('_outside', '', regex=True)
+    
+    robust_var = set(site_covariates).intersection(set(ems_binary_var).union(set(outside_binary_var)))
+    for var in robust_var:
+        if 'GCS' in var: continue
+        robust_var = var + '2'
+        df[robust_var] = df[var].copy()
+        if var + '_outside' in covariates:
+            df[robust_var] += df[var+'_outside'].copy().fillna(0)
+            df.drop(var+'_outside',axis = 1, inplace=True)
+        if var + '_ems' in covariates:
+            df[robust_var] += df[var+'_ems'].copy().fillna(0)
+            df.drop(var+'_ems',axis = 1, inplace=True)
+        df[robust_var][df[robust_var] >= 1] = 1.0
+    
+    pd.options.mode.chained_assignment = 'warn'
+    return df
 
-    def get_ids(form, keys):
-        '''Returns ids for which any of the keys is 1
-        '''
-        ids_all = set()
-        for key in keys:
-            ids = form.id.values[form[key] == 1]
-            for i in ids:
-                ids_all.add(i)
-        return ids_all
-
-    ids_iai = get_ids(form6b, ['IAIinED1'])  # form6b.id[form6b['IAIinED1'] == 1]
-
-    # print(form4abdangio.keys())
-    ids_allangio = get_ids(form4abdangio, ['AbdAngioVessel'])
-    # print('num in 4angio', len(ids_allangio))
-    # print(form6a.keys())
-    # ids_alla = get_ids(form6a, ['DeathCause'])
-    # print('num in a', len(ids_alla))
-    # print(form6b.keys())
-    ids_allb = get_ids(form6b, ['IVFluids', 'BldTransfusion'])
-    # print('num in b', len(ids_allb))
-    # print(form6c.keys())
-    ids_allc = get_ids(form6c, ['IntervenDurLap'])
-    # print('num in c', len(ids_allc))
-    ids = ids_allb.union(ids_allangio).union(ids_allc)
-
-    ids_iai_np = np.array(list(ids_iai)) - 1
-    ids_np = np.array(list(ids)) - 1
-
-    iai = np.zeros(NUM_PATIENTS).astype(int)
-    iai[ids_iai_np] = 1
-    iai_intervention = np.zeros(NUM_PATIENTS).astype(int)
-    iai_intervention[ids_np] = 1
-
-    df_iai = pd.DataFrame.from_dict({
-        'id': np.arange(1, NUM_PATIENTS + 1),
-        'iai': iai,
-        'iai_intervention': iai_intervention
-    })
-    return df_iai
+def get_outcomes():
+    """Read in the outcomes
+    """
+    # TODO: Implement?
+    return
 
 
 def rename_values(df):
@@ -154,134 +177,84 @@ def rename_values(df):
 
     # map categorical vars values
     race = {
-        1: 'American Indian or Alaska Native',
-        2: 'Asian',
-        3: 'Black or African American',
-        4: 'Native Hawaiian or other Pacific Islander',
-        5: 'White',
-        6: 'unknown',  # stated as unknown
-        7: 'unknown'  # other
+        'AI': 'American Indian or Alaska Native',
+        'A': 'Asian',
+        'B': 'Black or African American',
+        'PI': 'Native Hawaiian or other Pacific Islander',
+        'W': 'White',
+        'ND': 'unknown',  # stated as unknown
+        'O': 'unknown'  # other
     }
-    df.RACE = df.RACE.map(race)
-    moi = {
-        1: 'Motor vehicle collision',
-        2: 'Fall from an elevation',
-        3: 'Fall down stairs',
-        4: 'Pedestrian/bicyclist struck by moving vehicle',
-        5: 'Bike collision/fall',
-        6: 'Motorcycle/ATV/Scooter collision',
-        7: 'Object struck abdomen',
-        8: 'unknown',  # unknown mechanism,
-        9: 'unknown',  # other mechanism
-        10: 'unknown'  # physician did not answer
+    df.posthoc_Race = df.posthoc_Race.map(race)
+    
+    outcomeMap = {
+        'PND': "Persistent Neurological Deficit",
+        'N': "Normal",
+        'DTH':"Death"
     }
-    df.loc[:, 'MOI'] = df.RecodedMOI.map(moi)
+    df.posthoc_OutcomeStudySite = df.posthoc_OutcomeStudySite.map(outcomeMap)
 
-    df.drop(columns=['RecodedMOI'], inplace=True)
-    abdTenderDegree = {
-        1: 'Mild',
-        2: 'Moderate',
-        3: 'Severe',
-        4: 'unknown',
-        np.nan: 'unknown'
+    neuroDeficit = {
+        'NR': "Normal or good recovery",
+        'MD': "Moderate disability",
+        'SD':"Severe disability",
+        'PVS':"Persistent vegetative state"
     }
-
-    # combine aggregate gcs into total gcs
-    idxs_to_replace = ~df['AggregateGCS'].isna() & df['GCSScore'].isna()
-    df.loc[idxs_to_replace, 'GCSScore'] = df['AggregateGCS'][idxs_to_replace]
-
-    # print(np.unique(df['AbdTenderDegree'], return_counts=True))
-    df['AbdTenderDegree'] = df.AbdTenderDegree.map(abdTenderDegree)
-
-    # print(np.unique(df['AbdTenderDegree'], return_counts=True))
-    binary = {
-        0: 'no',
-        1: 'yes',
-        False: 'no',
-        True: 'yes',
-        'unknown': 'unknown'
+    df.posthoc_OutcomeStudySiteNeuro = df.posthoc_OutcomeStudySiteNeuro.map(neuroDeficit)
+    
+    mobility = {
+        'WD': "Wheelchair dependent",
+        'I':"Immobile",
+        'N':'Normal',
+        'DA':'Dependent Ambulation'
     }
-    df['HISPANIC_ETHNICITY'] = (df['HISPANIC_ETHNICITY'] == '-1').map(
-        binary)  # note: -1 is Hispanic (0 is not, 1 is unknown)
+    df.posthoc_OutcomeStudySiteMobility=df.posthoc_OutcomeStudySiteMobility.map(mobility)
 
-    # rename variables
-    df = df.rename(columns={'RACE': 'Race_orig',
-                            'SEX': 'Sex',
-                            'HISPANIC_ETHNICITY': 'Hispanic',
-                            'ageinyrs': 'Age'
-                            })
-
-    # set types of these variables to categorical
-    ks_categorical = ['Sex', 'Race_orig', 'Hispanic',
-                      'VomitWretch', 'MOI', 'ThoracicTender', 'ThoracicTrauma',
-                      'DecrBreathSound', 'AbdDistention', 'AbdTenderDegree',
-                      'AbdTrauma', 'SeatBeltSign', 'DistractingPain',
-                      'AbdomenPain', 'AbdomenTender']
-    for k in ks_categorical:
-        df[k] = df[k].astype(str)
-
-    df['AbdomenPain'] = df['AbdomenPain'].replace('3.0', 'other')
-    df['CTScan'] = (df['AbdCTScan'] == 1.0).astype(int)
-
-    # remap values which take on values 0....4
-    ks_remap = ['VomitWretch',
-                'ThoracicTender', 'ThoracicTrauma',
-                'DecrBreathSound', 'AbdDistention',
-                'AbdTrauma', 'SeatBeltSign',
-                'DistractingPain', 'AbdomenPain', 'AbdomenTender']
-    for k in ks_remap:
-        vals = df[k].values
-        is_na = df[k].isna()
-        uniques = np.unique(vals).astype(str)
-        contains_nan = np.sum(is_na) > 0
-        if contains_nan and uniques.size in [4, 5] or ~contains_nan and uniques.size in [3, 4]:
-            if '1' in uniques and '2' in uniques and ('3' in uniques or 'other' in uniques):
-                df[k] = df[k].map({
-                    '1': 'yes',
-                    '2': 'no',
-                    '3': 'unknown',
-                    '4': 'unknown',
-                    'other': 'other',
-                    np.nan: 'unknown',
-                })
+    
     return df
 
 
 def derived_feats(df):
     '''Add derived features
     '''
-    binary = {
-        0: 'no',
-        1: 'yes',
-        False: 'no',
-        True: 'yes',
-        'unknown': 'unknown'
-    }
-    df['AbdTrauma_or_SeatBeltSign'] = ((df.AbdTrauma == 'yes') | (df.SeatBeltSign == 'yes')).map(binary)
-    df['AbdDistention_or_AbdomenPain'] = ((df.AbdDistention == 'AbdomenPain') | (df.SeatBeltSign == 'yes')).map(binary)
-    df['Hypotension'] = (df['Age'] < 1 / 12) & (df['InitSysBPRange'] < 70) | \
-                        (df['Age'] >= 1 / 12) & (df['Age'] < 5) & (df['InitSysBPRange'] < 80) | \
-                        (df['Age'] >= 5) & (df['InitSysBPRange'] < 90)
-    df['Hypotension'] = df['Hypotension'].map(binary)
-    df['GCSScore_Full'] = (df['GCSScore'] == 15).map(binary)
-    df['Age<2'] = (df['Age'] < 2).map(binary)
-    df['CostalTender'] = ((df.LtCostalTender == 1) | (df.RtCostalTender == 1)).map(binary)  # | (df.DecrBreathSound)
+    # TODO: Make JC on cutoffs  
+    df['Age<2'] = (df['AgeInYears'] < 2)
+    df['NonVerbal'] = (df['AgeInYears'] < 5)
+    df['YoungAdult'] = (df['AgeInYears'] >= 12)
+    df.drop(['AgeInYears'],axis=1,inplace=True)
+        
+    df['HighRiskFallDownStairs'] = (df['FallDownStairs'].fillna(0) >= 2)    
+    df.drop(['FallDownStairs'],axis=1,inplace=True)
+    df.replace({False: 0., True: 1.}, inplace=True)
 
-    # Combine hispanic as part of race
-    df['Race'] = df['Race_orig']
-    df.loc[df.Hispanic == 'yes', 'Race'] = 'Hispanic'
-    df.loc[df.Race == 'White', 'Race'] = 'White (Non-Hispanic)'
-    df.drop(columns='Race_orig', inplace=True)
-
+    # young children have difficulty localizing pain when asked
+    # if a child is NonVerbal, this feature casts a wider net for neck pain complaints by including face and head
+    # TODO: consider other regions
+    pd.options.mode.chained_assignment = None
+    df['PainNeck_Robust']= df['PtCompPainNeck'].copy()
+    
+    df['PainNeck_Robust'][(df['NonVerbal']==1.) & (df['Age<2'] == 0.) & 
+                         ((df['PtCompPainNeck']==1.) | (df['PtCompPainHead']==1.) | (df['PtCompPainFace']==1.))
+                         ] = 1
+    # TODO: Make into a JC
+    df.drop(['PtCompPainNeck'],axis=1,inplace=True)
+    
+    df['PainNeck_Robust2']= df['PtCompPainNeck2'].copy()
+    df['PainNeck_Robust2'][(df['NonVerbal']==1.) & (df['Age<2'] == 0.) & 
+                         ((df['PtCompPainNeck2']==1.) | (df['PtCompPainHead2']==1.) | (df['PtCompPainFace2']==1.))
+                         ] = 1
+    df.drop(['PtCompPainNeck2'],axis=1,inplace=True)
+    pd.options.mode.chained_assignment = 'warn'
+           
     return df
 
-def impute_missing(df, n = 0.05):
+def impute_missing_binary(df, n = 0.05):
     
     '''
-    1. drop observations with missing rate higer than n% in analysis variables;
+    1. drop binary observations with missing rate higer than n% ;
     2. fill other NaN by "0";
     '''
-    
+    pd.options.mode.chained_assignment = None
     # drop observations
     an_names = ['AlteredMentalStatus', 'LOC', 'NonAmbulatory', 'FocalNeuroFindings',
        'PainNeck', 'PosMidNeckTenderness', 'TenderNeck', 'Torticollis',
@@ -290,12 +263,27 @@ def impute_missing(df, n = 0.05):
        'HighriskHitByCar', 'HighriskMVC', 'HighriskOtherMV', 'AxialLoadAnyDoc',
        'axialloadtop', 'Clotheslining']
     robust_an_names = [covar_name if covar_name in df.columns else covar_name+'2' for covar_name in an_names]
-
+    
     df.loc[:,'missing_rate'] = df[robust_an_names].isna().sum(axis = 1)/len(robust_an_names) # calculate missing fraction
     df = df[df.loc[:,'missing_rate'] < n] # drop observations with missing rate higer than n-fraction
     df.drop('missing_rate', axis=1, inplace=True)
+    pd.options.mode.chained_assignment = 'warn'
     
     # fill other NaN by "0"
     df.fillna(0, inplace=True)
     
     return df
+    '''
+    # drop observations
+    binary_values = lambda col_name: sum(pd.isna(pd.Series(list(set(pd.unique(df[col_name])).\
+                        symmetric_difference({np.float(0),np.float(1)})))))
+    # (len(set(pd.unique(df[col_name])).symmetric_difference({np.float(0),np.float(1)})) == 0) |\
+    binary_names = [col_name for col_name in df.columns if binary_values(col_name)] 
+
+    df.loc[:,'missing_rate'] = df[binary_names].copy().isna().sum(axis = 1)/len(binary_names) # calculate missing fraction
+    df = df.loc[df.loc[:,'missing_rate'] < n,:] # drop observations with missing rate higer than n-fraction
+              
+    df.drop('missing_rate', axis=1, inplace=True)
+    # fill other NaN by "0"
+    df.fillna(0, inplace=True)
+    '''
