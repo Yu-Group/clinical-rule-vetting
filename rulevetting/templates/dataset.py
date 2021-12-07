@@ -214,5 +214,7 @@ class DatasetTemplate:
                             df.loc[:, meta_keys].to_csv(oj(perturbed_path, f'meta_{fname}'))
                             df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
                 return dfs[list(dfs.keys())[0]]
-
+        if run_perturbations:
+            #return dfs[list(dfs.keys())[0]]
+            return dfs
         return df_train, df_tune, df_test

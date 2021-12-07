@@ -99,7 +99,8 @@ class Dataset(DatasetTemplate):
         df[liberal_feats] = df[liberal_feats].fillna(0)
         df[conserv_feats] = df[conserv_feats].fillna(1)
         #df = df.dropna(axis=0)
-        df[unclear_feats] = df[unclear_feats].fillna(0)
+        unclear_feat_default = kwargs['unclear_feat_default']
+        df[unclear_feats] = df[unclear_feats].fillna(unclear_feat_default)
 
        #  # don't use features end with 2
        #  df <- df.filter(regex = '[^2]$', axis = 1)
@@ -143,8 +144,8 @@ class Dataset(DatasetTemplate):
         return {
             'clean_data': {},
             'preprocess_data': {
-                # drop rows with vals missing this percent of the time
-                'frac_missing_allowed': [0.05, 0.10],
+                # for unclear features whether to impute conservatively or liberally
+                'unclear_feat_default': [0, 1], 
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
