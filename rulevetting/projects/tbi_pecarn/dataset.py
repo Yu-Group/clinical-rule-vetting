@@ -367,14 +367,15 @@ class Dataset:
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
             pre_data = extracted_features
+            
             if simple:
-                pre_data = extracted_features[simple_var_list]
+                pre_data = pre_data[simple_var_list]
             if young and not old: 
-                pre_data = extracted_features[extracted_features['AgeTwoPlus'] == 1]
-                pre_data = extracted_features.drop(columns = ['AgeTwoPlus'])
+                pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 1.0, :]
+                pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
             if old and not young:
-                pre_data = extracted_features[extracted_features['AgeTwoPlus'] == 2]
-                pre_data = extracted_features.drop(columns = ['AgeTwoPlus'])
+                pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 2.0, :]
+                pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
                 
             df_train, df_tune, df_test = cache(self.split_data)(pre_data)
             

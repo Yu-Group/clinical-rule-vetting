@@ -52,6 +52,7 @@ class Baseline(ModelTemplate):
 
     def predict(self, df_features: pd.DataFrame):
         predicted_probabilities = self._traverse_rule(df_features)
+        print(predicted_probabilities)
         return (predicted_probabilities > 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
