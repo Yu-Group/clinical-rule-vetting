@@ -261,8 +261,6 @@ The sensitivity and specificity rates for all three models are shown in Figure \
 
 The corresponding Receiver Operating Characteristic (ROC) curves for all three models are shown in Figure \blue{\ref{fig:roc-curves}}. In general, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. The results from @leonard2011factors are shown in the black dot. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
-**Ultimately, we believe AdaBoost is the best model for a clinical decision rule.** The model is interpretable and easy-to-follow without sacrificing any specificity. A clinician at a patient's bedside can quickly reach a decision simply by answering a series of yes or no questions, which is effectively what AdaBoost is. 
-
 ```{r accuracy-rates, out.width="85%", fig.width=8.5, fig.height=6, fig.cap="Sensitivity and specificity rates for three candidate models: logistic regression, decision tree, and AdaBoost. Accuracy rates are assessed at each model's optimal hyperparameter value."}
 type <- c("AdaBoost", "Decision Tree", "Logistic Regression", 
           "Bayesian Rule List", "GRL", "RuleFit")
@@ -286,7 +284,7 @@ melted %>%
 
 
 
-```{r roc-curves, fig.width=6.3, fig.height=6, fig.cap="ROC curves for the three candidate models. The black dot represents the CDR from Leonard et al.", out.width='85%'}
+```{r roc-curves, fig.width=6.1, fig.height=6, fig.cap="ROC curves for the three candidate models. The black dot represents the CDR from Leonard et al.", out.width='85%'}
 roc_tree <- plotROC(allsens_tree, allspec_tree)
 roc_ada <- plotROC(allsens_ada, allspec_ada, model = "AdaBoost")
 roc_log <- plotROC(allsens_log, allspec_log, model = "Logistic Regression")
@@ -297,6 +295,8 @@ ggarrange(roc_ada, roc_bayes, roc_grl, roc_tree, roc_log, roc_rf, ncol = 2, nrow
 ```
 
 
+
+**Ultimately, we believe AdaBoost is the best model for a clinical decision rule.** The model is interpretable and easy-to-follow without sacrificing any specificity. A clinician at a patient's bedside can quickly reach a decision simply by answering a series of yes or no questions, which is effectively what AdaBoost is. 
 
 ## Subjective Features {#sec:caveats}
 
@@ -324,7 +324,7 @@ All of the arguments above were discussed in detail with Dr. Boyle. Therefore, w
 \red{What off-the-shelf method will you use? Do different methods give the same qualitative conclusion? Perturb one’s data, for example, by adding noise or subsampling if data units are exchangeable (in general, make sure the subsamples respect the underlying structures, e.g. dependence, clustering, heterogeneity, so the subsamples are representative of the original data). Do the conclusions still hold? Only trust those that pass the stability test, which is an easy-to-implement, first defense against over-fitting or too many false positive discoveries.}
 
 
-## Diffeent control groups
+## Different control groups
 
 In this section, we check our models' stability by using  only one type of control with the case group to fit them. Namely, we fit the models with 9 selected features using case and RANDOM, case and EMS, case and MOI control. The results are shown in Figure \blue{\ref{fig:diff-cont}}.
 
@@ -367,7 +367,7 @@ dc_ada <- melt_ada %>%
   ggplot(mapping = aes(x = variable, y = value, fill = type)) + 
   geom_col(position = 'dodge') + 
   labs(x = "Coontrol Type", y = "Accuracy", title = "AdaBoost") +
-  scale_fill_manual("Accuracy Metric", values = c("#003262", "#00A598")) + 
+  scale_fill_manual("Accuracy Metric", values = c("#46535E", "#00A598")) + 
   theme_classic() +
   geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) + 
   theme(plot.title = element_text(hjust = 0.5, face = "bold"))
@@ -375,7 +375,7 @@ dc_log <- melt_log %>%
   ggplot(mapping = aes(x = variable, y = value, fill = type)) + 
   geom_col(position = 'dodge') + 
   labs(x = "Coontrol Type", y = "Accuracy", title = "Logistic Regression") +
-  scale_fill_manual("Accuracy Metric", values = c("#003262", "#00A598")) + 
+  scale_fill_manual("Accuracy Metric", values = c("#46535E", "#00A598")) + 
   theme_classic() +
   geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) + 
   theme(plot.title = element_text(hjust = 0.5, face = "bold"))
@@ -383,7 +383,7 @@ dc_tree <- melt_tree %>%
   ggplot(mapping = aes(x = variable, y = value, fill = type)) + 
   geom_col(position = 'dodge') + 
   labs(x = "Coontrol Type", y = "Accuracy", title = "Decision Tree") +
-  scale_fill_manual("Accuracy Metric", values = c("#003262", "#00A598")) + 
+  scale_fill_manual("Accuracy Metric", values = c("#46535E", "#00A598")) + 
   theme_classic() +
   geom_text(aes(label = round(value, 2)), vjust = -0.4, position = position_dodge(0.9)) + 
   theme(plot.title = element_text(hjust = 0.5, face = "bold"))
@@ -398,9 +398,7 @@ In general, this stability check demonstrates that our models are robust to the 
 
 # Test set performance
 
-
-As a final step, we evaluate the performance of AdaBoost on the test dataset, the results of which are reported in Table \blue{\ref{tab:test-res}}. We see that AdaBoost achieves sensitivity above 98% on the test set with over 76% specificity. This results is comparable with its counterpart on the tuning set which indicates that our models do not suffer from overfitting and generalize well to new data from the same population.
-
+We also evaluate our three models on the test set. The results are reported in Table XX. We see that all three models achieve >.98 sensitivity on the test set with over .74 specificity. These results are comparable with their counterparts on the tuning set (and are even slightly better), which indicates that our models do not suffer from overfitting and  can generalize well to new data from the same population.
 
 ```{r test-res}
 test_results <- data.frame(
