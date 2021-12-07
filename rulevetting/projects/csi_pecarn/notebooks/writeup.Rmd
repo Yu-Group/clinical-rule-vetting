@@ -391,7 +391,7 @@ dc_tree <- melt_tree %>%
 ```
 
 
-We see that for all three models, the sensitivity are higher ($>0.98$) if we use group all control uniformly. This makes sense since the prediction accuracy is likely to increase if we have a larger training set. When comparing one control at a time, all three models can achieve sensitivity above 97% with about 70% specificity except for the decision tree with MOI control. 
+We see that for all three models, the sensitivity are higher (above 98%) if we use group all control uniformly. This makes sense since the prediction accuracy is likely to increase if we have a larger training set. When comparing one control at a time, all three models can achieve sensitivity above 97% with about 70% specificity except for the decision tree with MOI control. 
 
 In general, this stability check demonstrates that our models are robust to the choice of control group in almost every case. The only counterexample here is probably due to the discrete nature of decision tree, in which the confidence output (the confidence of the model that a patient has a cervical injury) takes its value in a finite set whose cardinality is the number of leaves. The performance of Adaboost and Logistic are identical in all cases. This suggests that Adaboost and Logistic can converge to the same model after training in our specific problem.
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  7 DEC 2021 15:10
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.7)  7 DEC 2021 15:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -710,11 +710,11 @@ Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 744.
 Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 744.
  ) 
 Here is how much of TeX's memory you used:
- 13805 strings out of 480608
- 203513 string characters out of 5903631
+ 13807 strings out of 480608
+ 203535 string characters out of 5903631
  493589 words of memory out of 5000000
  29266 multiletter control sequences out of 15000+600000
- 603514 words of font info for 123 fonts, out of 8000000 for 9000
+ 603597 words of font info for 124 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,8n,42p,806b,362s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/local
@@ -732,7 +732,7 @@ c/lm/lmr7.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmr8.pf
 b></usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmri10.pfb></usr/lo
 cal/texlive/2020/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texliv
 e/2020/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (12 pages, 863887 bytes).
+Output written on writeup.pdf (12 pages, 863694 bytes).
 PDF statistics:
  312 PDF objects out of 1000 (max. 8388607)
  264 compressed objects within 3 object streams
