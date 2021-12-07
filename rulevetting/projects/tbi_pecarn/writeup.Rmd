@@ -8,9 +8,9 @@ bibliography: references.bib
 
 # Introduction and Problem Motivation
 
-Among children, traumatic brain injuries (TBIs) are a leading cause of injury and death,
-accounting for nearly 7400 deaths, 60000 hospital admissions, and 600000 emergency
-department visits annually (citation). Accurately diagnosing TBIs is thus a crucial
+Among children ages 0-14, traumatic brain injuries (TBIs) are a leading cause of injury and death,
+accounting for over 2100 deaths, 35,000 hospital admissions, and 470,000 emergency
+department visits annually (Faul, Xu, Wald, & Coronado, 2010). Accurately diagnosing TBIs is thus a crucial
 problem, especially since the earlier a TBI is identified, the sooner potentially life-saving
 treatment can be administered. 
 
@@ -63,8 +63,7 @@ to the dataset on which the original classifiers were based (comprised of childr
 presenting to ER with head trauma, etc.), to vet the previous
 classifiers, we need a dataset that will enable us to develop classifiers with
 high predictive accuracy and maximal generalizability so as to compare with previous classifiers. 
-For instance, we would need
-need a dataset containing covariates that are both relevant to the presence
+For instance, we would need a dataset containing covariates that are both relevant to the presence
 of TBIs and can be measured at the time a child is ushered into the ER. From common
 sense, it seems important information might be the injury mechanism (and a rating of
 severity), any symptoms such as headache or amnesia, and any results of a physical
