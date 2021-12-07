@@ -811,9 +811,10 @@ class Dataset(DatasetTemplate):
 
         # binarize categoricals
         #  set correct type on categoricals
+        numeric_cols = self.get_meta_keys() + ["AgeinYears"]
+
         for col in df:
-            if (col not in (self.get_meta_keys() + ["AgeinYears"])) \
-                    & (len(df[col].unique()) > 2):
+            if col not in numeric_cols and (len(df[col].unique()) > 2):
                 # so the names aren't feature_92.0
                 df[col] = df[col].astype(int)
                 df[col] = df[col].astype('category')
@@ -918,8 +919,8 @@ class Dataset(DatasetTemplate):
                     "HA_umbrella"     : [False, True],
                     "Seiz_umbrella"   : [False, True],
                     "LOC_umbrella"    : [False, True],
-                    # binarize GCS
-                    "GCS"             : [True, False],
+                    # binarize GCS -
+                    "GCS"             : [3, 2, 1],
                     # remove columns with const values
                     "remove_constVal" : [True, False]
                 },
@@ -1106,7 +1107,7 @@ if __name__ == '__main__':
     judg_calls["preprocess_data"]["step20_ActNormal"] = False
     df_train, df_tune, df_test = dset.get_data(save_csvs=False,
                                                run_perturbations=False,
-                                               split_age=AgeSplit.AGEINVARIANT,
+                                               split_age=AgeSplit.NOSPLIT,
                                                **judg_calls)
 
     print('successfuly processed data\nshapes:',
