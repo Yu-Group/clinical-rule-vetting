@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  8 DEC 2021 00:07
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  8 DEC 2021 10:08
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -667,8 +667,9 @@ put line 751.
 e.7}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.812 
-       <./writeup_files/figure-latex/diff-cont-1.pdf>] [13] (./writeup.aux)
+l.803 \end{longtable}
+                      <./writeup_files/figure-latex/diff-cont-1.pdf>] [13] (./w
+riteup.aux)
 Package rerunfilecheck Info: File `writeup.out' has not changed.
 (rerunfilecheck)             Checksum: 324FF04BDF301A26A4B86DAA6A050B7C;3480.
  ) 
@@ -679,7 +680,7 @@ Here is how much of TeX's memory you used:
  29396 multiletter control sequences out of 15000+600000
  469903 words of font info for 73 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 60i,8n,63p,370b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 60i,8n,63p,370b,443s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/Users/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/U
 sers/andyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/Users/a
 ndyshen/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/andyshe
@@ -697,7 +698,7 @@ ist/fonts/type1/public/lm/lmr8.pfb></Users/andyshen/Library/TinyTeX/texmf-dist/
 fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/TinyTeX/texmf-dist/fo
 nts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTeX/texmf-dist/font
 s/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (13 pages, 877244 bytes).
+Output written on writeup.pdf (13 pages, 877399 bytes).
 PDF statistics:
  357 PDF objects out of 1000 (max. 8388607)
  294 compressed objects within 3 object streams

@@ -430,7 +430,9 @@ In general, this stability check demonstrates that our models are robust to the 
 
 # Test set performance {#sec:testset}
 
-We evaluate our three models on the test set, the results of which are shown in Table \blue{\ref{tab:test-res}}. We see that all three models achieve sensitivities above 98% on the test set with over 74% specificity. These results are very similar to their counterparts on the tuning set, indicating that our models do not suffer from overfitting and can generalize well to new data from the same population.
+We evaluate our three models on the test set, the results of which are shown in Table \blue{\ref{tab:test-res}}. The thresholds used for these algorithms are obtained from the tuning set.
+
+We see that all three models achieve sensitivities above 98% on the test set with over 74% specificity. These results are very similar to their counterparts on the tuning set, indicating that our models do not suffer from overfitting and can generalize well to new data from the same population.
 
 ```{r test-res}
 test_results <- data.frame(
