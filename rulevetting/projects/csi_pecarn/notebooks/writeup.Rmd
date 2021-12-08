@@ -253,7 +253,7 @@ We create three candidate CDR's using three different learning techniques: AdaBo
 
 The sensitivity and specificity rates for all three models are shown in Figure \blue{\ref{fig:accuracy-rates}}. These values are generated from the tune dataset. The corresponding Receiver Operating Characteristic (ROC) curves for all three models are shown in Figure \blue{\ref{fig:roc-curves}}. In general, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. The results from @leonard2011factors are shown in the black dot. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
-```{r accuracy-rates, out.width="85%", fig.width=8.5, fig.height=6, fig.cap="Sensitivity and specificity rates for three candidate models: logistic regression, decision tree, and AdaBoost. Accuracy rates are assessed at each model's optimal hyperparameter value."}
+```{r accuracy-rates, out.width="85%", fig.width=8.5, fig.height=6, fig.cap="Sensitivity and specificity rates for candidate models and baseline model. Accuracy rates are assessed at each model's optimal hyperparameter value."}
 type <- c("AdaBoost", "Decision Tree", "Logistic Regression", 
           "Bayesian Rule List", "GRL", "RuleFit", "Baseline")
 colors <- c(rep(c("#2274AE", "goldenrod2"), 6), "gray50", "seagreen")
