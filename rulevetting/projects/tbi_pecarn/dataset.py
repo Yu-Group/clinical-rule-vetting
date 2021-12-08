@@ -99,7 +99,8 @@ class Dataset:
             not_missing = [data for data in row if data != 'Unknown']
 
             # if all values that are known give the same answer, use that as the outcome
-            if len(not_missing) > 0 and not_missing.count(not_missing[0]) == len(not_missing):
+            # If all values are present (no missings)
+            if len(not_missing) == len(row) and not_missing.count(not_missing[0]) == len(not_missing):
                 outcome = not_missing[0]
             return outcome
         
@@ -140,8 +141,14 @@ class Dataset:
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
         
         # dropping variables that do not influence the doctors decision
-        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy',
-                      'AgeInMonth', 'AgeinYears']
+        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy', 'Gender',
+                      'AgeInMonth', 'AgeinYears'] 
+        # IF keep years, don't drop it
+        if "keep_years" in kwargs and kwargs["keep_years"] is not None:
+            if kwargs["keep_years"]:
+                other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy', 'Gender', 
+                      'AgeInMonth']
+                
         cleaned_data = cleaned_data.drop(columns=other_vars)
         
         # remapping binary variables
@@ -150,7 +157,7 @@ class Dataset:
             cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1})
             
         # gender has to be remapped - if we actually use it
-        cleaned_data['Gender'] = cleaned_data['Gender'].map({'Male': 0, 'Female': 1})
+        # cleaned_data['Gender'] = cleaned_data['Gender'].map({'Male': 0, 'Female': 1})
             
         # one-hot encode categorical vars w/ >2 unique values
         cleaned_data = helper.one_hot_encode_df(cleaned_data)
@@ -282,7 +289,7 @@ class Dataset:
            'Seiz', 'ActNorm', 'HA_verb_No', 'HA_verb_Pre/Non-verbal', 'HA_verb_Yes',
             'Vomit', 'Intubated', 'Paralyzed', 'Sedated',
             'AMS', 'SFxPalp_No', 'SFxPalp_Unclear', 'SFxPalp_Yes',
-           'FontBulg', 'Hema', 'Clav', 'NeuroD', 'OSI', 'Drugs', 'AgeTwoPlus', 'Gender', 'outcome']
+           'FontBulg', 'Hema', 'Clav', 'NeuroD', 'OSI', 'Drugs', 'AgeTwoPlus', 'outcome']
     
     @abstractmethod
     def get_dataset_id(self) -> str:
@@ -316,7 +323,7 @@ class Dataset:
                  simple: bool = True,
                  young: bool = True,
                  old: bool = True,
-                 run_perturbations: bool = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 run_perturbations: bool = False, **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -363,9 +370,9 @@ class Dataset:
 
         print('kwargs', default_kwargs)
         if not run_perturbations:
-            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
-            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
+            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'], **kwargs)
+            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'], **kwargs)
+            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'], **kwargs)
             pre_data = extracted_features
             
             if simple:

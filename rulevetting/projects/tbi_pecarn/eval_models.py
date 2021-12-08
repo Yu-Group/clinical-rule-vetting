@@ -139,7 +139,7 @@ def predict_stats(model, X_tune, y_tune,  min_sens = 0.95, verbose = True) :
             "Sensitivity" : sens, "Specificity" : spec, "NPV" : npv, "threshold" : thresh_val}
 
 
-def fit_eval_lr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = [0.05, 0.1, 0.2, 0.4, 0.7, 1, 1.3]):
+def fit_eval_lr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = np.logspace(-1, 4, 20)):
 
     '''
     Performs (L2-regularized) logistic regression 
@@ -147,7 +147,7 @@ def fit_eval_lr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = [0.05, 0
     '''
     
     # Now fitting logistic regression
-    logreg_model = LogisticRegression(solver='liblinear', random_state = 0).fit(X_train, y_train)
+    logreg_model = LogisticRegression(solver='liblinear', penalty="l1", random_state = 0).fit(X_train, y_train)
     roc_auc_score(y_train, logreg_model.predict_proba(X_train)[:, 1])  # Train AUC : 0.9513
 
     # Tuning logistic regression
@@ -155,7 +155,7 @@ def fit_eval_lr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = [0.05, 0
     acc_tune = []
 
     for lamb in lamb_vec :
-        logreg_model = LogisticRegression(solver='liblinear', random_state = 0, C = lamb).fit(X_train, y_train)
+        logreg_model = LogisticRegression(solver='liblinear', penalty="l1",  random_state = 0, C = lamb).fit(X_train, y_train)
         roc_tune.append(roc_auc_score(y_tune, logreg_model.predict_proba(X_tune)[:, 1]))
         acc_tune.append(logreg_model.score(X_tune, y_tune))
         
