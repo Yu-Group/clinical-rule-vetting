@@ -214,13 +214,13 @@ def rename_values(df):
     return df
 
 
-def derived_feats(df):
+def derived_feats(df,nonverbal_age_cutoff=5,young_adult_age_cutoff=12):
     '''Add derived features
     '''
     # TODO: Make JC on cutoffs  
     df['UnderTwoYears'] = (df['AgeInYears'] < 2)
-    df['NonVerbal'] = (df['AgeInYears'] < 5)
-    df['YoungAdult'] = (df['AgeInYears'] >= 12)
+    df['NonVerbal'] = (df['AgeInYears'] < nonverbal_age_cutoff)
+    df['YoungAdult'] = (df['AgeInYears'] >= young_adult_age_cutoff)
     df.drop(['AgeInYears'],axis=1,inplace=True)
         
     df['HighRiskFallDownStairs'] = (df['FallDownStairs'].fillna(0) >= 2)    

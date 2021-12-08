@@ -231,7 +231,8 @@ class Dataset(DatasetTemplate):
         # add engineered featuures
         df = preprocessed_data     
         df = helper.rename_values(df)
-        df = helper.derived_feats(df)
+        df = helper.derived_feats(df,nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
+                                 young_adult_age_cutoff=kwargs['young_adult_age_cutoff'])
         
         robust_columns = df.columns[df.columns.str.endswith('2')]\
             .drop(['posthoc_OutcomeStudySiteMobility2']) # endswith 2 regex is too strong
@@ -284,6 +285,7 @@ class Dataset(DatasetTemplate):
         else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
     
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
+        df['GCSbelow9'] = (df['TotalGCS'] <= 8).replace([True,False],[1,0])
         
         '''
         # drop posthoc
@@ -379,7 +381,10 @@ class Dataset(DatasetTemplate):
                 # using positive findings from field or outside hospital documentation these have 
                 # the response to YES from NO or MISSING. The Leonard (2011) study considers them more robust
                 # use mirror this perturbation for our own derived features
-                'use_robust_av':[False, True] #TODO: refactor
+                'use_robust_av':[False, True], #TODO: refactor
+                # age cutoffs choices based on rules shared by Dr. Devlin
+                'nonverbal_age_cutoff':[5,4,6],
+                'young_adult_age_cutoff':[11,15],
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
