@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  8 DEC 2021 15:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2022/dev) (preloaded format=pdflatex 2021.11.30)  8 DEC 2021 15:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -618,65 +618,64 @@ Overfull \hbox (41.16338pt too wide) in paragraph at lines 532--535
 lmr/m/n/10 ), 
  []
 
-<writeup_files/figure-latex/accuracy-rates-1.pdf, id=188, 598.235pt x 421.575pt
+<writeup_files/figure-latex/accuracy-rates-1.pdf, id=188, 670.505pt x 421.575pt
 >
 File: writeup_files/figure-latex/accuracy-rates-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/accuracy-rates-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/accuracy-rates-1.pdf  used 
 on input line 571.
-(pdftex.def)             Requested size: 399.30006pt x 281.38594pt.
-[7]
-<writeup_files/figure-latex/roc-curves-1.pdf, id=198, 434.62375pt x 423.5825pt>
+(pdftex.def)             Requested size: 399.28795pt x 251.04929pt.
+<writeup_files/figure-latex/roc-curves-1.pdf, id=189, 434.62375pt x 423.5825pt>
 
 File: writeup_files/figure-latex/roc-curves-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/roc-curves-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/roc-curves-1.pdf  used on i
 nput line 580.
 (pdftex.def)             Requested size: 399.31488pt x 389.17064pt.
-[8pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
+[7pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.586 
        <./writeup_files/figure-latex/accuracy-rates-1.pdf>]
-<dx_survey.png, id=212, 855.195pt x 634.37pt>
+<dx_survey.png, id=208, 855.195pt x 634.37pt>
 File: dx_survey.png Graphic file (type png)
 <use dx_survey.png>
 Package pdftex.def Info: dx_survey.png  used on input line 613.
 (pdftex.def)             Requested size: 340.98886pt x 252.94008pt.
-[9pdfTeX warning (ext4): destination with the same identifier (name{figure.5}) 
+[8pdfTeX warning (ext4): destination with the same identifier (name{figure.5}) 
 has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.618 
-       <./writeup_files/figure-latex/roc-curves-1.pdf>] [10pdfTeX warning (ext4
-): destination with the same identifier (name{figure.6}) has been already used,
- duplicate ignored
+       <./writeup_files/figure-latex/roc-curves-1.pdf>] [9pdfTeX warning (ext4)
+: destination with the same identifier (name{figure.6}) has been already used, 
+duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.674 N
        aturally, we observe slight shifts in the selected features for the <./d
 x_survey.png>]
-<writeup_files/figure-latex/diff-cont-1.pdf, id=245, 877.2775pt x 558.085pt>
+<writeup_files/figure-latex/diff-cont-1.pdf, id=241, 877.2775pt x 558.085pt>
 File: writeup_files/figure-latex/diff-cont-1.pdf Graphic file (type pdf)
 <use writeup_files/figure-latex/diff-cont-1.pdf>
 Package pdftex.def Info: writeup_files/figure-latex/diff-cont-1.pdf  used on in
 put line 751.
 (pdftex.def)             Requested size: 422.78845pt x 268.95924pt.
-[11] [12pdfTeX warning (ext4): destination with the same identifier (name{figur
+[10] [11pdfTeX warning (ext4): destination with the same identifier (name{figur
 e.7}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.803 \end{longtable}
-                      <./writeup_files/figure-latex/diff-cont-1.pdf>] [13] (./w
+                      <./writeup_files/figure-latex/diff-cont-1.pdf>] [12] (./w
 riteup.aux)
 Package rerunfilecheck Info: File `writeup.out' has not changed.
 (rerunfilecheck)             Checksum: 324FF04BDF301A26A4B86DAA6A050B7C;3480.
  ) 
 Here is how much of TeX's memory you used:
- 11819 strings out of 480313
- 186697 string characters out of 5896366
- 482767 words of memory out of 5000000
+ 11818 strings out of 480313
+ 186690 string characters out of 5896366
+ 482765 words of memory out of 5000000
  29396 multiletter control sequences out of 15000+600000
  469903 words of font info for 73 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
@@ -698,10 +697,10 @@ ist/fonts/type1/public/lm/lmr8.pfb></Users/andyshen/Library/TinyTeX/texmf-dist/
 fonts/type1/public/lm/lmri10.pfb></Users/andyshen/Library/TinyTeX/texmf-dist/fo
 nts/type1/public/lm/lmsy10.pfb></Users/andyshen/Library/TinyTeX/texmf-dist/font
 s/type1/public/lm/lmtt10.pfb>
-Output written on writeup.pdf (13 pages, 875929 bytes).
+Output written on writeup.pdf (12 pages, 875635 bytes).
 PDF statistics:
- 357 PDF objects out of 1000 (max. 8388607)
- 294 compressed objects within 3 object streams
- 71 named destinations out of 1000 (max. 500000)
+ 352 PDF objects out of 1000 (max. 8388607)
+ 290 compressed objects within 3 object streams
+ 70 named destinations out of 1000 (max. 500000)
  212 words of extra memory for PDF output out of 10000 (max. 10000000)
 
