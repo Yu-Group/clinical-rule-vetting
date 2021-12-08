@@ -38,8 +38,8 @@ at this stage of the data science life cycle.
 
 In addition to vetting their classification rules, another goal of this analysis
 is to offer some improvement on their classification strategy. Kuppermann and his
-colleagues developed rule sets for children aged two or younger and children
-older than two, the reason being that younger children are pre-verbal and thus require
+colleagues developed rule sets for children aged younger than two and children
+aged two or older, the reason being that younger children are pre-verbal and thus require
 a different set of standards to identify TBIs than older children who can verbalize
 their symptoms (citation). We seek to develop a single age-invariant
 classifier using covariates common to both primary age groups. We hope that such
@@ -169,9 +169,10 @@ We only keep individuals where the total GCS is 14 or 15.
   + Judgement Call [`fake14GCS`]: drop observations with total GCS of 14, but optimal score in every subcategory 
     + Perturbation: keep the observations
   
-GCS score is likely an important predictor of TBI, so it is imperative this variable is as completely filled-out as possible in this dataset. However, it should be noted that
+GCS score is likely an important predictor of TBI, so it is imperative this variable is as completely 
+filled-out as possible in this dataset. However, it should be noted that
 there are different standards for obtaining GCS scores for individuals younger than two
-and older than two, since individuals younger than two cannot verbalize. We note this
+and those two or older, since individuals younger than two cannot verbalize. We note this
 as a potential problem to developing an age-invariant classifier.
 
 * Remove observations who were pharmacologically paralyzed, sedated, or intubated at the time of evaluation, or for whom any of this information is missing
@@ -214,8 +215,8 @@ subvariables for the same reason as judgement call `AMS`.
 
 * Drop and impute based on hematoma information
   + *Hema*, *HemaSize*, *HemaLoc*
-  + Judgement Call [`HEMA`]: same procedure as above for *OSI* and its subvariables
-    + Perturbation 1: same procedure as above for *OSI* and its subvariables
+  + Judgement Call [`HEMA`]: same procedure as above for *AMS* and its subvariables
+    + Perturbation 1: same procedure as above for *AMS* and its subvariables
     + Perturbation 2: Only drop missing *HemaLoc* and *Hema*, impute missing *Hema* from *HemaLoc* presence, drop remaining missing *Hema*
     
 *Hema* indicates the presence of a scalp hematoma, or swelling due to some head trauma,
@@ -223,8 +224,8 @@ subvariables for the same reason as judgement call `AMS`.
 *HemaLoc* is a categorical variable representing the location (frontal, occipital, parietal/temporal).
 According to domain knowledge, scalp hematomas are fairly good predictors of TBI.
 By judgement call [`HEMA`], we drop all observations missing any of these categories.
-By Perturbation 1, we only keep the indicators for the presence of hematoma. By Perturbation 2, we keep the indicator as well as the location, since according to domain knowledge,
-the impact of head trauma to the brain is dependent on the location of the trauma.
+By Perturbation 1, we only keep the indicators for the presence of hematoma. By Perturbation 2, we keep the indicator as well as the location, 
+since according to domain knowledge, the impact of head trauma to the brain is dependent on the location of the trauma.
 
 * Drop and impute based on skull fracture variables
   + *SFxPalp*, *SFxPalpDepress*
@@ -293,7 +294,8 @@ any observation missing any of these values.
 
 *Vomit* is an indicator for whether the individual vomited (as reported by child
 or parents), *VomitNbr* is the number of times the child vomited post-injury (1, 2, > 2 times),
-*VomitStart* is how soon after the head injury the vomiting started (within 1 hour, 1 - 4 hours, > 4 hours after), and *VomitLast* is how soon before the evaluation was the last
+*VomitStart* is how soon after the head injury the vomiting started (within 1 hour, 1 - 4 hours, > 4 hours after), and 
+*VomitLast* is how soon before the evaluation was the last
 episode (< 1 hour, 1 - 4 hours, > 4 hours before evaluation). As a judgement call,
 we only keep *Vomit* and impute missing values from the subvariables, since according
 to domain knowledge, more details about vomiting is generall unhelpful. As a perturbation,
@@ -333,7 +335,8 @@ according to domain knowledge.
     + Perturbation 2: same as [`AMS`] judgement call
     
 *LOCSeparate* is an indicator if the child lost consciousness at all after the injury,
-and *LocLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). Loss of consciousness is generally a good predictor of head trauma, so we wish
+and *LocLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). 
+Loss of consciousness is generally a good predictor of head trauma, so we wish
 to include this to predict TBI. As a judgement call, we consider a suspected loss of
 consciousness as affirmative, since if there is any doubt as to whether the child
 lost consciousness, this should be of concern to err on the side of caution.
@@ -405,7 +408,9 @@ free, a crucial element of vetting their work.
 
 As mentioned in Data Collection, one of the primary criteria of a good dataset
 for this problem is a dataset which is diverse in demographic characteristics,
-including age, race, and gender. This is crucial for generalizability of our work.
+including age, race, and gender. This is crucial for generalizability of our work,
+as a classifier built from a dataset that is demographically lopsided could exhibit
+unforeseen biases when exposed to more diverse data.
 
 ![(#fig:demographics) Distributions of various demographic variables in the training dataset, after cleaning and preprocessing.](figs/demographics.png)
 Figure \ref(fig:demographics) shows distributions of various demographic variables
@@ -419,16 +424,17 @@ representation.
 
 In the top-right plot, we see that there are about 8000 females and 12000 males in the dataset.
 While we wouldn't expect different indicators for traumatic brain injury by gender,
-the dataset is a bit lopsided in this regard. Similarly, in the bottom-right plot
-we see that the vast majority of observations are White or Black, while
+the dataset is a bit lopsided in this regard; perhaps young boys tend to engage 
+in more dangerous activities than young girls, and thus are at greater risk of head injury. 
+Similarly, in the bottom-right plot we see that the vast majority of observations are White or Black, while
 other races are quite underrepresented by comparison. Once again, we would not expect
 a race-dependence of the indicators for TBIs, but like with the observed gender imbalance, 
 we will explore the potential impact of this racial imbalance in Post-Hoc Analysis.
 
 In the bottom left plot, we see that almost 20% of the TBIs observed are in children
 aged 0, and that the number of TBIs decreases as age increases, flatlining on average
-for children older than 2. Similarly with the age imbalance, if we were to split
-by young children versus older children, the number of TBIs in each age group
+for children older than 2. Similarly with the age imbalance, 
+if we were to split by young children versus older children, the number of TBIs in each age group
 would be more balanced and likely sufficient to generate a classification rule.
 
 While an imbalance in outcome across ages may skew our
@@ -452,8 +458,8 @@ in any classifier for younger children, or for an age-invariant classifier.
 
 ![(#fig:age_preverb) Distributions of 'Verbal' or 'Non-Verbal/Pre-Verbal' responses to questions on amnesia and headache symptoms, by age.](figs/age_preverb.png)
 
-Next, we recall that, according to Kuppermann et al., for children two years and younger,
-a Pediatric GCS score was assigned, whereas for children older than two, a standard
+Next, we recall that, according to Kuppermann et al., for children younger than two,
+a Pediatric GCS score was assigned, whereas for children two or older, a standard
 GCS score was assigned. In essence, these are two different standards for evaluating
 the consciousness of children, since children of different ages have different
 abilities in expressing their consciousness. However, because the standards are
@@ -468,8 +474,8 @@ GCS category (row) for the different age groups (column).
 ![(#fig:gcs_age) Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).](figs/gsc_age_dep.png)
 In this figure, we see that, for the GCS Eye scores and the GCS Verbal scores, the outcome conditional on suboptimal versus
 optimal scores is distributed similarly across both age groups. This indicates that
-there is no age group dependence on the relationship between GCS score in these categories
-and the outcome. However, for the GCS Motor scores, we see that the distributions
+the relationship between GCS score in these categories and the outcome is age invariant.
+However, for the GCS Motor scores, we see that the distributions
 are not the same. In fact, it seems like for individuals older than age 2, half
 of individuals that had a suboptimal GCS Motor score ended up having a TBI, whereas
 among children two or younger, a much smaller proportion of those with a suboptimal GCS Motor
@@ -480,8 +486,10 @@ wish to exclude the GCS scores.
 Before moving on, we should also establish the age-invariant relationships of other
 variables of interest with the outcome variable. Figure \ref{fig:no_age_dependence}
 shows that the distributions of the outcome conditional on having neurological deficits
-or not, and having basilar skull fracture or not, are not age-dependent. Since
-the relationship of these indicators with the outcome are invariant to age,
+or not, and having basilar skull fracture or not, are not age-dependent. This is as we would 
+expect, since these injuries are observed directly by doctors and are not dependent upon 
+verbal ability or any other factor directly associated with age.
+Since the relationship of these indicators with the outcome are invariant to age,
 we should certainly include variables like these in an age-invariant classifier.
 
 ![(#fig:no_age_dep) Distributions of outcome conditional on neurological deficit and basilar skull fracture, across both age groups (1 indicates the presence of neurological deficit/basilar skull fracture)](figs/no_age_dep.png)
@@ -491,7 +499,7 @@ we explore the potential impact of including and excluding subvariable details. 
 from Cleaning and Preprocessing that there are many categories which can be thought
 of as parent categories (Altered mental status? Neurological Deficit? Basilar skull fracture?),
 with children subcategories that provide more detailed information about the parent
-category (if altered mental status, is it because you are sleepy? agitated? asking repetetive questions?).
+category (if altered mental status, is it because you are sleepy? Agitated? Asking repetitive questions?).
 In making an interpretable classifier with high predictive accuracy and a low false
 negative rate with which to compare to Kuppermann's, there are arguments for and 
 against including this subvariable information.
@@ -508,8 +516,8 @@ variables. If we were to exclude this subvariable information in lieu of only in
 an indicator for basilar skull fracture, it is possible that we could over-indicate
 TBIs. Imagine if a child came into the emergency room with CSF Rhinorrhea, 
 but our classifier only considers whether there is a sign of skull fracture.
-Skull fracture might be an important predictor but only because hemotympanum is so correlated
-with the outcome, so the child would probably be recommended to have a CT scan. However,
+Skull fracture, as an umbrella variable, might be an important predictor, but only because hemotympanum is so correlated
+with the outcome. Thus, the child would probably be recommended to have a CT scan. However,
 the child may not have had a TBI in the first place because CSF Rhinorrhea is not
 very correlated with the outcome. Since we would be giving a child an unneeded CT scan,
 it could be important to include this subvariable information in an ideal dataset.
@@ -519,7 +527,7 @@ it could be important to include this subvariable information in an ideal datase
 However, a clear argument against including this subvariable information is that
 including too many variables may lead to very uninterpretable and nonsensical rules
 that are the result of overfitting. Additionally, it seems like the parent variables alone
-have substantial correlation with the outcome, as is shown in Figures \ref{fig:younger_corr}
+are substantially correlated with the outcome, as is shown in Figures \ref{fig:younger_corr}
 and \ref{fig:older_corr}. So, in order to achieve a suitable dataset to make
 interpretable and accurate classifiers with which to vet and improve upon Kuppermann's, it seems like
 it may be suitable to just include the parent variables. Note also that the following two
