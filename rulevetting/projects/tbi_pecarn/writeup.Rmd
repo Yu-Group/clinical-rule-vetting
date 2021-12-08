@@ -5,6 +5,10 @@ output: pdf_document
 bibliography: references.bib
 ---
 
+```{r, echo = FALSE}
+library(knitr)
+```
+
 # Introduction and Problem Motivation
 
 Among children ages 0-14, traumatic brain injuries (TBIs) are a leading cause of injury and death,
@@ -412,8 +416,12 @@ including age, race, and gender. This is crucial for generalizability of our wor
 as a classifier built from a dataset that is demographically lopsided could exhibit
 unforeseen biases when exposed to more diverse data.
 
-![(#fig:demographics) Distributions of various demographic variables in the training dataset, after cleaning and preprocessing.](figs/demographics.png)
-Figure \ref(fig:demographics) shows distributions of various demographic variables
+```{r demographics, echo = FALSE, fig.cap = 'Distributions of various demographic variables in the training dataset, after cleaning and preprocessing.', out.width = '100%'}
+include_graphics('figs/demographics.png')
+```
+
+
+Figure \ref{fig:demographics} shows distributions of various demographic variables
 in the cleaned training dataset. In the top-left plot, we see that younger ages
 are generally represented more than older ages. However, younger children (2 or younger)
 share many characteristics, including that they are likely preverbal, whereas older
@@ -444,7 +452,7 @@ are invariant by age. The next few plots provide evidence of age dependence
 and lack thereof for certain variables, motivating the use of certain features
 for an age-invariant classifier. 
 
-First, Figure \ref(fig:age_preverb) shows
+First, Figure \ref{fig:age_preverb} shows
 the distribution of 'verbal' vs. 'non-verbal' or 'pre-verbal' in response
 to the physician asking the child if they have amnesia or any headache symptoms.
 We clearly see that, among children aged two or younger, more than 80% of them
@@ -456,7 +464,9 @@ would likely be good predictors of a TBI, so for a classifier only on older indi
 these variables would be useful to include. However, they should not be included
 in any classifier for younger children, or for an age-invariant classifier.
 
-![(#fig:age_preverb) Distributions of 'Verbal' or 'Non-Verbal/Pre-Verbal' responses to questions on amnesia and headache symptoms, by age.](figs/age_preverb.png)
+```{r age_preverb, echo = FALSE, fig.cap = 'Distributions of \'Verbal\' or \'Non-Verbal/Pre-Verbal\' responses to questions on amnesia and headache symptoms, by age.', out.width = "100%"}
+include_graphics('figs/age_preverb.png')
+```
 
 Next, we recall that, according to Kuppermann et al., for children younger than two,
 a Pediatric GCS score was assigned, whereas for children two or older, a standard
@@ -467,11 +477,14 @@ different across these two age groups, we fear that a suboptimal score with rega
 to one standard might be more indicative of a TBI than a suboptimal score with respect
 to the other standard. If GCS scores are included in an age-invariant classifier, 
 this presents a potential comparability issue, where the rule that is learned may be
-applicable to one age-group but not the other. Figure \@ref{fig:gcs_age} shows the
+applicable to one age-group but not the other. Figure \ref{fig:gcs_age} shows the
 distribution of the outcome variable for suboptimal versus optimal scores of each
 GCS category (row) for the different age groups (column).
 
-![(#fig:gcs_age) Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).](figs/gsc_age_dep.png)
+```{r gcs_age, fig.cap = 'Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).', out.width = '100%', echo = FALSE}
+include_graphics('figs/gsc_age_dep.png')
+```
+
 In this figure, we see that, for the GCS Eye scores and the GCS Verbal scores, the outcome conditional on suboptimal versus
 optimal scores is distributed similarly across both age groups. This indicates that
 the relationship between GCS score in these categories and the outcome is age invariant.
@@ -484,7 +497,7 @@ variable is related to TBI. So, when building an age-invariant classifier we als
 wish to exclude the GCS scores.
 
 Before moving on, we should also establish the age-invariant relationships of other
-variables of interest with the outcome variable. Figure \ref{fig:no_age_dependence}
+variables of interest with the outcome variable. Figure \ref{fig:no_age_dep}
 shows that the distributions of the outcome conditional on having neurological deficits
 or not, and having basilar skull fracture or not, are not age-dependent. This is as we would 
 expect, since these injuries are observed directly by doctors and are not dependent upon 
@@ -492,7 +505,9 @@ verbal ability or any other factor directly associated with age.
 Since the relationship of these indicators with the outcome are invariant to age,
 we should certainly include variables like these in an age-invariant classifier.
 
-![(#fig:no_age_dep) Distributions of outcome conditional on neurological deficit and basilar skull fracture, across both age groups (1 indicates the presence of neurological deficit/basilar skull fracture)](figs/no_age_dep.png)
+```{r no_age_dep, fig.cap = 'Distributions of outcome conditional on neurological deficit and basilar skull fracture, across both age groups (1 indicates the presence of neurological deficit/basilar skull fracture).', out.width = "100%", echo = FALSE}
+include_graphics('figs/no_age_dep.png')
+```
 
 Finally, in making a classifier to vet and possibly improve upon that of Kuppermann et al.,
 we explore the potential impact of including and excluding subvariable details. Recall
@@ -522,7 +537,9 @@ the child may not have had a TBI in the first place because CSF Rhinorrhea is no
 very correlated with the outcome. Since we would be giving a child an unneeded CT scan,
 it could be important to include this subvariable information in an ideal dataset.
 
-![(#fig:subvariable_arg) Subvariables of AMS (altered mental status) and basilar skull fracture are correlated differently with the outcome.](figs/subvariable_arg.png)
+```{r subvariable_arg, fig.cap='Subvariables of AMS (altered mental status) and basilar skull fracture are correlated differently with the outcome.', out.width='100%', echo = FALSE}
+include_graphics('figs/subvariable_arg.png')
+```
 
 However, a clear argument against including this subvariable information is that
 including too many variables may lead to very uninterpretable and nonsensical rules
@@ -535,9 +552,13 @@ plots further show the dataset is suitable for making an age-invariant classifie
 among the age-invariant variables, the correlations with the outcome are almost
 identical across age groups.
 
-![(#fig:younger_corr) Among children 2 and younger, relevant parent variables seem substantially correlated with the outcome.](figs/parent_younger.png)
-![(#fig:older_corr) Among children older than 2, relevant parent variables seem substantially correlated with the outcome.](figs/parent_older.png)
-NOTE: inserting some discussion about comparability and translation (Q5 and Q6)?
+```{r younger_corr, fig.cap = 'Among children 2 and younger, relevant parent variables seem substantially correlated with the outcome.', out.width='100%', echo = FALSE}
+include_graphics('figs/parent_younger.png')
+```
+
+```{r older_corr, fig.cap = 'Among children older than 2, relevant parent variables seem substantially correlated with the outcome.', out.width='100%', echo = FALSE}
+include_graphics('figs/parent_older.png')
+```
 
 # Models
 
