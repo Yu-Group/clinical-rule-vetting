@@ -270,23 +270,33 @@ class Dataset(DatasetTemplate):
             df['posthoc_OutcomeStudySiteMobility'][(pd.isna(df['posthoc_OutcomeStudySiteMobility']))] = 'N'
             df['posthoc_OutcomeStudySiteNeuro'][(pd.isna(df['posthoc_OutcomeStudySiteNeuro']))] = 'NR'
         else: df = df.dropna(subset=['posthoc_OutcomeStudySiteMobility','posthoc_OutcomeStudySiteNeuro'])
-            
-        pd.options.mode.chained_assignment = 'warn'
-        
+                    
         # Judgement call to impute remaining ~10% of units without GCS as max e.g. 4/5/6=15
         # As with AVPU, we add an indicator of whether GCS was NA before imputation
         df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
         
         if kwargs['impute_gcs']:
-
-            df[['GCSEye','MotorGCS','VerbalGCS']] = \
-                df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
+            # if AMS=0, AVPU < A never occur, therefore we feeled justified imputing with max
+            # AVPU A implies GCS = 15 in the complete data
+            
+            df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)] = \
+                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)]\
+                .apply(lambda col: col.fillna(col.max()), axis=0)
+            
+            # if AMS=1, we use median imputation
+            df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)] = \
+                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)]\
+                .apply(lambda col: col.fillna(col.median()), axis=0)
+            
             df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
             
         else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
     
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
         df['GCSbelow9'] = (df['TotalGCS'] <= 8).replace([True,False],[1,0])
+        
+        pd.options.mode.chained_assignment = 'warn'
+
         
         '''
         # drop posthoc
