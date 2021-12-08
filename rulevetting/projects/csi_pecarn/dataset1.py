@@ -41,8 +41,8 @@ class Dataset(DatasetTemplate):
         
         feat_injurymech = ['InjuryPrimaryMechanism', 'clotheslining', 'HeadFirst', 'HeadFirstRegion']
         
-        df_merged = functools.reduce(lambda  left,right: pd.merge(left, right, on=IDs, how='left'), [dfs[3][IDs + ['ControlType'] + feat_conscious + feat_pain + feat_tender + feat_torticollis + feat_otherinjury + feat_neuro + feat_ambulatory + feat_intervention], dfs[4][IDs + feat_demog], dfs[6][IDs + feat_injurymech] + dfs[8][IDs + feat_medhistory], dfs[0].drop(columns = ['ControlType'])])
-        
+        df_merged = functools.reduce(lambda  left,right: pd.merge(left, right, on=IDs, how='left'), [dfs[3][IDs + ['ControlType'] + feat_conscious + feat_pain + feat_tender + feat_torticollis + feat_otherinjury + feat_neuro + feat_ambulatory + feat_intervention], dfs[4][IDs + feat_demog], dfs[6][IDs + feat_injurymech], dfs[8][IDs + feat_medhistory], dfs[0].drop(columns = ['ControlType'])])
+
         return df_merged
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -106,8 +106,6 @@ class Dataset(DatasetTemplate):
 
         # remove any col that is all 0s
         df = df.loc[:, (df != 0).any(axis=0)]
-
-
         
         # remove the _no columns
         # if kwargs['drop_negative_columns']:
