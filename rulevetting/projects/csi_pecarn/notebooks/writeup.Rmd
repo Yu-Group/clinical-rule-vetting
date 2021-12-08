@@ -67,7 +67,7 @@ The structure of this report is as follows: In Section \blue{\ref{sec:data}}, we
 
 # Data Collection {#sec:data}
 
-Our data is provided by the Pediatric Emergency Care Applied Research Network (PECARN), which contains patient CSI information from a previous CDR study conducted by @leonard2011factors. The previous study contained children both with and without CSI. The children without CSI were grouped into various controls based on their injury mechanism and whether they had received out-of-patient emergency medical services (EMS) treatment. The control groups are based on *mechanism of injury (MOI)*, where a non-injured patient was matched to an injured patient with a similar injury mechanism, and *emergency medical services (EMS)*, where non-injured patients who required EMS out-of-hospital care were matched to an injured patient who also required this service. The random control group is simply a random matching of patients were who were not injured to patients who were injured.
+Our data is provided by the Pediatric Emergency Care Applied Research Network (PECARN), which contains patient CSI information from a previous CDR study conducted by @leonard2011factors. The previous study contained children both with and without CSI. The children without CSI were grouped into various controls based on their injury mechanism and whether they had received out-of-patient emergency medical services (EMS) treatment. The control groups are based on *mechanism of injury (MOI)*, where a non-injured patient was matched to an injured patient with a similar injury mechanism (1012 patients), and *emergency medical services (EMS)*, where non-injured patients who required EMS out-of-hospital care were matched to an injured patient who also required this service (702 patients). The random control group (1060 patients) is simply a random matching of patients were who were not injured to patients who were injured. There were 540 patients in the case group (the truly injured patients)
 
 In our study, we are only interested in distinguishing true injury from simple trauma. We group all of the sub-control groups into a single control group for more refined predictions.
 
@@ -140,7 +140,7 @@ Our final cleaned data contains `r num_control` control patients and `r num_case
 
 ## Correlation between features
 
-Figure \blue{\ref{fig:corr-map}} shows a correlation heatmap of the reduced feature space of size `r ncol(all)`. While most features are not strongly correlated with each other, there are some features that exhibit high correlations. These features are typically those of the same type, such as whether the patient reported pain in their neck and whether tenderness was observed in the patient's neck. It is expected for features like these to be influenced by one another. 
+Figure \blue{\ref{fig:corr-map}} shows a correlation heatmap of the reduced feature space of size `r ncol(all) - 1` (excluding the outcome). While most features are not strongly correlated with each other, there are some features that exhibit high correlations. These features are typically those of the same type, such as whether the patient reported pain in their neck and whether tenderness was observed in the patient's neck. It is expected for features like these to be influenced by one another. 
 
 Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating weak association throughout the feature space in general. Because of this, we feel confident that we will not encounter any issues surrounding variance inflation and multicollinearity in the modeling stage.
 
@@ -181,10 +181,10 @@ control_freq <- data.frame(cbind(No, Yes)) %>%
 ```
 
 
-We further explore our data by examining the frequency of "yes" and "no" values for the outcome and controls group. We plot the five features with the greatest and smallest *absolute differences* in relative frequency for the outcome group in Figure \blue{\ref{fig:outcomes}}. We repeat this for the controls group in Figure \blue{\ref{fig:controls}}.
+We further explore our data by examining the frequency of "yes" and "no" values for the case and controls group. We plot the five features with the greatest and smallest *absolute differences* in relative frequency for the case group in Figure \blue{\ref{fig:outcomes}}. We repeat this for the controls group in Figure \blue{\ref{fig:controls}}.
 
 
-```{r outcomes, fig.cap="Top five features with the greatest and smallest absolute differences in relative frequency for the OUTCOME group.", out.width='90%', fig.width=11, fig.height=5}
+```{r outcomes, fig.cap="Top five features with the greatest and smallest absolute differences in relative frequency for the CASE group.", out.width='90%', fig.width=11, fig.height=5}
 outcome_high <- plotRelFreq(outcome_freq)
 outcome_low <- plotRelFreq(outcome_freq, high = FALSE)
 ggarrange(outcome_high, outcome_low, ncol=2, nrow=1, common.legend = TRUE, legend="bottom")
@@ -198,7 +198,7 @@ ggarrange(controls_high, controls_low, ncol = 2, nrow = 1, common.legend = TRUE,
 ```
 
 
-These figures show that, while there is some overlap across the two sub-groups, we cannot say that there is complete uniformity in which features stand out between the outcome and control groups. For instance, the `DxCspineInury` feature, which tells us whether the patient is arriving with a diagnosis or suspicion of a CSI, has the second-lowest difference in yes/no rate for the outcome group (48% vs 52%), whereas it is somewhere in the middle for the control group (where roughly 92% were not suspected). This feature proves to be extremely crucial in the modeling stage and it is discussed further in Section \blue{\ref{sec:caveats}}.
+These figures show that, while there is some overlap across the two sub-groups, we cannot say that there is complete uniformity in which features stand out between the case and control groups. For instance, the `DxCspineInury` feature, which tells us whether the patient is arriving with a diagnosis or suspicion of a CSI, has the second-lowest difference in yes/no rate for the case group (48% vs 52%), whereas it is somewhere in the middle for the control group (where roughly 92% were not suspected). This feature proves to be extremely crucial in the modeling stage and it is discussed further in Section \blue{\ref{sec:caveats}}.
 
 # Modeling {#sec:modeling}
 
@@ -209,7 +209,7 @@ Our statistical goal is to accurately diagnose a cervical spine injury (minimize
 Reducing Type II error can reduce the number of unnecessary CT scans and hence improve the efficiency. Our goal is then translated into **maximizing specificity while maintaining a sufficiently high sensitivity**. ^[Here we slightly abuse the concept of Type I and II error since there is no distributional assumption in our problem.] 
 
 
-Note that if the false negative rate is our only area of concern, there is no need for any decision rule since a clinician would diagnose a CSI and perform a CT scan for all situations. As mentioned in the Introduction (Section \blue{\ref{sec:intro}}), CT scans could result in unnecessary exposure to ionizing radiation, which is also harmful. Therefore, we must strike a balance between taking the conservative route of always diagnosing someone with CSI and the worst-case scenario of not diagnosing a serious injury. 
+Note that if Type I errors are our only area of concern, there is no need for any decision rule since a clinician would diagnose a CSI and perform a CT scan for all situations. As mentioned in the Introduction (Section \blue{\ref{sec:intro}}), CT scans could result in unnecessary exposure to ionizing radiation, which is also harmful. Therefore, we must strike a balance between taking the conservative route of always diagnosing someone with CSI and the worst-case scenario of not diagnosing a serious injury. 
 
 Regarding comparability, the training and test data come from the PECARN sites and are independent. We have no reason to assume that the data comes from another distribution. Moreover, the injury status of one patient is independent of another patient's injury status. Even if two children were injured from one another (colliding in a soccer game, for example), whether one child sustains a CSI has no bearing on whether the other child does. This is an extreme example and most data points are indeed completely independent.
 
@@ -303,7 +303,7 @@ A rigorous inspection of the raw data reveals that this feature has **zero** mis
 
 Moreover, subject-matter expertise tells us that there does indeed exist precedents for utilizing judgment calls in decision rules. Dr. Boyle verified that many current decision instruments utilize physician suspicion, such as the [Wells' Criteria for Pulmonary Embolism](https://www.mdcalc.com/wells-criteria-pulmonary-embolism) and the [HEART Score](https://www.mdcalc.com/heart-score-major-cardiac-events). Seeing that such features are utilized in everyday medical practice, there is no reason to exclude it from a decision rule.
 
-Statistically speaking, as depicted in Figures \blue{\ref{fig:outcomes}} and \blue{\ref{fig:controls}}, this guess is only correct about 50% of the time in the outcomes group compared to 92% of the time in the controls group. We can infer that most of these guesses are not in favor of a CSI. This is indeed true, as roughly 85% of all patients are not predicted to have a CSI.     
+Statistically speaking, as depicted in Figures \blue{\ref{fig:outcomes}} and \blue{\ref{fig:controls}}, this guess is only correct about 50% of the time in the case group compared to 92% of the time in the controls group. We can infer that most of these guesses are not in favor of a CSI. This is indeed true, as roughly 85% of all patients are not predicted to have a CSI.     
 
 All of the arguments above were discussed in detail with Dr. Boyle. Therefore, we are confident that this feature can be utilized in a real-world context. Not only is its distribution statistically reasonable, but we have no reason to believe that this feature is fundamentally different from other features in terms of how it is documented. The only difference is that it relies on a human judgment call, but such a judgment call is being made by a trained professional such as a nurse or EMT.
 
