@@ -274,13 +274,16 @@ class Dataset(DatasetTemplate):
         pd.options.mode.chained_assignment = 'warn'
         
         # Judgement call to impute remaining ~10% of units without GCS as max e.g. 4/5/6=15
+        # As with AVPU, we add an indicator of whether GCS was NA before imputation
+        df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
+        
         if kwargs['impute_gcs']:
 
             df[['GCSEye','MotorGCS','VerbalGCS']] = \
                 df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
             df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
             
-        else: df = df.dropna(subset=gcs_columns)
+        else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
     
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
         
@@ -300,14 +303,13 @@ class Dataset(DatasetTemplate):
             char_column = df[column] # select column
             unique_values = pd.unique(char_column) # get unique entries
         
-        # as a robustness check, we can impute missing booleans with a bernoulli draw of their observed probability
+        # as a judgement call check, we can impute missing booleans with zero or with 
+        # a bernoulli draw of their observed probability        
         
-        
-        df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed'],\
-                                          robust_imputation=kwargs['robust_binary_imputation']) 
+        df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
         
         numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
-        numeric_data = numeric_data.astype(float)
+        numeric_data = numeric_data.astype(float) # cast numeric data as float
         char_data = df.select_dtypes([np.object]) # gets columns encoded as strings
         
         df = pd.merge(numeric_data,char_data,how="left",left_index=True,right_index=True)
@@ -385,9 +387,8 @@ class Dataset(DatasetTemplate):
                 # drop units with missing this percent of analysis variables or more
 
                 'frac_missing_allowed': [0.05, 0.1],
-                'impute_gcs':[False, True, False],
+                'impute_gcs':[True, False],
                 'impute_outcomes':[True, False],
-                'robust_binary_imputation':[True, False, True],
             },
             'split_data': {
                 # drop cols with vals missing this percent of the time
