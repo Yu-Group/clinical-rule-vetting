@@ -220,7 +220,7 @@ Note that if the false negative rate is our only area of concern, there is no ne
 Regarding comparability, the training and test data come from the PECARN sites and are independent. We have no reason to assume that the data comes from another distribution. Moreover, the injury status of one patient is independent of another patient's injury status. Even if two children were injured from one another (colliding heads in soccer for example), whether one child sustains a CSI has no bearing on whether the other child does. This is an extreme example and most data points are indeed completely independent.
 
 
-Prior to modeling, we split our data into *training* (60% of data), *tuning* (20% of data), and *testing* (20% of data) sets. The training set will be used to construct our candidate models. The tuning set will be used to select an optimal model, and the testing set will be used to corroborate the performance of our best model.
+Prior to modeling, we split our data into *training* (60% of data), *tuning* (20% of data), and *testing* (20% of data) sets. The training set will be used to construct our candidate models. The tuning set will be used to select an optimal model, and the testing set will be used to corroborate the performance of our models.
 
 These splits were determined randomly as there is no underlying temporal or spatial phenomena that makes the outcome of one patient dependent on another. 
 
@@ -228,7 +228,7 @@ These splits were determined randomly as there is no underlying temporal or spat
 
 We use **logistic regression** followed by **backwards selection** to select our model features. We first fit the outcome against all features with logistic regression and then omit the feature with the smallest absolute fitted coefficient value. There is no need to scale our features since they are all binary. This process repeats until $m$ features remain, where $m$ is a pre-specified number. This variable selection process is called recursive feature elimination (RFE) in Python and can be done automatically. 
 
-To select the number of features $m$, we run logistic regression model with $m=1,2,..., 10$ features on the training data and select the one with the lowest misclassification rate on the tuning data, resulting in an optimal value of $m=9$. These 9 features correspond to:
+To select the number of features $m$, we run logistic regression model with $m=1,2,..., 10$ features on the training data and select the one with the lowest misclassification rate on the tuning data, resulting in an optimal value of $m=9$. However, the stability check performed in Section \blue{\ref{sec:stability}} reveals that 8 features results in a more optimal CDR. Seeing that the data science life cycle is an iterative process, we utilize 8 features in our models. These 8 features correspond to:
 
 - Whether the patient was intubated or not (`ArrPtIntub`),
 
@@ -242,9 +242,7 @@ To select the number of features $m$, we run logistic regression model with $m=1
 
 - Whether the patient has extremity weakness (`PtExtremityWeakness`),
 
-- Whether the patient has sensory loss (`PtSensoryLoss`),
-
-- Whether the patient has tenderness in the extremities (`PtTenderExt`), and
+- Whether the patient has sensory loss (`PtSensoryLoss`), and
 
 - If the trauma was sustained to the patient's torso or trunk (`SubInj_TorsoTrunk`).
 
@@ -296,7 +294,6 @@ ggarrange(roc_ada, roc_bayes, roc_grl, roc_tree, roc_log, roc_rf, ncol = 2, nrow
 
 
 
-**Ultimately, we believe AdaBoost is the best model for a clinical decision rule.** The model is interpretable and easy-to-follow without sacrificing any specificity. A clinician at a patient's bedside can quickly reach a decision simply by answering a series of yes or no questions, which is effectively what AdaBoost is. 
 
 ## Subjective Features {#sec:caveats}
 
@@ -398,7 +395,7 @@ In general, this stability check demonstrates that our models are robust to the 
 
 # Test set performance
 
-We also evaluate our three models on the test set. The results are reported in Table XX. We see that all three models achieve >.98 sensitivity on the test set with over .74 specificity. These results are comparable with their counterparts on the tuning set (and are even slightly better), which indicates that our models do not suffer from overfitting and  can generalize well to new data from the same population.
+We evaluate our three models on the test set, the results of which are shown in Table \blue{\ref{tab:test-res}}. We see that all three models achieve sensitivities above 98% on the test set with over 74% specificity. These results are even better than their counterparts on the tuning set, indicating that our models do not suffer from overfitting and can generalize well to new data from the same population.
 
 ```{r test-res}
 test_results <- data.frame(
@@ -408,8 +405,11 @@ test_results <- data.frame(
 )
 rownames(test_results) <- c("Sensitivity", "Specificity")
 test_results <- t(test_results) %>% data.frame()
-test_results %>% knitr::kable(caption = "\\label{tab:test-res}Performance of AdaBoost on test data.")
+test_results %>% knitr::kable(caption = "\\label{tab:test-res}Performance of models on test data.")
 ```
+
+
+**Ultimately, we believe AdaBoost is the best model for a clinical decision rule.** The model is interpretable and easy-to-follow without sacrificing any specificity. A clinician at a patient's bedside can quickly reach a decision simply by answering a series of yes or no questions, which is effectively what AdaBoost is. 
 
 # Conclusion
 
