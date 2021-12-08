@@ -240,14 +240,12 @@ class Dataset(DatasetTemplate):
         if kwargs['use_robust_av']: df.drop(nonrobust_columns, axis=1, inplace=True)
         else: df.drop(robust_columns, axis=1, inplace=True)
             
-            
         '''
         # bin useful continuous variables age
         binning_dict = {}
         binning_dict['AgeInYears'] = (2,6,12)        
         df = helper.bin_continuous_data(df, binning_dict)
         ''' 
-
         return df
     
     def impute_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:

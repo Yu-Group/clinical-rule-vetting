@@ -218,7 +218,7 @@ def derived_feats(df):
     '''Add derived features
     '''
     # TODO: Make JC on cutoffs  
-    df['Age<2'] = (df['AgeInYears'] < 2)
+    df['UnderTwoYears'] = (df['AgeInYears'] < 2)
     df['NonVerbal'] = (df['AgeInYears'] < 5)
     df['YoungAdult'] = (df['AgeInYears'] >= 12)
     df.drop(['AgeInYears'],axis=1,inplace=True)
@@ -233,17 +233,20 @@ def derived_feats(df):
     pd.options.mode.chained_assignment = None
     df['PainNeck_Robust']= df['PtCompPainNeck'].copy()
     
-    df['PainNeck_Robust'][(df['NonVerbal']==1.) & (df['Age<2'] == 0.) & 
+    df['PainNeck_Robust'][(df['NonVerbal']==1.) & (df['UnderTwoYears'] == 0.) & 
                          ((df['PtCompPainNeck']==1.) | (df['PtCompPainHead']==1.) | (df['PtCompPainFace']==1.))
                          ] = 1
     # TODO: Make into a JC
     df.drop(['PtCompPainNeck'],axis=1,inplace=True)
+    df = df.rename(columns={"PainNeck_Robust": "PtCompPainNeck"})
     
     df['PainNeck_Robust2']= df['PtCompPainNeck2'].copy()
-    df['PainNeck_Robust2'][(df['NonVerbal']==1.) & (df['Age<2'] == 0.) & 
+    df['PainNeck_Robust2'][(df['NonVerbal']==1.) & (df['UnderTwoYears'] == 0.) & 
                          ((df['PtCompPainNeck2']==1.) | (df['PtCompPainHead2']==1.) | (df['PtCompPainFace2']==1.))
                          ] = 1
     df.drop(['PtCompPainNeck2'],axis=1,inplace=True)
+    df = df.rename(columns={"PainNeck_Robust2": "PtCompPainNeck2"})
+    
     pd.options.mode.chained_assignment = 'warn'
     
     return df
