@@ -231,7 +231,8 @@ class Dataset(DatasetTemplate):
         # add engineered featuures
         df = preprocessed_data     
         df = helper.rename_values(df)
-        df = helper.derived_feats(df,nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
+        df = helper.derived_feats(df,veryyoung_age_cutoff=kwargs['veryyoung_age_cutoff'],\
+                                  nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
                                  young_adult_age_cutoff=kwargs['young_adult_age_cutoff'])
         
         robust_columns = df.columns[df.columns.str.endswith('2')]\
@@ -383,6 +384,7 @@ class Dataset(DatasetTemplate):
                 # use mirror this perturbation for our own derived features
                 'use_robust_av':[False, True], #TODO: refactor
                 # age cutoffs choices based on rules shared by Dr. Devlin
+                'veryyoung_age_cutoff':[2,1,1.5],
                 'nonverbal_age_cutoff':[5,4,6],
                 'young_adult_age_cutoff':[11,15],
             },
