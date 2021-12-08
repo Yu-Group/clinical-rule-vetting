@@ -178,7 +178,6 @@ def fit_other_models(model_name, X_train, X_tune, y_train, y_tune, feature_names
 
     return stats, threshes, plot, model
 
-
 #---
 def plot_metrics(suffix, MODELS_DIR, title=None, fs=15):
     for fname in sorted(os.listdir(MODELS_DIR)):
