@@ -63,7 +63,7 @@ class Dataset(DatasetTemplate):
         ss_eval_results = ['GCSEye','MotorGCS','VerbalGCS','TotalGCS','AVPUDetails']
         ss_eval_data = ss_data[ss_eval_results]
         df_features = pd.merge(df_features,ss_eval_data,how="left",left_index=True,right_index=True)
-        
+        pass
         # the analysis variables consider neck pain and we case a wider net because young children are not good
         # at localizing where pain is coming from. Tenderness is pain observed by doctor, not self-reported
         ss_pain_features = ['PtCompPainNeck','PtCompPainFace','PtCompPainHead','PtCompPainNeckMove',\
@@ -240,6 +240,7 @@ class Dataset(DatasetTemplate):
         if kwargs['use_robust_av']: df.drop(nonrobust_columns, axis=1, inplace=True)
         else: df.drop(robust_columns, axis=1, inplace=True)
             
+            
         '''
         # bin useful continuous variables age
         binning_dict = {}
@@ -251,53 +252,59 @@ class Dataset(DatasetTemplate):
     
     def impute_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         df = preprocessed_data
-        
+
         # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
-        # and we make a judgement call to assune that all relavent abnormal information is recorded
-      
-        
-        #pd.set_option("display.max_rows", None, "display.max_columns", None)
-        #print((df.isna().sum(axis = 0)/df.shape[0]).sort_values())
-        #df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
-        
-        # TODO: discuss with Gabriel
-        # For now, impute subgroup GCS with maximum and recalcualte total
-        
+        # and we make a judgement call to assume that all relavent abnormal information is recorded
+                      
         pd.options.mode.chained_assignment = None
         
         gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
+        # GCS imputation by AlteredMentalStatus is very well justified by EDA, so we don't make it a automated JC
+        # This is approved by Dr. Devlin and Dr. Kornblith
         for gcs_col in gcs_columns:
             max_gcs = df[gcs_col].max()
             df[gcs_col][(df['AlteredMentalStatus'] == 0.0) & (pd.isna(df[gcs_col]))] = max_gcs
         
-        #
-        # Judgement call to fill ~2% of units without these outcomes as normal
-        df['posthoc_OutcomeStudySiteMobility'][(pd.isna(df['posthoc_OutcomeStudySiteMobility']))] = 'N'
-        df['posthoc_OutcomeStudySiteNeuro'][(pd.isna(df['posthoc_OutcomeStudySiteNeuro']))] = 'NR'
-        
+        if kwargs['impute_outcomes']:
+            # Judgement call to fill ~2% of units without these outcomes as normal
+            df['posthoc_OutcomeStudySiteMobility'][(pd.isna(df['posthoc_OutcomeStudySiteMobility']))] = 'N'
+            df['posthoc_OutcomeStudySiteNeuro'][(pd.isna(df['posthoc_OutcomeStudySiteNeuro']))] = 'NR'
+        else: df = df.dropna(subset=['posthoc_OutcomeStudySiteMobility','posthoc_OutcomeStudySiteNeuro'])
+            
         pd.options.mode.chained_assignment = 'warn'
         
-        df[['GCSEye','MotorGCS','VerbalGCS']] = \
-            df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
-        df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS']
-        
-        df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])   
+        # Judgement call to impute remaining ~10% of units without GCS as max e.g. 4/5/6=15
+        if kwargs['impute_gcs']:
+
+            df[['GCSEye','MotorGCS','VerbalGCS']] = \
+                df[['GCSEye','MotorGCS','VerbalGCS']].apply(lambda col: col.fillna(col.max()), axis=0)
+            df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
+            
+        else: df = df.dropna(subset=gcs_columns)
+    
+        df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
         
         '''
+        # drop posthoc
+        posthoc_columns = [col for col in df.columns if 'posthoc' in col]
+        df = df.drop(posthoc_columns,axis=1).copy()
+            
+        # code for indicators of missing GCS
         df['GCS_NA_total'] = pd.isna(df['TotalGCS']).replace([True,False],[1,0])
         df['GCS_NA_eye'] = pd.isna(df['GCSEye']).replace([True,False],[1,0])
         df['GCS_NA_motor'] = pd.isna(df['MotorGCS']).replace([True,False],[1,0])
         df['GCS_NA_verbal'] = pd.isna(df['VerbalGCS']).replace([True,False],[1,0])
+        '''
         
-    
         for column in df.columns:
             char_column = df[column] # select column
             unique_values = pd.unique(char_column) # get unique entries
-        '''
-
-        df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
-
-        # df.fillna(0, inplace=True) # deprecated all NA filled by this step
+        
+        # as a robustness check, we can impute missing booleans with a bernoulli draw of their observed probability
+        
+        
+        df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed'],\
+                                          robust_imputation=kwargs['robust_binary_imputation']) 
         
         numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
         numeric_data = numeric_data.astype(float)
@@ -372,12 +379,15 @@ class Dataset(DatasetTemplate):
                 # using positive findings from field or outside hospital documentation these have 
                 # the response to YES from NO or MISSING. The Leonard (2011) study considers them more robust
                 # use mirror this perturbation for our own derived features
-                'use_robust_av':[False, True],
+                'use_robust_av':[False, True] #TODO: refactor
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
 
                 'frac_missing_allowed': [0.05, 0.1],
+                'impute_gcs':[False, True, False],
+                'impute_outcomes':[True, False],
+                'robust_binary_imputation':[True, False, True],
             },
             'split_data': {
                 # drop cols with vals missing this percent of the time
@@ -429,7 +439,6 @@ class Dataset(DatasetTemplate):
                                    for k in func_kwargs.keys()}
 
         if not run_perturbations:
-            pass
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             featurized_data = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])

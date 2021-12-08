@@ -245,10 +245,10 @@ def derived_feats(df):
                          ] = 1
     df.drop(['PtCompPainNeck2'],axis=1,inplace=True)
     pd.options.mode.chained_assignment = 'warn'
-           
+    
     return df
 
-def impute_missing_binary(df, n = 0.05):
+def impute_missing_binary(df, n = 0.05, robust_imputation=False):
     
     '''
     1. drop binary observations with missing rate higer than n% ;
@@ -271,20 +271,19 @@ def impute_missing_binary(df, n = 0.05):
     
     binary_covariates = [col_name for col_name in df.columns if ((len(pd.unique(df[col_name]))==2) |\
                                                                  (len(pd.unique(df[col_name]))==3))]
-    # fill other NaN by "0"
-    df[binary_covariates] = df[binary_covariates].fillna(0)
-    return df
-    '''
-    # drop observations
-    binary_values = lambda col_name: sum(pd.isna(pd.Series(list(set(pd.unique(df[col_name])).\
-                        symmetric_difference({np.float(0),np.float(1)})))))
-    # (len(set(pd.unique(df[col_name])).symmetric_difference({np.float(0),np.float(1)})) == 0) |\
-    binary_names = [col_name for col_name in df.columns if binary_values(col_name)] 
+    binary_covariates.remove('posthoc_OutcomeStudySite') # boolean but encoded as string
+    
+    if robust_imputation:
+        # fill binary NaN with covariates' MLE probability i.e. sample fracion
+        observed_mean_values = df[binary_covariates].mean(axis=0,skipna=True)
 
-    df.loc[:,'missing_rate'] = df[binary_names].copy().isna().sum(axis = 1)/len(binary_names) # calculate missing fraction
-    df = df.loc[df.loc[:,'missing_rate'] < n,:] # drop observations with missing rate higer than n-fraction
-              
-    df.drop('missing_rate', axis=1, inplace=True)
-    # fill other NaN by "0"
-    df.fillna(0, inplace=True)
-    '''
+        random_values = pd.DataFrame([np.random.binomial(1,p=observed_mean_values) for i in range (df.shape[0])],\
+                                    columns=binary_covariates, index=df.index)
+
+        df.update(random_values)
+        
+    else:
+        # fill binary NaN by "0"
+        df[binary_covariates] = df[binary_covariates].fillna(0)
+        
+    return df
