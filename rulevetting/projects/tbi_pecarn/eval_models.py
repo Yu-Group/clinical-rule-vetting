@@ -142,37 +142,101 @@ def predict_stats(model, X_tune, y_tune,  min_sens = 0.95, verbose = True) :
 def fit_eval_lr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = np.logspace(-1, 4, 20)):
 
     '''
-    Performs (L2-regularized) logistic regression 
+    Performs (L1-regularized) logistic regression 
     lamb_vec : lambdas (regularization hyperparameter) to tune
     '''
     
     # Now fitting logistic regression
-    logreg_model = LogisticRegression(solver='liblinear', penalty="l1", random_state = 0).fit(X_train, y_train)
-    roc_auc_score(y_train, logreg_model.predict_proba(X_train)[:, 1])  # Train AUC : 0.9513
+    model = LogisticRegression(solver='liblinear', penalty="l1", random_state = 0).fit(X_train, y_train)
+    roc_auc_score(y_train, model.predict_proba(X_train)[:, 1])  # Train AUC : 0.9513
 
     # Tuning logistic regression
     roc_tune = []
     acc_tune = []
 
     for lamb in lamb_vec :
-        logreg_model = LogisticRegression(solver='liblinear', penalty="l1",  random_state = 0, C = lamb).fit(X_train, y_train)
-        roc_tune.append(roc_auc_score(y_tune, logreg_model.predict_proba(X_tune)[:, 1]))
-        acc_tune.append(logreg_model.score(X_tune, y_tune))
+        model = LogisticRegression(solver='liblinear', penalty="l1",  random_state = 0, C = lamb).fit(X_train, y_train)
+        acc_tune.append(model.score(X_tune, y_tune))
+        roc_tune.append(roc_auc_score(y_tune, model.predict_proba(X_tune)[:, 1]))
+        
         
     best_lamb = lamb_vec[np.argmax(np.array(roc_tune))]
       
     # With the best lambda
-    logreg_model = LogisticRegression(solver='liblinear', penalty="l1", random_state = 0, C = best_lamb).fit(X_train, y_train)
+    model = LogisticRegression(solver='liblinear', penalty="l1", random_state = 0, C = best_lamb).fit(X_train, y_train)
 
     # statistics update
-    stats = predict_stats(logreg_model, X_tune, y_tune)
+    stats = predict_stats(model, X_tune, y_tune)
     stats['lambda'] = best_lamb
     stats['model_type'] = 'Logistic Regression'
     
     plt.title(title_str)
     plt.show()
     
-    return (logreg_model, stats)
+    return (model, stats)
+
+
+def fit_eval_grouplr(X_train, y_train, X_tune, y_tune, title_str, lamb_vec = np.logspace(-4, -2, 10)):
+    '''
+    Performs grouped-LASSO logistic regression
+    '''
+    
+    from groupyr import LogisticSGL
+    
+    if X_train.shape[0] < 100 :
+        # Simple case
+        group_cov = None
+    
+    elif 'AgeTwoPlus' in X_train.columns :
+        group_cov = [np.array([0]), np.array([1]), np.array([2]), np.array([3]), np.array([4]), np.array([5]),
+                  np.array([6,7,8,9,10,11]), np.array([12]), np.array([13,14,15,16,17,18]), np.array([19]), 
+                  np.array([20,21,22,23,24,25,26]), np.array([27,28,29,30,31,32]), np.array([33,34,35,36,37,38,39,40]), 
+                   np.array([41]), np.array([42]), np.array([43,44,45,46,47,48,49,50,51,52,53,54,55]), np.array([56,57,58]), 
+                   np.array([59,60,61]), np.array([62,63,64]), np.array([65,66,67,68,69]), np.array([70,71,72,73]), 
+                   np.array([74,75,76,77,78]), np.array([79,80,81]), np.array([82,83,84,85]), np.array([86,87,88,89,90]), 
+                   np.array([91,92,93,94]), np.array([95,96,97,98,99]), np.array([100,101,102,103]), 
+                   np.array([104,105,106,107,108,109]), np.array([110,111,112,113]), np.array([114,115,116,117])]
+    else :
+        group_cov = [np.array([0]), np.array([1]), np.array([2]), np.array([3]), np.array([4]), np.array([5]),
+                  np.array([6,7,8,9,10,11]), np.array([12]), np.array([13,14,15,16,17,18]), np.array([19]), 
+                  np.array([20,21,22,23,24,25,26]), np.array([27,28,29,30,31,32]), np.array([33,34,35,36,37,38,39,40]), 
+                   np.array([41]), np.array([42,43,44,45,46,47,48,49,50,51,52,53,54]), np.array([55,56,57]), 
+                   np.array([58,59,60]), np.array([61,62,63]), np.array([64,65,66,67,68]), np.array([69,70,71,72]), 
+                   np.array([73,74,75,76,77]), np.array([78,79,80]), np.array([81,82,83,84]), np.array([85,86,87,88,89]), 
+                   np.array([90,91,92,93]), np.array([94,95,96,97,98]), np.array([99,100,101,102]), 
+                   np.array([103,104,105,106,107,108]), np.array([109,110,111,112]), np.array([113,114,115,116])]
+
+    # Tuning logistic regression
+    fpr_tune = []
+    
+    for lamb in lamb_vec :
+        model = LogisticSGL(l1_ratio = 0, alpha = lamb, groups = group_cov).fit(X_train, y_train)
+        
+        tpr, fpr, thresh = roc_curve(y_tune, model.predict_proba(X_tune)[:, 1])
+        
+        fpr_f = fpr[np.min(np.where(tpr >= 0.95))]
+        
+        fpr_tune.append(fpr_f)
+    
+    best_lamb = lamb_vec[np.argmax(np.array(fpr_tune))]
+      
+    # With the best lambda
+    model = LogisticSGL(l1_ratio = 0, alpha = best_lamb, groups = group_cov).fit(X_train, y_train)
+
+    # statistics update
+    stats = predict_stats(model, X_tune, y_tune)
+    stats['lambda'] = best_lamb
+    stats['model_type'] = 'Grouped Lasso LR'
+    
+    print("Coefficient for each variable is as following :")
+    for var, coef in zip(X_tune.columns, model.coef_) :
+        print(f"{var:15} : {coef:5.5f}")
+    
+    plt.title(title_str)
+    plt.show()
+    
+    return (model, stats)
+
 
 def fit_eval_boosted(X_train, y_train, X_tune, y_tune, title_str, which_boost = 'AdaBoost', n_estimator = 100):
     '''
