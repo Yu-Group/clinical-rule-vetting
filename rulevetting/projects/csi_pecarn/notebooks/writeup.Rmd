@@ -454,7 +454,7 @@ test_results %>% knitr::kable(caption = "\\label{tab:test-res}Performance of mod
 
 # Conclusion {#sec:conclusion}
 
-From the PECARN dataset, we discovered the important features to diagnose CSI in children and created a CDR that is powerful and interpretable. Our candidate models show higher sensitivity with much higher specificity than the current literature. It is worth noting that our logistic regression model shows a better result than the original model from @leonard2011factors in terms of both sensitivity and specificity.
+From the PECARN dataset, we discovered the important features to diagnose CSI in children and created a CDR that is powerful and interpretable. Our candidate models show higher sensitivity with much higher specificity than the current literature. Among the selected features, `FocalNeuroFindings`, `HighriskDiving`, and `SubInj_TorsoTrunk` are present for all three control groups in the original paper. Additionally, they are the only features that both the original paper and our study have in common.
 
 There are similarities and differences between this study and the previous work for variable selection. Interestingly, both studies selected 8 features for modeling. The choices, however, are not the same. Our feature space includes features utilized in @leonard2011factors among others. In fact, @leonard2011factors restrict themselves to a single dataset out of the 12 provided, whereas we utilize information from additional datasets. We believe this is a key reason for the stronger performance of our model, specifically with regards to specificity.
 
