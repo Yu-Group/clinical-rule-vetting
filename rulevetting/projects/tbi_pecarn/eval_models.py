@@ -359,7 +359,7 @@ def fit_eval_decTree(X_train, y_train, X_tune, y_tune, title_str, depth = list(r
 
 
 
-def fit_eval_svm(X_train, y_train, X_tune, y_tune, title_str, gamma_vec = [2**(-2), 2**(-1.5), 2**(-1), 2**(-0.5), 1, 2**(1)]):
+def fit_eval_svm(X_train, y_train, X_tune, y_tune, title_str, gamma_vec = [2**(-5), 2**(-4), 2**(-3), 2**(-2), 2**(2), 2**(4)]):
     '''
     Performs SVM
     
@@ -371,13 +371,13 @@ def fit_eval_svm(X_train, y_train, X_tune, y_tune, title_str, gamma_vec = [2**(-
     roc_tune = []
     acc_tune = []
     for c in gamma_vec:
-        svm_v = svm.SVC(C = c, probability=True).fit(X_train, y_train)  # may add , class_weight = 'balanced'
+        svm_v = svm.SVC(kernel = 'linear', C = c, probability=True).fit(X_train, y_train)  # may add , class_weight = 'balanced'
         roc_tune.append(roc_auc_score(y_tune, svm_v.predict_proba(X_tune)[:, 1]))
         acc_tune.append(svm_v.score(X_tune, y_tune))
 
     # Find max_depth with best performance
     best_gamma = gamma_vec[np.argmax(np.array(roc_tune))]
-    model = svm.SVC(C = best_gamma, probability=True).fit(X_train, y_train)
+    model = svm.SVC(kernel = 'linear', C = best_gamma, probability=True).fit(X_train, y_train)
      
     # Print out the stats
     stats = predict_stats(model, X_tune, y_tune)
