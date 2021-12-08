@@ -566,15 +566,49 @@ Short sentence or two about how we will fit decision trees/rules for maximal int
 
 ## Baseline Model
 
-Short sentence or two about how we will be doing modelling
+We choose the model proposed by Kuppermann and his colleagues as the baseline model.
+To evaluate their model, we also use the raw data, which consists of 43399 children presenting to the emergency room 
+due to the head trauma at one of the PECARN network hospitals between 2004 and 2006.
+While 763 of them experienced clinically-important traumatic brain injury, 
+the baseline classifier is developed to identify these children. 
+The detailed description can be found in the Data Collection section.
+In addition, we also use the same age splitting method as Kuppermann: 
+preverbal (< 2 years of age) and verbal (2 years and older) children.
+Of 10904 children younger than two years, 153 (1.4%) experienced clinically-important TBI,
+while of 32495 children aged two or older, 610 (1.9%) experienced clinically-important TBI.
+
 
 ### Description
 
-Describe the baseline classifier from the paper
+The baseline classifier is a rule list model, which consists of a list of rules.
+For model fitting or prediction, the child is identified to be positive if and only if this 
+child satisfies at least one rules. For the interpretation, it is assigned an order for these rules.
+For each subject, the model checks the rules based on this order. If a subject satifies one rule and is 
+identified positive, this subject will not check the subsequent rules. Therefore, based on the order,
+each rule is applied to different numbers of children.Then we state the rules for each age group based on the order.
+For preverbal children, the rules are altered mental status, non-frontal scalp haematoma, 
+loss of consciousness for at least 5 seconds, severe injury mechanism, palpable skull fracture, 
+and not acting normally according to the parent. For verbal children, the rules are
+altered mental status, any loss of consciousness, history of vomiting, severe injury mechanism, 
+clinical signs of basilar skull fracture, and severe headache. Here we note that one rule for preverbal children 
+is loss of consciousness for at least 5 seconds, 
+which is stronger than the rule any loss of consciousness in verbal children rule list.
+And in Kuppermann et al., they also mentioned history of vomiting isthe most useful form in the prediction tree
+among the vomiting variables(presence, number, and timing). Each of the rule list has 6 rules.
 
 ### Procedure and Performance
 
-Give the performance of the baseline model on the original data
+![(#fig:baseline_res) Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.](figs/baseline_res.png)
+
+The result of baseline model is shown in \ref{fig:baseline_res}. The yellow blocks are identified as positive 
+while the green blocks are identified as negative. In each block, the first number represents the number of children
+experiencing clinically-important TBI, the second number is the number of children in this block, and
+the last one represents the proportion. This result is similar to Kuppermann et al., except the performance of
+the most important rule, that is, altered mental status. In our result the proportions of true positives are 7.5\% and 10.0\%, while 
+Kuppermann implies the proportions as 4.0\% and 3.9\%. The baseline classifiers do intentify almost all of the cases since 
+the sensitivity is 99.3\% and 98.5\% for preverbal children and verbal chilren, respectively. However, the specificity only achieves
+47.7\% and 56.9\%. In our following model, we will propose the one with similar sensitivity and higher specificity. The detailed
+evaluation metrics based on sensitivity and specificity is discussed in the following part.
 
 ## Proposed Model
 
