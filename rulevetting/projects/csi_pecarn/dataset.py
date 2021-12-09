@@ -77,6 +77,8 @@ class Dataset(DatasetTemplate):
         ss_outcome_precautions = [col for col in ss_data if col.startswith('CervicalSpinePrecautions')]
         ss_outcome_intervention = [col for col in ss_data if col.startswith('IntervForCervical')]
         ss_outcomes = [col for col in ss_data if col.startswith('OutcomeStudySite')]
+        ss_outcomes.remove('OutcomeStudySiteMobility1') # caputred by other outcomes
+        ss_outcomes.remove('OutcomeStudySiteMobility2')
         ss_outcomes_other = ['MedsGiven','IntubatedSS','LongTermRehab','TrfToLongTermRehab']
         posthoc_outcomes_all = ss_outcome_precautions+ss_outcome_intervention+ss_outcomes+ss_outcomes_other
         posthoc_features  = ss_data[posthoc_outcomes_all]
@@ -264,44 +266,54 @@ class Dataset(DatasetTemplate):
 
             # Judgement call to impute remaining ~10% of units without GCS as max e.g. 4/5/6=15
             # As with AVPU, we add an indicator of whether GCS was NA before imputation
-            df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
+            
+            # we also tried likehlihood-based random imputation it removes correlations
+            df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
 
             if kwargs['impute_gcs']:
+                
                 # if AMS=0, AVPU < A never occur, therefore we feeled justified imputing with max
                 # AVPU A implies GCS = 15 in the complete data
-
-                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)] = \
-                    df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)]\
-                    .apply(lambda col: col.fillna(col.max()), axis=0)
-
-                # if AMS=1, we use median imputation
-                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)] = \
-                    df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)]\
-                    .apply(lambda col: col.fillna(col.median()), axis=0)
-
+                
+                columns = ['GCSEye','MotorGCS','VerbalGCS']
+                
+                for col in columns:
+                    df[col][(df['AlteredMentalStatus']==0)] =\
+                        df[col][(df['AlteredMentalStatus']==0)]\
+                            .fillna(np.max(df[col][(df['AlteredMentalStatus']==0)]))
+                    
+                # impute with GCS median is patient has altered mental status    
+                for col in columns:
+                    df[col][(df['AlteredMentalStatus']==1)]=\
+                        df[col][(df['AlteredMentalStatus']==1)]\
+                            .fillna(np.nanmedian(df[col][(df['AlteredMentalStatus']==1)]))
+               
                 df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
-
+                
             else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
 
-
+            '''
             for column in df.columns:
                 char_column = df[column] # select column
                 unique_values = pd.unique(char_column) # get unique entries
-
-            # we also tried likehlihood-based random imputation it removes correlations
-            df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
+                print(column,unique_values)
+            '''
         
-        
+        df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
         df['GCSbelowThreshold'] = (df['TotalGCS'] < kwargs['gcs_threshold']).replace([True,False],[1,0])
+
         pd.options.mode.chained_assignment = 'warn'
 
         numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
         numeric_data = numeric_data.astype(float) # cast numeric data as float
         char_data = df.select_dtypes([np.object]) # gets columns encoded as strings
-        
+                
         df = pd.merge(numeric_data,char_data,how="left",left_index=True,right_index=True)
         
+        no_information_columns = df.columns[df.nunique() <= 1]
+        df.drop(no_information_columns, axis=1, inplace=True)
+
         return df
     
     def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
