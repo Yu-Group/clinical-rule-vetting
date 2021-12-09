@@ -32,6 +32,13 @@ def extract_numeric_data(input_df,categorical_covariates):
     
     binary_data = pd.DataFrame(index=noncat_data.index) # init with study subject ID as index
     
+    # add the suffix `_binary` to numeric variables with only 0 and 1 as non-nan inputs
+    binary_numeric_cols = [col_name for col_name in numeric_data.columns\
+                           if np.isin(numeric_data[col_name].dropna().unique(), [0, 1]).all()]
+    numeric_data.columns = [col_name + '_binary' if col_name in binary_numeric_cols else col_name\
+                                for col_name in numeric_data.columns]
+    
+    # convert text inputs to binary
     for column in char_data:
         if 'txt' in column: continue # don't process long-form text columns
         char_column = char_data[column] # select column
@@ -100,7 +107,7 @@ def bin_continuous_data(input_df, binning_dict):
 
     return input_df
 
-def build_robust_binary_covariates(df):
+def build_binary_covariates(df):
     '''
     Leonard et al. (2011) build robust versions of features derived solely on study site data.
     If a feature is an indicator of some condition at the study site, e.g. MedsGiven, then
@@ -108,57 +115,65 @@ def build_robust_binary_covariates(df):
     
     
     '''
-    # TODO: functionalize
-    # TODO: add comments
+    # Leonard et al. create robust analysis variables that end with `2` if the study site criterion was met
+    # by EMS or outside data as well (three group OR). After discussing with Dr. Devlin, we believe a more
+    # natural approach is to split by indicator at study site (already given) and indicator if condition improved
+    # at study site re-evaluation We use boolean algebra to implement this.
     
-    covariates = df.columns
-    ems_binary_var = pd.Series(covariates[covariates.str.endswith('_ems_binary')])
-    site_covariates = covariates.difference(ems_binary_var)
+    # first get the names of all robust analysis variables (other dfs have other covariates ending with 2)
+    av_names = ['AlteredMentalStatus', 'LOC', 'NonAmbulatory', 'FocalNeuroFindings',
+       'PainNeck', 'PosMidNeckTenderness', 'TenderNeck', 'Torticollis',
+       'SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk',
+       'Predisposed', 'HighriskDiving', 'HighriskFall', 'HighriskHanging',
+       'HighriskHitByCar', 'HighriskMVC', 'HighriskOtherMV', 'AxialLoadAnyDoc',
+       'axialloadtop', 'Clotheslining']
+    
+    robust_av_names = [covar_name+'2_binary' for covar_name in av_names if covar_name+'2_binary' in df.columns.astype(str)]
+    print('FocalNeuroFindings2' in df.columns.astype(str))
+    for robust_av in robust_av_names:
+        base_av = robust_av[:-8] # strip off 2_binary
+        df[base_av+'_improved'] = df[robust_av].copy()
+        df[base_av+'_improved'][df[base_av+'_binary']==1] = 0 # condition remains indicated at study site
+        # note we remove the `_binary` suffix, will do this for other variables later in this function
+    print('FocalNeuroFindings2_binary' in df.columns.astype(str))
+    df.drop(robust_av_names,axis=1,inplace=True)
+    print('FocalNeuroFindings2_binary' in df.columns.astype(str))    
+    # for binary variables available before study site admission, create a similar `_improved` indicator
+    all_covariates = df.columns
+    ems_binary_var = pd.Series(all_covariates[all_covariates.str.endswith('_ems_binary')])
+    site_covariates = all_covariates.difference(ems_binary_var)
     ems_binary_var = ems_binary_var.str.replace('_ems_binary', '', regex=True)
     
-    outside_binary_var = pd.Series(covariates[covariates.str.endswith('_outside_binary')])
+    outside_binary_var = pd.Series(all_covariates[all_covariates.str.endswith('_outside_binary')])
     site_covariates = site_covariates.difference(outside_binary_var)
     outside_binary_var = outside_binary_var.str.replace('_outside_binary', '', regex=True)
 
     binary_var = pd.Series(site_covariates[site_covariates.str.endswith('_binary')]).replace('_binary', '', regex=True)
     
+    # get names of binary indicators with some form of outside check
+    robust_var_names = set(binary_var).intersection(set(ems_binary_var).union(set(outside_binary_var))) 
+    
     pd.options.mode.chained_assignment = None
-    robust_var = set(binary_var).intersection(set(ems_binary_var).union(set(outside_binary_var)))
-    
-    for var in robust_var:
-        robust_var = var + '_binary2'
-        df[robust_var] = df[var+'_binary'].copy()
-        if var + '_outside_binary' in covariates:
-            df[robust_var] += df[var+'_outside_binary'].copy().fillna(0)
-            df.drop(var+'_outside_binary',axis = 1, inplace=True)
-        if var + '_ems_binary' in covariates:
-            df[robust_var] += df[var+'_ems_binary'].copy().fillna(0)
-            df.drop(var+'_ems_binary',axis = 1, inplace=True)
-        df[robust_var][df[robust_var] >= 1] = 1.0
-     
-    covariates = df.columns
-    ems_binary_var = pd.Series(covariates[covariates.str.endswith('_ems')])
-    site_covariates = covariates.difference(ems_binary_var)
-    ems_binary_var = ems_binary_var.str.replace('_ems', '', regex=True)
-    
-    outside_binary_var = pd.Series(covariates[covariates.str.endswith('_outside')])
-    site_covariates = site_covariates.difference(outside_binary_var)
-    outside_binary_var = outside_binary_var.str.replace('_outside', '', regex=True)
-    
-    robust_var = set(site_covariates).intersection(set(ems_binary_var).union(set(outside_binary_var)))
-    for var in robust_var:
-        if 'GCS' in var: continue
-        robust_var = var + '2'
-        df[robust_var] = df[var].copy()
-        if var + '_outside' in covariates:
-            df[robust_var] += df[var+'_outside'].copy().fillna(0)
-            df.drop(var+'_outside',axis = 1, inplace=True)
-        if var + '_ems' in covariates:
-            df[robust_var] += df[var+'_ems'].copy().fillna(0)
-            df.drop(var+'_ems',axis = 1, inplace=True)
-        df[robust_var][df[robust_var] >= 1] = 1.0
-    
-    pd.options.mode.chained_assignment = 'warn'
+    robust_var_names_removal = []
+    for robust_var in robust_var_names:
+        df[robust_var+'_improved_binary'] = 0
+        
+        if robust_var+'_ems_binary' in df.columns:
+            df[robust_var+'_improved_binary'][(df[robust_var+'_binary']==0) &
+                (df[robust_var+'_ems_binary']==1)] = 1 # condition no longer remains indicated at study site
+            robust_var_names_removal.append(robust_var+'_ems_binary')
+            
+        if robust_var+'_outside_binary' in df.columns:
+            df[robust_var+'_improved_binary'][(df[robust_var+'_binary']==0) &
+                (df[robust_var+'_outside_binary']==1)] = 1  
+            robust_var_names_removal.append(robust_var+'_outside_binary')
+        
+    df.drop(robust_var_names_removal,axis=1,inplace=True)
+         
+    # of data measured away from and at the study site, only GCS scores are not converted to improved
+
+    df.columns = [col_name[:-7] if col_name.endswith('_binary') else col_name for col_name in df.columns]
+    print('FocalNeuroFindings2' in df.columns.astype(str))
     return df
 
 def get_outcomes():
@@ -185,14 +200,14 @@ def rename_values(df):
         'ND': 'unknown',  # stated as unknown
         'O': 'unknown'  # other
     }
-    df.posthoc_Race = df.posthoc_Race.map(race)
+    df.Race_posthoc = df.Race_posthoc.map(race)
     
     outcomeMap = {
         'PND': "Persistent Neurological Deficit",
         'N': "Normal",
         'DTH':"Death"
     }
-    df.posthoc_OutcomeStudySite = df.posthoc_OutcomeStudySite.map(outcomeMap)
+    df.OutcomeStudySite_posthoc = df.OutcomeStudySite_posthoc.map(outcomeMap)
 
     neuroDeficit = {
         'NR': "Normal or good recovery",
@@ -200,7 +215,7 @@ def rename_values(df):
         'SD':"Severe disability",
         'PVS':"Persistent vegetative state"
     }
-    df.posthoc_OutcomeStudySiteNeuro = df.posthoc_OutcomeStudySiteNeuro.map(neuroDeficit)
+    df.OutcomeStudySiteNeuro_posthoc = df.OutcomeStudySiteNeuro_posthoc.map(neuroDeficit)
     
     mobility = {
         'WD': "Wheelchair dependent",
@@ -208,7 +223,7 @@ def rename_values(df):
         'N':'Normal',
         'DA':'Dependent Ambulation'
     }
-    df.posthoc_OutcomeStudySiteMobility=df.posthoc_OutcomeStudySiteMobility.map(mobility)
+    df.OutcomeStudySiteMobility_posthoc=df.OutcomeStudySiteMobility_posthoc.map(mobility)
 
     
     return df
@@ -217,7 +232,6 @@ def rename_values(df):
 def derived_feats(df,veryyoung_age_cutoff=2,nonverbal_age_cutoff=5,young_adult_age_cutoff=12):
     '''Add derived features
     '''
-    # TODO: Make JC on cutoffs  
     df['VeryYoung'] = (df['AgeInYears'] < veryyoung_age_cutoff)
     df['NonVerbal'] = (df['AgeInYears'] < nonverbal_age_cutoff)
     df['YoungAdult'] = (df['AgeInYears'] >= young_adult_age_cutoff)
@@ -231,22 +245,17 @@ def derived_feats(df,veryyoung_age_cutoff=2,nonverbal_age_cutoff=5,young_adult_a
     # if a child is NonVerbal, this feature casts a wider net for neck pain complaints by including face and head
     # TODO: consider other regions
     pd.options.mode.chained_assignment = None
-    df['PainNeck_Robust']= df['PtCompPainNeck'].copy()
+    df['PtCompPainNeck_robust']= df['PtCompPainNeck'].copy()
     
-    df['PainNeck_Robust'][(df['NonVerbal']==1.) & (df['VeryYoung'] == 0.) & 
-                         ((df['PtCompPainNeck']==1.) | (df['PtCompPainHead']==1.) | (df['PtCompPainFace']==1.))
+    df['PtCompPainNeck_robust'][(df['NonVerbal']==1.) & (df['VeryYoung'] == 0.) & 
+                         ((df['PtCompPainNeck']==1.) | (df['PtCompPainHead']==1.) | (df['PtCompPainFace']==1.) |
+                          (df['PtCompPainChest']==1.))
                          ] = 1
+    
     # TODO: Make into a JC
     df.drop(['PtCompPainNeck'],axis=1,inplace=True)
-    df = df.rename(columns={"PainNeck_Robust": "PtCompPainNeck"})
-    
-    df['PainNeck_Robust2']= df['PtCompPainNeck2'].copy()
-    df['PainNeck_Robust2'][(df['NonVerbal']==1.) & (df['VeryYoung'] == 0.) & 
-                         ((df['PtCompPainNeck2']==1.) | (df['PtCompPainHead2']==1.) | (df['PtCompPainFace2']==1.))
-                         ] = 1
-    df.drop(['PtCompPainNeck2'],axis=1,inplace=True)
-    df = df.rename(columns={"PainNeck_Robust2": "PtCompPainNeck2"})
-    
+    df = df.rename(columns={"PtCompPainNeck_robust": "PtCompPainNeck"})
+        
     pd.options.mode.chained_assignment = 'warn'
     
     return df
