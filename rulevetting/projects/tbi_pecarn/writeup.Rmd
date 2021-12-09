@@ -126,6 +126,8 @@ Post-Processing EDA.
 
 ## Cleaning and Preprocessing
 
+`TODO: instead of referring to what happens in AMS all the time, write it above and refer to it generally`
+
 In order to achieve a suitable dataset for the predicting low risk of TBI
 in children according to the above parameters, we first implement a set of
 cleaning and preprocessing steps. The overarching goal of our cleaning
@@ -402,6 +404,8 @@ However, we are not provided with hospital information,
 so we perform a random train-validation-test split.
 
 ## Exploratory Data Analysis
+
+`TODO: change plot sizes`
 
 Data Collection detailed a list of characteristics of an ideal dataset to vet and
 improve upon the original decision rule, according to the goals outlined in Introduction
@@ -685,9 +689,6 @@ above 90% would be preferred.
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-
-
 
 
 
@@ -762,16 +763,33 @@ History of vomiting and basilar skull fracture(hemotympanum) forms an important 
 And another important rule involves the severity of injury, loss of consciousness length, 
 feeling depressed in palpable skull fracture, and Neurological deficit(cranial nerve).
 
+### Randomness Assessment
+
+What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.
+
+Underneath the model is LASSO regression, a fit on probability space, so describe the randomness mechanism here. Randomness is that the model is greedy,
+so you don't know where it will end up. Also, what LASSO throws away is some randomness..
+
+Justification for this randomness: throwing away/restricting the feature space
+is just like what a doctor would do in diagnosing a TBI: you already have some
+heuristics to follow, so you would look for those first before looking for less important variables.
+Same thing that our model is doing: looking for more important features.
 
 ### Stability Analysis
 
-Answer Question 9
+Structure:
 
-Go through the perturbations of our judgement calls (which will have been introduced above)
-and compare the performance of our classifier, see if it is similar or different
-
-Also, if there was instability in training the classifiers (as Xin noted in his notebook
-in our 12/2 meeting), run through it here as well
+- Rules/variable importance stability:
+  - Model perturbations: Compare rules isolated by Ian's RF, baseline classifier, and Xin's best model to assess stability across models
+  - Similar for data perturbations since baseline is different from ours, and Andrej's is different data
+  
+  This will justify the stability of the rules our best classifier isolated
+  
+- Stability of performance across data perturbations
+  - perturb the data by selecting some of the judgement calls, but only perturb test data and see how the model fares (the classification errors)
+  
+  judgement calls to turn on/off: `SFxPalp`, `Seiz` (change from recoding to not recoding), `ActNorm` recoding (change it up), `Vomit` (either union and impute or not)
+  (if we have enough time, talk more about subsampling, otherwise just work on this)
 
 # Discussion
 
