@@ -215,7 +215,7 @@ class Dataset:
         ))
     
     @abstractmethod
-    def get_data_split(self, pre_data: pd.DataFrame, simple = False, young = True, old = True) :
+    def get_data_split(self, pre_data: pd.DataFrame, simple = False, young = True, old = True, verbal_split = False, nonverbal = True, verbal = True) :
         """Retrieve preprocessed data and returns the requested dataset (train, tune, test)
         
         Parameters
@@ -235,14 +235,22 @@ class Dataset:
         outcome_def = self.get_outcome_name()
         simple_var_list = self.get_simple_var_list()
         
-        if simple :
+        if simple:
             pre_data = pre_data[simple_var_list]
-        if young and not old : 
-            pre_data = pre_data[pre_data['AgeTwoPlus'] == 1]
-            pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
-        if old and not young :
-            pre_data = pre_data[pre_data['AgeTwoPlus'] == 2]
-            pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
+        if not verbal_split:
+            if young and not old: 
+                pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 1.0, :]
+                pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
+            if old and not young:
+                pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 2.0, :]
+                pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
+        elif verbal_split:
+            if verbal and not nonverbal:
+                pre_data = pre_data.loc[pre_data['HA_verb'] != 91, :]
+                pre_data = pre_data.drop(columns = ['HA_verb'])
+            if nonverbal and not verbal:
+                pre_data = pre_data.loc[pre_data['HA_verb'] == 91, :]
+                pre_data = pre_data.drop(columns = ['HA_verb'])   
         
         df_train, df_tune, df_test = self.split_data(pre_data)
         X_train = df_train.drop(columns=outcome_def)
@@ -323,6 +331,9 @@ class Dataset:
                  simple: bool = True,
                  young: bool = True,
                  old: bool = True,
+                 verbal_split: bool = False,
+                 nonverbal: bool = True,
+                 verbal: bool = True,
                  run_perturbations: bool = False, **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
@@ -341,6 +352,8 @@ class Dataset:
             use data for patients with age < 2 or not include them
         old : bool, optional
             use data for patients with age >= 2 or not include them
+        verbal_split: bool, optional
+            Whether to instead split the data by verbal/not
         run_perturbations: bool, optional
             Whether to run / save data pipeline for all combinations of judgement calls
 
@@ -377,13 +390,21 @@ class Dataset:
             
             if simple:
                 pre_data = pre_data[simple_var_list]
-            if young and not old: 
-                pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 1.0, :]
-                pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
-            if old and not young:
-                pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 2.0, :]
-                pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
-                
+            if not verbal_split:
+                if young and not old: 
+                    pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 1.0, :]
+                    pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
+                if old and not young:
+                    pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 2.0, :]
+                    pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
+            elif verbal_split:
+                if verbal and not nonverbal:
+                    pre_data = pre_data.loc[pre_data['HA_verb'] != 91, :]
+                    pre_data = pre_data.drop(columns = ['HA_verb'])
+                if nonverbal and not verbal:
+                    pre_data = pre_data.loc[pre_data['HA_verb'] == 91, :]
+                    pre_data = pre_data.drop(columns = ['HA_verb'])             
+
             df_train, df_tune, df_test = cache(self.split_data)(pre_data)
             
         elif run_perturbations:
