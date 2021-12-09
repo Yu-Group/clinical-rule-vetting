@@ -660,20 +660,18 @@ import imodels
 basic = pk.load(open("notebooks/models/basic.pkl", 'rb'))
 maximal = pk.load(open("notebooks/models/maxim.pkl", 'rb'))
 
-brules = basic.get_rules().sort_values("importance", ascending=False)
-mrules = maximal.get_rules().sort_values("importance", ascending=False)
-
-```
-
-`#TODO: round the numbers, print less rules`
-
-```{r, echo=FALSE}
-kable(py$brules, caption = "Basic model rules in order of importance")
+brules = basic.get_rules().sort_values("importance", ascending=False).round(2).head(5)
+mrules = maximal.get_rules().sort_values("importance", ascending=False).round(2).head(5)
 
 ```
 
 ```{r, echo=FALSE}
-kable(py$mrules, caption = "Maximal model rules in order of importance")
+kable(py$brules, caption = "Top 5 basic model rules in order of importance")
+
+```
+
+```{r, echo=FALSE}
+kable(py$mrules, caption = "Top 5 maximal model rules in order of importance")
 ```
 
 To see how these relatively basic models perform, we examine their *sensitivity - specificity* curve:
