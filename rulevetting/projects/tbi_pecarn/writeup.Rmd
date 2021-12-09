@@ -5,8 +5,14 @@ output: pdf_document
 bibliography: references.bib
 ---
 
-```{r, echo = FALSE}
+```{r setup, echo = FALSE}
 library(knitr)
+
+library(reticulate)
+reticulate::use_python("../../../rule-env/bin/python3", required = TRUE)
+reticulate::use_virtualenv("../../../rule-env/", required = TRUE)
+knitr::knit_engines$set(python = reticulate::eng_python)
+knitr::opts_chunk$set(engine.path = list(python = "../../../rule-env/bin/python3"))
 ```
 
 # Introduction and Problem Motivation
@@ -633,11 +639,67 @@ evaluation metrics based on sensitivity and specificity is discussed in the foll
 
 ## Proposed Model
 
-Describe the proposed model, it's advantages, disadvantages, how it might compare
-to the original model, etc.
+*Describe the proposed model, it's advantages, disadvantages, how it might compare to the original model, etc.*
 
-Justify the proposed model, and refer back to discussion in Post-Processing Discussion
-for justification while also answering Q8 about any randomness assumptions. 
+*Justify the proposed model, and refer back to discussion in Post-Processing Discussion for justification while also answering Q8 about any randomness assumptions. *
+
+
+### Introduction to and an ilustration of `rulefit`
+
+*(Andrej)*
+
+```{python basic_rules, engine.path = "../../../rule-env/bin/python3", include=FALSE}
+import pickle as pk
+import imodels
+
+
+basic = pk.load(open("notebooks/models/basic.pkl", 'rb'))
+maximal = pk.load(open("notebooks/models/basic.pkl", 'rb'))
+
+brules = basic.get_rules().sort_values("importance", ascending=False)
+mrules = maximal.get_rules().sort_values("importance", ascending=False)
+
+```
+
+`#TODO: round the numbers, print less rules`
+
+```{r, echo=FALSE}
+kable(py$brules, caption = "Basic model rules in order of importance")
+
+```
+
+```{r, echo=FALSE}
+kable(py$mrules, caption = "Maximal model rules in order of importance")
+```
+
+To see how these relatively basic models perform, we examine their *sensitivity - specificity* curve:
+
+```{r basic_ROC, echo = FALSE, fig.width=6, fig.height=4, fig.cap="Sensitivity-specificity curve for two basic rulefit models with maximal and minimal judgement calls."}
+include_graphics('figs/basic_ROC.png', dpi=500)
+```
+
+The minimal model is able to achieve 80%+ in both sensitivity and specificity for one
+threshold value; since we care much more about false negatives than positives, we consequently value
+sensitivity far above specificity. Therefore in this case, the fuller model with sensitivities
+above 90% would be preferred.
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (Xin) I think Andrej will describe rulefit model. Q8 I can only answer this in Logistic regression assumption. Can this be better?
 
