@@ -123,8 +123,8 @@ class Dataset(DatasetTemplate):
         df = preprocessed_data
         return df
 
-    # def get_outcome_name(self) -> str:
-    #    return 'csi_intervention'  # return the name of the outcome we are predicting
+    def get_outcome_name(self) -> str:
+        return 'csi_patient'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
         return 'csi_pecarn'  # return the name of the dataset id
