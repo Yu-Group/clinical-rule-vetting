@@ -44,9 +44,9 @@ source("writeup_functions.R")
 
 ```{r}
 # load processed data
-train <- read.csv("../../../../data/csi_pecarn/processed/train.csv")
-tune <- read.csv("../../../../data/csi_pecarn/processed/tune.csv")
-test <- read.csv("../../../../data/csi_pecarn/processed/test.csv")
+train <- read.csv("../../../data/csi_pecarn/processed/train.csv")
+tune <- read.csv("../../../data/csi_pecarn/processed/tune.csv")
+test <- read.csv("../../../data/csi_pecarn/processed/test.csv")
 all <- rbind(train, tune, test)[, -1]
 ```
 
