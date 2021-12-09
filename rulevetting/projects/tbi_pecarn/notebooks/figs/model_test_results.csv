@@ -2,6 +2,5 @@ Algorithm,Age,AUC,Accuracy,Sensitivity,Specificity,NPV,Balanced Accuracy
 LR,young,0.846,0.772,0.923,0.77,0.999,0.846
 LR,old,0.848,0.762,0.937,0.76,0.999,0.848
 LR,all,0.822,0.794,0.85,0.793,0.999,0.822
-Baseline,young,0.774,0.554,1.0,0.549,1.0,0.774
-Baseline,old,0.786,0.639,0.937,0.636,0.999,0.786
-Baseline,all,0.777,0.623,0.933,0.621,0.999,0.777
+Baseline,young,0.875,0.054,1.0,0.042,1.0,0.521
+Base;ine,old,0.873,0.639,0.937,0.636,0.999,0.786
