@@ -41,17 +41,16 @@ class Dataset(DatasetTemplate):
             assert ('id' in df.keys())
             df = df.set_index(['id','case_id','site','control_type']) # use a multiIndex
             r[fname] = df
-
-        # Get filenames we consider in our covariate analysis
-        # We do not consider radiology review data at this time
-
-        df_features = r['analysisvariables.csv'] # keep `site`, `case id`, and `control type` covar from first df
         
+        # Get filenames we consider in our covariate analysis
+        # We do not consider radiology review data
+
+        df_features = r['analysisvariables.csv'] # build from Leonard et al.'s covariates
         
         # New Data Source
         # the second most useful predictive covariates are those collected at the study site
         ss_data = r['clinicalpresentationsite.csv']
-        
+            
         # first we hand-select features after conversations with Dr. Devlin about how a patient arrives to the ED
         # note we do not include `DxCspineInjury` at Dr. Devlin's suggestion despite its strong predictive power
         ss_arrival_features = ['ModeArrival','ReceivedInTransfer','PtAmbulatoryPriorArrival','CervicalSpineImmobilization',\
@@ -63,7 +62,7 @@ class Dataset(DatasetTemplate):
         ss_eval_results = ['GCSEye','MotorGCS','VerbalGCS','TotalGCS','AVPUDetails']
         ss_eval_data = ss_data[ss_eval_results]
         df_features = pd.merge(df_features,ss_eval_data,how="left",left_index=True,right_index=True)
-        pass
+        
         # the analysis variables consider neck pain and we case a wider net because young children are not good
         # at localizing where pain is coming from. Tenderness is pain observed by doctor, not self-reported
         ss_pain_features = ['PtCompPainNeck','PtCompPainFace','PtCompPainHead','PtCompPainChest','PtCompPainNeckMove',\
@@ -81,14 +80,14 @@ class Dataset(DatasetTemplate):
         ss_outcomes_other = ['MedsGiven','IntubatedSS','LongTermRehab','TrfToLongTermRehab']
         posthoc_outcomes_all = ss_outcome_precautions+ss_outcome_intervention+ss_outcomes+ss_outcomes_other
         posthoc_features  = ss_data[posthoc_outcomes_all]
-        posthoc_features.columns = 'posthoc_' + posthoc_features.columns.astype(str)
+        posthoc_features.columns = posthoc_features.columns.astype(str) + '_posthoc'
         df_features = pd.merge(df_features,posthoc_features,how="left",left_index=True,right_index=True)
         
         # New Data Source
         # as the outside and field datasets contain the same covariates collected before arrival at the study site
         # we only use this data as a robustness check. This decision was approved by Dr. Devlin
         # we do not include medsgiven and a prior hospital or EMS, nor do we include the GCS or AVPU score outside the study site
-        # TODO: justify
+        # TODO: justify in report
             
         all_auxiliary_features = ss_arrival_features + ss_pain_features
         outside_data = r['clinicalpresentationoutside.csv']
@@ -96,7 +95,6 @@ class Dataset(DatasetTemplate):
        
         outside_covariates = [col for col in outside_data if col in all_auxiliary_features]
         ems_covariates = [col for col in ems_data if col in all_auxiliary_features]
-        # TODO: sedatives and GCS?
         
         outside_included_data = outside_data[outside_covariates]
         outside_included_data.columns = outside_included_data.columns.astype(str) + '_outside'
@@ -112,7 +110,7 @@ class Dataset(DatasetTemplate):
         demographic_data = r['demographics.csv']
         demographic_features = ['AgeInYears','Gender','Race','PayorType']
         demographic_included_data = demographic_data[demographic_features].rename\
-        (columns={"Race": "posthoc_Race", "PayorType": "posthoc_PayorType"})
+        (columns={"Race": "Race_posthoc", "PayorType": "PayorType_posthoc"})
         df_features = pd.merge(df_features,demographic_included_data,how="left",left_index=True,right_index=True)
         
         
@@ -122,7 +120,7 @@ class Dataset(DatasetTemplate):
         ic_summary_data = injuryclassification_data[["CSFractures","Ligamentoptions","CervicalSpineSignalChange"]]
         ic_summary_data.rename(columns={"CSFractures": "CervicalSpineFractures",\
                                         "Ligamentoptions": "LigamentInjury"},inplace=True)
-        ic_summary_data.columns = 'posthoc_' + ic_summary_data.columns.astype(str)
+        ic_summary_data.columns = ic_summary_data.columns.astype(str) + '_posthoc'
         df_features = pd.merge(df_features,ic_summary_data,how="left",left_index=True,right_index=True)
         
         # New Data Source
@@ -157,7 +155,7 @@ class Dataset(DatasetTemplate):
         # For post-hoc evaluation we consider what radiological tests were ordered at the study site
         radiologysite_data= r['radiologysite.csv']
         radiologysite_icluded_data = radiologysite_data[["Xrays","CTPerformed","MRIPerformed"]]
-        radiologysite_icluded_data.columns = 'posthoc_' + radiologysite_icluded_data.columns.astype(str) + '_site'
+        radiologysite_icluded_data.columns = radiologysite_icluded_data.columns.astype(str) + '_site_posthoc'
         df_features = pd.merge(df_features,radiologysite_icluded_data,how="left",left_index=True,right_index=True)
 
         
@@ -178,10 +176,10 @@ class Dataset(DatasetTemplate):
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         
         # list of categorical columns to ignore
-        categorical_covariates = ['posthoc_Race','posthoc_PayorType',\
-                                  'posthoc_OutcomeStudySite','posthoc_OutcomeStudySiteMobility','posthoc_OutcomeStudySiteNeuro']
+        categorical_covariates = ['Race_posthoc','PayorType_posthoc',\
+                                  'OutcomeStudySite_posthoc','OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc']
         df = cleaned_data
-        #
+        
         # add a binary outcome variable for CSI injury 
         df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
 
@@ -201,7 +199,7 @@ class Dataset(DatasetTemplate):
         df.drop(['ambulatory'], axis=1, inplace=True)
         
         # change gender in to binary indicator for male (60% majority category)
-        df.loc[:,'male'] = df.loc[:,'Gender'].replace(['M','F','ND'],[True,False,False])
+        df.loc[:,'Male'] = df.loc[:,'Gender'].replace(['M','F','ND'],[True,False,False])
         df.drop(['Gender'], axis=1, inplace=True)
         
         # drop uniformative columns which only contains a single value
@@ -220,10 +218,11 @@ class Dataset(DatasetTemplate):
         df = df.join(avpu_one_hot)
         
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0]) # re-caluclated if we impute
+        df['GCSbelow9'] = (df['TotalGCS'] < 9).replace([True,False],[1,0])
         
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
         
-        df = helper.build_robust_binary_covariates(df)
+        df = helper.build_binary_covariates(df)
         
         return df
 
@@ -234,14 +233,7 @@ class Dataset(DatasetTemplate):
         df = helper.derived_feats(df,veryyoung_age_cutoff=kwargs['veryyoung_age_cutoff'],\
                                   nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
                                  young_adult_age_cutoff=kwargs['young_adult_age_cutoff'])
-        
-        robust_columns = df.columns[df.columns.str.endswith('2')]\
-            .drop(['posthoc_OutcomeStudySiteMobility2']) # endswith 2 regex is too strong
-        nonrobust_columns = [col_name[:-1] for col_name in robust_columns] 
-        # drop columns for jdugement call
-        if kwargs['use_robust_av']: df.drop(nonrobust_columns, axis=1, inplace=True)
-        else: df.drop(robust_columns, axis=1, inplace=True)
-            
+                    
         '''
         # bin useful continuous variables age
         binning_dict = {}
@@ -267,9 +259,9 @@ class Dataset(DatasetTemplate):
         
         if kwargs['impute_outcomes']:
             # Judgement call to fill ~2% of units without these outcomes as normal
-            df['posthoc_OutcomeStudySiteMobility'][(pd.isna(df['posthoc_OutcomeStudySiteMobility']))] = 'N'
-            df['posthoc_OutcomeStudySiteNeuro'][(pd.isna(df['posthoc_OutcomeStudySiteNeuro']))] = 'NR'
-        else: df = df.dropna(subset=['posthoc_OutcomeStudySiteMobility','posthoc_OutcomeStudySiteNeuro'])
+            df['OutcomeStudySiteMobility_posthoc'][(pd.isna(df['OutcomeStudySiteMobility_posthoc']))] = 'N'
+            df['OutcomeStudySiteNeuro_posthoc'][(pd.isna(df['OutcomeStudySiteNeuro_posthoc']))] = 'NR'
+        else: df = df.dropna(subset=['OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc'])
                     
         # Judgement call to impute remaining ~10% of units without GCS as max e.g. 4/5/6=15
         # As with AVPU, we add an indicator of whether GCS was NA before imputation
@@ -296,19 +288,6 @@ class Dataset(DatasetTemplate):
         df['GCSbelow9'] = (df['TotalGCS'] <= 8).replace([True,False],[1,0])
         
         pd.options.mode.chained_assignment = 'warn'
-
-        
-        '''
-        # drop posthoc
-        posthoc_columns = [col for col in df.columns if 'posthoc' in col]
-        df = df.drop(posthoc_columns,axis=1).copy()
-            
-        # code for indicators of missing GCS
-        df['GCS_NA_total'] = pd.isna(df['TotalGCS']).replace([True,False],[1,0])
-        df['GCS_NA_eye'] = pd.isna(df['GCSEye']).replace([True,False],[1,0])
-        df['GCS_NA_motor'] = pd.isna(df['MotorGCS']).replace([True,False],[1,0])
-        df['GCS_NA_verbal'] = pd.isna(df['VerbalGCS']).replace([True,False],[1,0])
-        '''
         
         for column in df.columns:
             char_column = df[column] # select column
@@ -388,11 +367,6 @@ class Dataset(DatasetTemplate):
             },
             'preprocess_data': {             
             },'extract_features': { 
-                # some variables from `AnaylsisVariables.csv` end with a 2
-                # using positive findings from field or outside hospital documentation these have 
-                # the response to YES from NO or MISSING. The Leonard (2011) study considers them more robust
-                # use mirror this perturbation for our own derived features
-                'use_robust_av':[False, True], #TODO: refactor
                 # age cutoffs choices based on rules shared by Dr. Devlin
                 'veryyoung_age_cutoff':[2,1,1.5],
                 'nonverbal_age_cutoff':[5,4,6],
@@ -461,6 +435,7 @@ class Dataset(DatasetTemplate):
             if not keep_na:
                 imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'])
             else: imputed_data = featurized_data
+            
             df_train, df_tune, df_test = cache(self.split_data)(imputed_data, **{'control_types': control_types})
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]

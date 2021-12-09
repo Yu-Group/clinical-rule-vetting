@@ -129,15 +129,14 @@ def build_binary_covariates(df):
        'axialloadtop', 'Clotheslining']
     
     robust_av_names = [covar_name+'2_binary' for covar_name in av_names if covar_name+'2_binary' in df.columns.astype(str)]
-    print('FocalNeuroFindings2' in df.columns.astype(str))
+
     for robust_av in robust_av_names:
         base_av = robust_av[:-8] # strip off 2_binary
         df[base_av+'_improved'] = df[robust_av].copy()
         df[base_av+'_improved'][df[base_av+'_binary']==1] = 0 # condition remains indicated at study site
         # note we remove the `_binary` suffix, will do this for other variables later in this function
-    print('FocalNeuroFindings2_binary' in df.columns.astype(str))
     df.drop(robust_av_names,axis=1,inplace=True)
-    print('FocalNeuroFindings2_binary' in df.columns.astype(str))    
+  
     # for binary variables available before study site admission, create a similar `_improved` indicator
     all_covariates = df.columns
     ems_binary_var = pd.Series(all_covariates[all_covariates.str.endswith('_ems_binary')])
@@ -159,13 +158,13 @@ def build_binary_covariates(df):
         df[robust_var+'_improved_binary'] = 0
         
         if robust_var+'_ems_binary' in df.columns:
-            df[robust_var+'_improved_binary'][(df[robust_var+'_binary']==0) &
-                (df[robust_var+'_ems_binary']==1)] = 1 # condition no longer remains indicated at study site
+            df[robust_var+'_improved_binary'][(df[robust_var+'_binary'].copy()==0) &
+                (df[robust_var+'_ems_binary'].copy()==1)] = 1 # condition no longer remains indicated at study site
             robust_var_names_removal.append(robust_var+'_ems_binary')
             
         if robust_var+'_outside_binary' in df.columns:
-            df[robust_var+'_improved_binary'][(df[robust_var+'_binary']==0) &
-                (df[robust_var+'_outside_binary']==1)] = 1  
+            df[robust_var+'_improved_binary'][(df[robust_var+'_binary'].copy()==0) &
+                (df[robust_var+'_outside_binary'].copy()==1)] = 1  
             robust_var_names_removal.append(robust_var+'_outside_binary')
         
     df.drop(robust_var_names_removal,axis=1,inplace=True)
@@ -173,7 +172,7 @@ def build_binary_covariates(df):
     # of data measured away from and at the study site, only GCS scores are not converted to improved
 
     df.columns = [col_name[:-7] if col_name.endswith('_binary') else col_name for col_name in df.columns]
-    print('FocalNeuroFindings2' in df.columns.astype(str))
+
     return df
 
 def get_outcomes():
@@ -283,7 +282,7 @@ def impute_missing_binary(df, n = 0.05):
     
     binary_covariates = [col_name for col_name in df.columns if ((len(pd.unique(df[col_name]))==2) |\
                                                                  (len(pd.unique(df[col_name]))==3))]
-    binary_covariates.remove('posthoc_OutcomeStudySite') # boolean but encoded as string
+    binary_covariates.remove('OutcomeStudySite_posthoc') # boolean but encoded as string
             
     # fill binary NaN by "0"
     # Mean imputation removes most of the correlations in this data
