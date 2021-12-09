@@ -4,7 +4,7 @@ import pandas as pd
 from rulevetting.templates.model import ModelTemplate
 
 class Baseline(ModelTemplate):
-    def __init__(self, age_group):
+    def __init__(self, age_group='old'):
         # query for each rule + resulting predicted probability in young tree
         if age_group == 'young':
             self.rules = [
@@ -51,15 +51,32 @@ class Baseline(ModelTemplate):
         self.str_print = str_print
         return predicted_probabilities
 
+    def add_var(self, data) :
+        df = data.copy()
+
+        df['HemaBinary'] = np.maximum.reduce([df['HemaLoc_Occipital'], df['HemaLoc_Parietal/Temporal']])
+        df['LocBinary'] = np.maximum.reduce([df['LocLen_5 sec - 1 min'], df['LocLen_1-5 min'], df['LocLen_>5 min']])
+        df['MechBinary'] = df['High_impact_InjSev_High']
+        df['HABinary'] = df['HASeverity_Severe']
+        df['SeizLen'] = np.maximum.reduce([df['SeizLen_1-5 min'], df['SeizLen_5-15 min'], df['SeizLen_>15 min']])
+        df['HemaSizeBinary'] = np.maximum.reduce([df['HemaSize_Large'], df['HemaSize_Medium']])
+        df['LocSeparateBinary'] = np.maximum.reduce([df['LOCSeparate_Suspected'], df['LOCSeparate_Yes']])
+        df['SFxPalpBinary'] = np.maximum.reduce([df['SFxPalp_Unclear'], df['SFxPalp_Yes']])
+
+        return df
+
     def predict(self, df_features: pd.DataFrame):
-        predicted_probabilities = self._traverse_rule(df_features)
+        df = self.add_var(df_features)
+        predicted_probabilities = self._traverse_rule(df)
         print(predicted_probabilities)
         return (predicted_probabilities > 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self._traverse_rule(df_features) / 100
+        df = self.add_var(df_features)
+        predicted_probabilities = self._traverse_rule(df) / 100
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_model(self, df_features):
-        self._traverse_rule(df_features)
+        df = self.add_var(df_features)
+        self._traverse_rule(df)
         return self.str_print
