@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-mit-blue.svg">
-  <img src="https://img.shields.io/badge/python-3.8-blue">
+  <img src="https://img.shields.io/badge/python-3.7-blue">
   <a href="https://github.com/Yu-Group/rule-vetting/actions"><img src="https://github.com/Yu-Group/rule-vetting/workflows/tests/badge.svg"></a>
   <img src="https://img.shields.io/github/checks-status/Yu-Group/rule-vetting/master">
 </p>  
@@ -17,7 +17,7 @@ We use a robust pipeline to vet previous clinical decision rules proposed in the
 
 | Dataset |  Task                                                        | Size                            | References | Processed |
 | ---------- | ----- | ----------------------------------------------------------- | :-------------------------------: | :--: |
-|[csi_pecarn](rulevetting/projects/csi_pecarn)| Predict cervical spine injury in children | 3,314 patients, 540 with CSI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) |❌|
+|[csi_pecarn](rulevetting/projects/csi_pecarn)| Predict cervical spine injury in children | 3,314 patients, 540 with CSI | [📄](https://pecarn.org/studyDatasets/documents/Kuppermann_2009_The-Lancet_000.pdf), [🔗](https://pecarn.org/datasets/) |✅|
 
 
 <p align="center">
@@ -34,12 +34,12 @@ Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md)
   - [x] Install the repo as shown [below](https://github.com/Yu-Group/rule-vetting#installation)
   - [x] Select a dataset - once you've selected, open an issue in this repo with the name of the dataset + a brief description so others don't work on the same dataset 	
   - [x] Assign a `project_name` to the new project (e.g. `iai_pecarn`) 	
-- [ ] Data preprocessing
+- [x] Data preprocessing
   - [x] Download the raw data into `data/{project_name}/raw`
     - Don't commit any very large files
   - [x] Copy the template files from `rulevetting/projects/iai_pecarn` to a new folder `rulevetting/projects/{project_name}`
 	- [x] Rewrite the functions in `dataset.py` for processing the new dataset (e.g. see the dataset for [iai_pecarn](rulevetting/projects/iai_pecarn/dataset.py))
-    - [ ] Document any judgement calls you aren't sure about using the `dataset.get_judgement_calls_dictionary` function
+    - [x] Document any judgement calls you aren't sure about using the `dataset.get_judgement_calls_dictionary` function
         - See [the template file](rulevetting/templates/dataset.py) for documentation of each function or the [API documentation](https://yu-group.github.io/rule-vetting/)
     - Notebooks / helper functions are optional, all files should be within `rulevetting/projects/{project_name}`
 - [ ] Data description
