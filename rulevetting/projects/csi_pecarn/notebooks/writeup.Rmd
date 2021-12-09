@@ -436,13 +436,14 @@ In general, this stability check demonstrates that our models are robust to the 
 
 We evaluate our three models on the test set, the results of which are shown in Table \blue{\ref{tab:test-res}}. The thresholds used for these algorithms are obtained from the tuning set.
 
-We see that all three models achieve sensitivities above 98% on the test set with over 74% specificity. These results are very similar to their counterparts on the tuning set, indicating that our models do not suffer from overfitting and can generalize well to new data from the same population.
+We see that all three models achieve sensitivities above 98% on the test set with over 74% specificity. These results are very similar to their counterparts on the tuning set. This all indicates that our models do not suffer from overfitting and can generalize well to new data from the same population. Note that the both the sensitivity and specificity of the baseline model are strikingly lower than the other models.
 
 ```{r test-res}
 test_results <- data.frame(
   AdaBoost = c(0.983, 0.763),
   Tree = c(0.983, 0.742),
-  Logistic = c(0.983, 0.763)
+  Logistic = c(0.983, 0.763),
+  Baseline = c(0.944, 0.388)
 )
 rownames(test_results) <- c("Sensitivity", "Specificity")
 test_results <- t(test_results) %>% data.frame()

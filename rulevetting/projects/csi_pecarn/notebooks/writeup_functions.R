@@ -36,7 +36,7 @@ plotROC <- function(sens, spec, model = "Decision Tree") {
     geom_point(size = 1, color = col) + 
     geom_path(color = col) +
     labs(x = "Sensitivity", y = "Specificity", title = model) + 
-    geom_point(aes(x = 0.98, y = 0.26), size = 3, color = "black") +
+    geom_point(aes(x = 0.9439, y = 0.3903), size = 3, color = "black") +
     theme_minimal() + 
     theme(plot.title = element_text(hjust = 0.5))
   return(p)
