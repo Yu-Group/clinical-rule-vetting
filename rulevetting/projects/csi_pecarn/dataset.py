@@ -233,7 +233,10 @@ class Dataset(DatasetTemplate):
                                   nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
                                  young_adult_age_cutoff=kwargs['young_adult_age_cutoff'],
                                  stairs_cutoff=kwargs['stairs_cutoff'])
-                    
+        
+        # manually remove some features
+        features_to_remove = ['ReceivedInTransfer','CervicalSpineImmobilization']
+        df.drop(features_to_remove,axis=1,inplace=True)
         '''
         # bin useful continuous variables age
         binning_dict = {}
