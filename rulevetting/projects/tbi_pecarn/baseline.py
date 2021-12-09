@@ -14,8 +14,8 @@ class Baseline(ModelTemplate):
                 ('LocBinary == 1', 1.98),
                 ('MechBinary == 1', 0.46),
                 ('SFxPalpBinary == 1', 4.81),
-                ('ActNorm == 1', 0.44),
-                ('ActNorm == 0', 0.02)
+                ('ActNorm == 0', 0.44),
+                ('ActNorm == 1', 0.02)
             ]
 
         # query for each rule + resulting predicted probability in old tree
@@ -28,7 +28,7 @@ class Baseline(ModelTemplate):
                 ('MechBinary == 1', 0.54),
                 ('SFxBas == 1', 8.99),
                 ('HABinary == 1', 0.94),
-                ('HABinary == 0', 7/14663)
+                ('HABinary == 0', 100*7/14663)
             ]
             
     def _traverse_rule(self, df_features: pd.DataFrame):
