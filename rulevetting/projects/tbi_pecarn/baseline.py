@@ -10,11 +10,11 @@ class Baseline(ModelTemplate):
         self.agegroup = agegroup
         if self.agegroup == 'young':
             self.rules = [
-                ('AMS == 1', 7.5),
+                ('AMS == 1', 4.1),
                 ('HemaLoc == [2, 3]', 1.9),
                 ('LocLen == [2, 3, 4]', 2.0),
                 ('High_impact_InjSev == 3', 0.5),
-                ('SFxPalp == [1,2]', 4.8),
+                ('SFxPalp == 1', 33.3),
                 ('ActNorm == 0', 0.4),
 
                 # final condition is just something that is always true
@@ -22,11 +22,11 @@ class Baseline(ModelTemplate):
             ]
         if self.agegroup == 'old':
             self.rules = [
-                ('AMS == 1', 10.0),
+                ('AMS == 1', 4.1),
                 ('LOCSeparate == [1, 2]', 1.2),
                 ('Vomit == 1', 0.9),
                 ('High_impact_InjSev == 3', 0.5),
-                ('SFxBas == 1', 8.9),
+                ('SFxBas == 1', 9.0),
                 ('HASeverity == 3', 1.3),
 
                 # final condition is just something that is always true
@@ -84,6 +84,13 @@ if __name__ == '__main__':
     # use original data
     tbi_df = Dataset().clean_data()
     tbi_df.index = tbi_df.PatNum.copy()
+
+    # data processing
+    tbi_df = tbi_df[tbi_df['GCSGroup'] == 2]
+    tbi_df.drop(tbi_df[tbi_df.PosIntFinal.isnull()].index,
+                        inplace=True)
+
+
 
     # divided by ages
     tbi_df_young = tbi_df[tbi_df['AgeinYears'] < 2]
