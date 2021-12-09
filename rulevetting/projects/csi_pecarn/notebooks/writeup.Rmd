@@ -54,28 +54,29 @@ all <- rbind(train, tune, test)[, -1]
 
 # Introduction and Domain Problem {#sec:intro}
 
-Cervical spine injuries (CSI) include injuries sustained to the spinal cord connecting the head and neck to the rest of the body. These injuries, albeit rare, are extremely severe for children whose bodies are still developing. CSI detection strategies include the use of a **computed tomography (CT) scan**, among others. While these interventions are generally effective at pinpointing injuries, they have the potential to inadvertently expose children to ionizing radiation and cause unnecessary pain (@leonard2011factors). 
+Cervical spine injuries (CSI) include injuries sustained to the spinal cord connecting the head and neck to the rest of the body. These injuries, albeit rare, are extremely severe for children whose bodies are still developing. CSI detection strategies include the use of a **computed tomography (CT) scan**, among others. While these interventions are effective at pinpointing injuries, they can inadvertently expose children to ionizing radiation and cause unnecessary pain (@leonard2011factors). 
 
-The rarity of a CSI, in conjunction with the potentially harmful effects of CSI detection methods, force clinicians and specialists to assess the risk of performing a CT scan against the potential of missing critical injury diagnoses. The decision of whether to perform a CT scan or not is supported through a **clinical decision rule (CDR)** which uses prior data of potential CSI injuries to predict whether a patient has sustained a true CSI or not. Doctors use the results of the CDR and their own assessment of the situation to decide if the risk of a CT scan outweighs its potential benefits. 
+The rarity of a CSI, combined with the potentially harmful effects of CSI detection methods, force clinicians and specialists to assess the risk of performing CT scans against the potential of missing a critical injury diagnosis. The decision of whether to perform a CT scan or not is supported through a **clinical decision rule (CDR)** which uses prior data of potential CSI injuries to predict whether a patient has sustained a true CSI or not. Doctors use the results of the CDR and their own assessment of the situation to decide if the risk of a CT scan outweighs its potential benefits. 
 
 Current predictive capabilities in this regime have high sensitivity but low specificity values. This means that, while more children are undergoing CT scans, these scans do not detect injury, resulting in the aforementioned consequences. @leonard2011factors performed multiple logistic regression analyses, resulting in 94% sensitivity with 39% specificity. **Therefore, our objective is to improve on current CDR methods by increasing specificity without sacrificing sensitivity, all while maintaining interpretability throughout the process.**
 
-In this project, we develop a CDR for predicting CSI in children, based on data provided by the Pediatric Emergency Care Applied Research Network (PECARN). The data are described in Section \blue{\ref{sec:data}}. **Our objective is to predict the true outcome of a patient's trauma (whether they truly have a CSI).** We ensure all components of our CDR are interpretable and realistically accessible to physicians when speculation of a CSI is called into question. Throughout the modeling process, we ensure that our predictions are accurate, stable, and capture the breadth of possible injuries and the varying medical and demographic history of each patient.   
+In this project, we develop a CDR for predicting CSI in children, based on data provided by the Pediatric Emergency Care Applied Research Network (PECARN). The data are described in Section \blue{\ref{sec:data}}. We ensure all components of our CDR are interpretable and realistically accessible to physicians when speculation of CSI is called into question. Throughout the modeling process, we ensure that our predictions are accurate, stable, and capture the breadth of possible injuries for each patient.   
 
 The structure of this report is as follows: In Section \blue{\ref{sec:data}}, we explain our data and the features used to predict CSI. In Section \blue{\ref{sec:eda}}, we conduct an exploratory data analysis. Sections \blue{\ref{sec:modeling}}, \blue{\ref{sec:stability}}, and \blue{\ref{sec:testset}} concern the modeling process and stability checks, followed by concluding remarks in Section \blue{\ref{sec:conclusion}}.
 
 
 # Data Collection {#sec:data}
 
-Our data is provided by the Pediatric Emergency Care Applied Research Network (PECARN), which contains patient CSI information from a previous CDR study conducted by @leonard2011factors. The previous study contained children both with and without CSI. The children without CSI were placed into three control groups: mechanism of injury (MOI), emergency medical services (EMS) and a random control group.  
+Our data contains patient CSI information from a previous CDR study conducted by @leonard2011factors. The data consist of 12 datasets, each containing various categories of information about the patients, such as demographics, medical history, mechanism of injury, their appearance at the time of response and arrival at the hospital, among others. 
+
+The previous study contained children both with and without CSI. The children without CSI were placed into three control groups: mechanism of injury (MOI), emergency medical services (EMS) and a random control group.  
 
 The MOI group is created by matching non-injured patients to injured patients with a similar injury mechanism (1012 patients), The EMS group is created by matching non-injured patients who required EMS out-of-hospital care to injured patients who also required this service (702 patients). The random control group (1060 patients) is simply a random matching of patients were who were not injured to patients who were injured. There were 540 patients in the case group (the truly injured patients)
 
 In our study, we are only interested in distinguishing true injury from simple trauma. We group all of the sub-control groups into a single control group for more refined predictions.
 
-The data consist of 12 datasets, each containing various categories of information about the patients, such as demographics, medical history, mechanism of injury, their appearance at the time of response and arrival at the hospital, among others. 
 
-Some datasets have the same name, but are denoted with an `field`, `out` or `site` at the end of the file name (e.g `clinicalpresentationfield` vs `clinicalpresentationsite`). The suffix "field" denotes measurements of the patient at the location where the injury was sustained, such as the site of the car crash or the patient's home. The suffix "out" refers to information reported by an outside hospital referring the patient to the PECARN system. Note that this information is not available for patients who were not referred by an outside hospital. The suffix "site" refers to information collected at the PECARN hospital site. **The site information is always collected last**, with the outside hospital information collected between field and site if pertinent. 
+Some datasets have the same name, but are denoted with an `field`, `out` or `site` at the end of the file name (e.g `clinicalpresentationfield` vs `clinicalpresentationsite`). The suffix "field" denotes measurements of the patient at the location where the injury was sustained, such as the site of the car crash or the patient's home. The suffix "out" refers to information reported by an outside hospital referring the patient to the PECARN system. Note that this information is not available for patients who were not referred through an outside hospital. The suffix "site" refers to information collected at the PECARN hospital site. **The site information is always collected last**, with the outside hospital information collected between field and site if pertinent. 
 
 It is also important to recognize that this data is extremely prone to human and/or machine error. We describe potential lapses in the data collection process in Section \blue{\ref{sec:meaning}}. The data cleaning process is discussed in Section \blue{\ref{sec:clean}}.
 
@@ -83,9 +84,9 @@ It is also important to recognize that this data is extremely prone to human and
 
 ## Meaning {#sec:meaning}
 
-In order to better group the variables in our data, we separate them into **three distinct categories: demographic information, injury mechanism, and trauma presentation.** Demographic information simply refers to the patient's basic information, such as age, gender, and ethnicity. While these features may have very little predictive power, they can be useful in grouping injured or non-injured patients post-hoc.
+In order to better understand the variables in our data, we separate them into **three distinct categories: demographic information, injury mechanism, and trauma presentation.** Demographic information simply refers to the patient's basic information, such as age, gender, and ethnicity. While these features may have very little predictive power, they can be useful in grouping injured or non-injured patients post-hoc.
 
-Injury mechanism refers to how the patient sustained their trauma. Examples of injury mechanism include a vehicle accident, child abuse, assault, or falling. Each category of injury is then further elucidated into more specific modes of injury (such as a rear-end collision vs a side impact collision). Most mechanisms of injury in the given data are injuries sustained from various youth sports or from a motor vehicle accident.
+Injury mechanism refers to how the patient sustained their trauma. Examples include a vehicle accident, child abuse, assault, or falling. Each category of injury is then further elucidated into more specific modes of injury (such as a rear-end collision vs a side impact collision). Most mechanisms of injury in the given data are injuries sustained from various youth sports or from a motor vehicle accident.
 
 Finally, trauma presentation refers to the condition of the patient when they arrive to the hospital or at the site of trauma. These features are spanned across multiple datasets. Features in this category include whether the patient is conscious or not, whether they report neck or facial pain, whether their mental status appears to be normal, among others. 
 
@@ -100,7 +101,7 @@ By assuming our data is correct, we are assuming that no errors were made in the
 
 ## Relevance and Randomness {#sec:rand}
 
-The data provided are relevant to our study. The features described in our model are all accessible to a physician when they make their clinical decision. If any additional data is necessary, it could include other potentially useful features that are typically made available to a physician at the time of making the clinical decision. We do not collect any more data since we are provided with all of the data recorded by PECARN and it is highly unlikely that additional data that is pertinent to this study even exists.
+The data provided are relevant to our study. The features described in our model are all accessible to a physician when they make their clinical decision. If any additional data is necessary, it could include other potentially useful features that are typically made available to a physician at the time of making the clinical decision. We do not collect more data since we are provided with all of the data recorded by PECARN, and it is highly unlikely that additional data that is pertinent to this study even exists.
 
 
 Moreover, this problem is an observational study. Patients are assigned to case or control group based on whether they have a CSI, and each patient in the case group has several matching controls. Thus, the patients in our data cannot be treated as totally independent observations from a population. However, the dependence among the patients only exists within each matching pair, and different matching pairs can be treated as independent. By using random splitting (discussed in Section \blue{\ref{sec:comparability}}), we ensure that our training, validation and test sets have roughly the same distribution conditioned on the given data, and therefore we can hope that the models fitted using training data generalize well to the test set.
@@ -114,17 +115,16 @@ Moreover, this problem is an observational study. Patients are assigned to case 
 
 Our initial feature space included over 300 features and an interpretable model only requires a small fraction of these features. We trim down our initial subset of features through the consultation of domain experts in cervical spine injury. Utilizing the assistance of Dr. Michael Boyle, a physician in the UC San Francisco School of Medicine, we reduced our feature space to roughly 51 variables to perform variable selection on.
 
-The omitted features were mostly redundant information or information that would not be provided to a physician when making a clinical decision. These omissions were largely determined through domain-expert judgment calls. When in doubt, we retained a questionable feature to avoid potentially losing crucial predictive information. As discussed in Section \blue{\ref{sec:feat-sel}}, we use a more rigorous variable selection process to determine our best features for modeling.
+The omitted features were mostly redundant information or information that would not be provided to a physician when making a clinical decision. These omissions were largely determined through domain-expert judgment calls. When in doubt, we retained a questionable feature to avoid potentially losing crucial predictive information. As discussed in Section \blue{\ref{sec:feat-sel}}, we use a more rigorous variable selection process after this step to determine our best features for modeling.
 
 
 ## Data Cleaning {#sec:clean}
 
-In order to create an interpretable decision rule, we map our categorical features into binary 0-1 features, **with 1 corresponding to "yes" and 0 corresponding to "no".** However, not all features can be uniformly binarized with this mapping, so we implement several layers of judgment calls described below.
-
+In order to create an interpretable decision rule, we map our categorical features into binary 0-1 features, **with 1 corresponding to "yes" and 0 corresponding to "no".** However, not all features can be uniformly binarized with this mapping, so we implement several layers of judgment calls described below:
 
 \underline{\textit{\textbf{Ambiguous values}}:} Certain features convey a degree of ambiguity in the recorded value. This could indicate a variety of things such as whether the data was unavailable to the nurse or EMT, or if the patient is in a state where a reliable response cannot be elicited (such as being inebriated or unconscious). These values are imputed using *defensive imputation* which assumes the worst-case scenario for the patient. For example, a value of `S` which stands for "suspected, but unknown" would map to "yes". Fortunately, the data contains documentation which provides meaning to the possible values for each feature. Note that this does not default to imputing all missing values with "yes." We must consider what each feature is asking for and determine the worst-case scenario accordingly.
 
-\underline{\textit{\textbf{Ordinal features}}:} Our feature space contains an ordinal feature, `AVPU`. AVPU stands for "Alert, Verbal, Pain, Unresponsive", and is a widely accepted health care protocol to determine a patient's overall condition. Each letter in "AVPU" corresponds to a more urgent patient status. Alertness and unresponsiveness are simply whether the patient is alert or unresponsive. "Verbal" and "Pain" correspond to whether the patient is receptive to verbal or painful stimulation. In our case, we treat anything that is not alert as the worst-case scenario and impute accordingly. Failing to respond to any stimuli whatsoever should be heavily scrutinized and our imputation takes this into account.
+\underline{\textit{\textbf{Ordinal features}}:} Our feature space contains an ordinal feature, `AVPU`, which stands for "Alert, Verbal, Pain, Unresponsive". This is a widely accepted health care protocol to determine a patient's overall condition. Each letter in "AVPU" corresponds to a more urgent patient status. Alertness and unresponsiveness are simply whether the patient is alert or unresponsive. "Verbal" and "Pain" correspond to whether the patient is receptive to verbal or painful stimulation. In our case, we treat anything that is not alert as the worst-case scenario and impute accordingly. Failing to respond to any stimuli whatsoever should be heavily scrutinized and our imputation takes this into account.
 
 
 \underline{\textit{\textbf{Missing values}}:} Certain columns in the data contain blank or missing values. Features with a proportion of missing values above 15% are removed from this analysis. The remaining missing values are imputed using the *median* value of the binary features. In other words, we impute missing values with whatever response (0 or 1) has the highest frequency for the non-missing values. For instance, if we do not have data on whether a patient has tenderness in their neck, we impute based on which value occurs most frequently. 
@@ -135,7 +135,7 @@ num_case <- all %>% filter(outcome == 1) %>% nrow()
 ```
 
 
-Note that all judgment calls that directly involved medical subject-matter expertise were verified by Dr. Boyle.
+All judgment calls that directly involved medical subject-matter expertise were verified by Dr. Boyle.
 
 Our final cleaned data contains `r num_control` control patients and `r num_case` patients who were truly injured with CSI. 
 
@@ -206,9 +206,9 @@ These figures show that, while there is some overlap across the two sub-groups, 
 
 ## Translation and Comparability {#sec:comparability}
 
-Our statistical goal is to accurately diagnose a cervical spine injury (minimize Type II error) while also keeping the Type I error rate as low as possible. In the context of CSI, a Type II error occurs when our CDR determines no CSI is present when when the patient has actually sustained a CSI. This statistical flaw bears serious and life-threatening consequences on children and we must pay special attention to this rate. A Type I error occurs when our CDR determines CSI is present even though the patient is actually not injured.  
+Our statistical goal is to accurately diagnose a cervical spine injury (minimize Type II error) while also keeping the Type I error rate as low as possible.^[Here we slightly abuse the concept of Type I and II error since there is no distributional assumption in our problem.]  In the context of CSI, a Type II error occurs when our CDR determines no CSI is present when when the patient has actually sustained a CSI. This statistical flaw bears serious and life-threatening consequences on children and we must pay special attention to this rate. A Type I error occurs when our CDR determines CSI is present even though the patient is actually not injured.  
 
-Reducing the Type I error rate can reduce the number of unnecessary CT scans and hence improve the efficiency. Our goal is then translated into **maximizing sensitivity while maintaining a sufficiently high specificity**. ^[Here we slightly abuse the concept of Type I and II error since there is no distributional assumption in our problem.] 
+Reducing the Type I error rate can reduce the number of unnecessary CT scans and hence improve the efficiency. Our goal is then translated into **maximizing sensitivity while maintaining a sufficiently high specificity**. 
 
 
 Note that if Type II errors are our only area of concern, there is no need for any decision rule since a clinician would diagnose a CSI and perform a CT scan for all situations. As mentioned in the Introduction (Section \blue{\ref{sec:intro}}), CT scans could result in unnecessary exposure to ionizing radiation, which is also harmful. Therefore, we must strike a balance between taking the conservative route of always diagnosing someone with CSI and the worst-case scenario of not diagnosing a serious injury. 
@@ -224,11 +224,11 @@ These splits were determined randomly as there is no underlying temporal or spat
 
 We use **logistic regression** followed by **backwards selection** to select our model features. We first fit the outcome against all features with logistic regression and then omit the feature with the smallest absolute fitted coefficient value. There is no need to scale our features since they are all binary. This process repeats until $m$ features remain, where $m$ is a pre-specified number. This variable selection process is called recursive feature elimination (RFE) in Python and can be done automatically. 
 
-To select the number of features $m$, we run logistic regression model with $m=1,2,..., 10$ features on the training data and select the one with the lowest misclassification rate on the tuning data, resulting in an optimal value of $m=9$. However, the stability check performed in Section \blue{\ref{sec:stability}} reveals that 8 features results in a more optimal CDR. Seeing that the data science life cycle is an iterative process, we utilize 8 features in our models. These 8 features correspond to:
+To select the number of features $m$, we run logistic regression model with $m=1,2,..., 10$ features on the training data and select the one with the lowest misclassification rate on the tuning data, resulting in an optimal value of $m=9$. However, the stability check performed in Section \blue{\ref{sec:stability}} reveals that 8 features results in a more optimal CDR. Seeing that the data science life cycle is an iterative process, we select 8 features in our models. These 8 features correspond to:
 
 - Whether the patient was intubated or not (`ArrPtIntub`),
 
-- Whether the patient is suspected of having a CSI (`DxCspineInjury`),
+- Whether the patient is suspected of having a CSI (`DxCspineInjury`) (see Section \blue{\ref{sec:caveats}}),
 
 - Whether the patient has focal neurological deficits such as a spinal cord issue (`FocalNeuroFindings`),
 
@@ -247,13 +247,13 @@ These features were discussed with Dr. Boyle, who verified their legitimacy in a
 
 ## Candidate Models {#sec:candidate}
 
-We create three candidate CDR's using three different learning techniques: AdaBoost, Decision Trees, and Logistic Regression. Each model has their own strengths and weaknesses in terms of interpretability and predictability. For completeness, we also include the Baseline model, Bayesian Rule List, Greedy Rule List (GRL), and RuleFit models provided in the code skeleton.
+We create three candidate CDR's using three different learning techniques: AdaBoost, Decision Trees, and Logistic Regression. Each model has their own strengths and weaknesses in terms of interpretability and predictability. For completeness, we also include the baseline model, Bayesian Rule List, Greedy Rule List (GRL), and RuleFit models provided in the code skeleton.
 
 
 
 The sensitivity and specificity rates for all three models are shown in Figure \blue{\ref{fig:accuracy-rates}}. These values are generated from the tune dataset. The corresponding Receiver Operating Characteristic (ROC) curves for all three models are shown in Figure \blue{\ref{fig:roc-curves}}. In general, we achieve over three times the specificity of @leonard2011factors while maintaining the same sensitivity. The results from @leonard2011factors are shown in the black dot. Statistically speaking, we increase the power over threefold without sacrificing the potential for a Type I error. 
 
-```{r accuracy-rates, out.width="85%", fig.width=9.5, fig.height=6, fig.cap="Sensitivity and specificity rates for candidate models and baseline model. Accuracy rates are assessed at each model's optimal hyperparameter value."}
+```{r accuracy-rates, out.width="85%", fig.width=9.5, fig.height=6, fig.cap="Sensitivity and specificity rates for candidate models and baseline model (second from left). Accuracy rates are assessed at each model's optimal hyperparameter value."}
 type <- c("AdaBoost", "Decision Tree", "Logistic Regression", 
           "Bayesian Rule List", "GRL", "RuleFit", "Baseline")
 colors <- c(rep(c("#2274AE", "goldenrod2"), 6), "gray50", "seagreen")
@@ -295,7 +295,7 @@ ggarrange(roc_ada, roc_bayes, roc_grl, roc_tree, roc_log, roc_rf, ncol = 2, nrow
 
 The `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) has a unique context. This feature is literally a guess as to whether this person has a CSI or if they arrived with a diagnosis. Such information could be revealing of the true outcome even though it is a feature made available to a physician prior to making the CDR. In order to use a feature like this, we must provide a thorough investigation of the feature and ensure that it is indeed reasonable.
 
-A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Thus, we can rely on this information to be provided in general. We then examined how this feature was recorded. Fortunately, our data documentation contains a copy of the form that a nurse or EMT fills out when examining the patient. The question of CSI suspicion appears in the survey along with the other questions that are part of our feature space. If we picture ourselves as the nurse or physician, we can see them record their personal judgment of the patient just like they will record other measurements, such as AVPU or neck tenderness, for example. A copy of the questionnaire with the `DxCspineInjury` feature is shown in Figure \blue{\ref{fig:dxcspine}}.
+A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Thus, we can rely on this information to be provided in general. We then examined how this feature was recorded. Fortunately, our data documentation contains a copy of the form that a nurse or EMT fills out when examining the patient. The question of CSI suspicion appears in the survey along with the other questions that are part of our feature space. If we envision ourselves as the nurse or physician, we can see them record their personal judgment of the patient just like they will record other measurements, such as AVPU or neck tenderness, for example. A copy of the questionnaire with the `DxCspineInjury` feature is shown in Figure \blue{\ref{fig:dxcspine}}.
 
 \begin{figure}[H]
 \includegraphics[height=3.5in, width=5in]{dx_survey.png}
@@ -305,16 +305,16 @@ A rigorous inspection of the raw data reveals that this feature has **zero** mis
 \end{figure}
 
 
-Moreover, subject-matter expertise tells us that there does indeed exist precedents for utilizing judgment calls in decision rules. Dr. Boyle verified that many current decision instruments utilize physician suspicion, such as the [Wells' Criteria for Pulmonary Embolism](https://www.mdcalc.com/wells-criteria-pulmonary-embolism) and the [HEART Score](https://www.mdcalc.com/heart-score-major-cardiac-events). Seeing that such features are utilized in everyday medical practice, there is no reason to exclude it from a decision rule.
+Moreover, subject-matter expertise tells us that there does indeed exist precedents for utilizing judgment calls in decision rules. Dr. Boyle verified that many current decision instruments utilize physician suspicion, such as the Wells' Criteria for Pulmonary Embolism^[https://www.mdcalc.com/wells-criteria-pulmonary-embolism] and the HEART Score^[https://www.mdcalc.com/heart-score-major-cardiac-events]. Seeing that such features are utilized in everyday medical practice, there is no reason to exclude it from a decision rule.
 
 Statistically speaking, as depicted in Figures \blue{\ref{fig:outcomes}} and \blue{\ref{fig:controls}}, this guess is only correct about 50% of the time in the case group compared to 92% of the time in the controls group. We can infer that most of these guesses are not in favor of a CSI. This is indeed true, as roughly 85% of all patients are not predicted to have a CSI.     
 
-All of the arguments above were discussed in detail with Dr. Boyle. Therefore, we are confident that this feature can be utilized in a real-world context. Not only is its distribution statistically reasonable, but we have no reason to believe that this feature is fundamentally different from other features in terms of how it is documented. The only difference is that it relies on a human judgment call, but such a judgment call is being made by a trained professional such as a nurse or EMT.
+All of the arguments above were discussed in detail with Dr. Boyle. Therefore, we are confident that this feature can be utilized in a real-world context. Not only is its distribution statistically reasonable, but we have no reason to believe that this feature is fundamentally different from other features in terms of how it is documented. The only difference is that it relies on a human judgment call, but such judgment calls are commonly utilized in medical practices today.
 
 
 # Stability {#sec:stability}
 
-We verify the stability of our models using three different perturbations. The perturbations are implemented independently from each other. 
+We verify the stability of our models using three different perturbations. **The perturbations are implemented independently from each other.**
 
 We created 10 different train/tune/test set combinations using our existing data. For all 10 data splits, we checked the following:
 
@@ -327,9 +327,9 @@ We created 10 different train/tune/test set combinations using our existing data
 
 ## Feature Selection
 
-Table \blue{\ref{tab:stab-feat}} below shows the count of each variable we chose in Section \blue{\ref{sec:feat-sel}} for the 10 re-generated test/tune/train sets. 
+Table \blue{\ref{tab:stab-feat}} below shows the count of the features we chose in Section \blue{\ref{sec:feat-sel}} for the 10 re-generated train/tune/test sets. 
 
-Naturally, we observe slight shifts in the selected features for the perturbed data. These extra features include `HighriskFall` (3 occurrences), `Predisposed` (2 occurrences), `LongTermRehab`, `HighriskMVC`, `SubInj_Face`, `PtTenderBack`, and `PtTenderChest` which all occur one time. The remaining selected features were all included in our original model's. Our variable selection process is quite stable and we are confident in our choice of variables.
+Naturally, we observe slight shifts in the selected features for the perturbed data. These extra features include `HighriskFall` (3 occurrences), `Predisposed` (2 occurrences), `LongTermRehab`, `HighriskMVC`, `SubInj_Face`, `PtTenderBack`, and `PtTenderChest` which all occur one time. The remaining selected features were all included in our original model's. Our variable selection process is quite stable and we are confident in our choice of features.
 
 ```{r stab-feat}
 stab_feat <- data.frame(
@@ -362,7 +362,7 @@ df_sens %>% knitr::kable(
 
 ## Different control groups
 
-We then check our models' stability by using only one type of control (Random EMS, MOI) at a time instead of grouping the control groups into a singular homogeneous control group. The results are shown in Figure \blue{\ref{fig:diff-cont}}.
+We then check our models' stability by using only one type of control (Random EMS, MOI) at a time instead of grouping all control groups into a singular homogeneous control group. The results are shown in Figure \blue{\ref{fig:diff-cont}}.
 
 ```{r}
 diff_control_tree <- data.frame(
@@ -429,7 +429,7 @@ dc_tree <- melt_tree %>%
 
 We see that, for all three models, the sensitivity is higher (above 98%) if we use group all controls uniformly. This makes sense since the prediction accuracy is likely to increase if we have a larger training set. When comparing one control at a time, all three models can achieve sensitivity above 97% with about 70% specificity except for the decision tree with MOI control. 
 
-In general, this stability check demonstrates that our models are robust to the choice of control group in almost every case. The only counterexample here is probably due to the discrete nature of decision tree, in which the confidence output (the confidence of the model that a patient has a cervical injury) takes its value in a finite set whose cardinality is the number of leaves. The performance of Adaboost and Logistic are identical in all cases. This suggests that Adaboost and Logistic Regression can converge to the same model after training in our specific problem.
+In general, this stability check demonstrates that our models are robust to the choice of control group in almost every case. The only counterexample here is probably due to the discrete nature of decision tree, in which the confidence output (the confidence of the model that a patient has a cervical injury) takes its value in a finite set whose cardinality is the number of leaves. The performance of Adaboost and Logistic Regression are identical in all cases. This suggests that Adaboost and Logistic Regression can converge to the same model after training in our specific problem.
 
 
 # Test set performance {#sec:testset}
@@ -454,11 +454,17 @@ test_results %>% knitr::kable(caption = "\\label{tab:test-res}Performance of mod
 
 # Conclusion {#sec:conclusion}
 
-From the PECARN dataset, we discovered the important features to diagnose CSI in children and created a CDR that is powerful and interpretable. Our candidate models show higher sensitivity with much higher specificity than the current literature. Among the selected features, `FocalNeuroFindings`, `HighriskDiving`, and `SubInj_TorsoTrunk` are present for all three control groups in the original paper. Additionally, they are the only features that both the original paper and our study have in common.
+Using the PECARN dataset, we discovered the important features to diagnose CSI in children and created a CDR that is powerful and interpretable. Our candidate models show higher sensitivity with much higher specificity than the current literature. Among the selected features, `FocalNeuroFindings`, `HighriskDiving`, and `SubInj_TorsoTrunk` are present for all three control groups in the original paper. Additionally, they are the only features that both the original paper and our study have in common.
 
-There are similarities and differences between this study and the previous work for variable selection. Interestingly, both studies selected 8 features for modeling. The choices, however, are not the same. Our feature space includes features utilized in @leonard2011factors among others. In fact, @leonard2011factors restrict themselves to a single dataset out of the 12 provided, whereas we utilize information from additional datasets. We believe this is a key reason for the stronger performance of our model, specifically with regards to specificity.
+There are similarities and differences between this study and the previous work in terms of variable selection. Interestingly, both studies selected 8 features for modeling. The choices, however, are not the same. Our feature space includes features utilized in @leonard2011factors among others. However, @leonard2011factors restricted themselves to a single dataset out of the 12 provided, whereas we utilized information from additional datasets. We believe this is a key reason for the stronger performance of our model, specifically with regards to specificity.
 
-There is a lot of power and credibility attached to a statistician. One can always speculate the performance of stronger models to diagnose CSI. However, interpretability is a bedrock for others to understand the value of statistics and data science. Projects like these demonstrate the importance of creating a product that others can utilize for the good of society.
+There is a lot of power and credibility attached to a statistician. One can always speculate the performance of stronger models to diagnose CSI. However, interpretability is a bedrock for others to understand the value of statistics and data science. Projects like these demonstrate the importance of creating a powerful product that others can understand.
+
+# Acknowledgments
+
+The authors would like to thank Michael Boyle from the UCSF School of Medicine for his advice and expertise in the EDA and modeling process. We would not have been able to assess the real-world components of our model without this subject-matter expertise.
+
+Finally, the authors would like to thank the STAT 215A teaching team, Bin Yu and Omer Ronen, for providing invaluable support and teaching us how to be active learners. This project, along with the many lessons we learned throughout the semester, will serve us well in our future careers as statisticians.
 
 # References
 
