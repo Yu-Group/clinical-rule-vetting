@@ -39,11 +39,11 @@
 
 Clinically-important traumatic brain injuries, hereafter referred to as ciTBIs, are both commonplace and require immediate medical attention. However, diagnoses often require a CT scan to confirm the presence of a TBI \cite{brenner2002estimating}. In children, this need is problematic, as the radiation from a CT scan can lead to long-term adverse affects; hence, given a child presenting with a potential TBI, it is desirable to find a way to decide whether they actually need a CT scan. Note that forgoing a CT scan in the presence of an actual TBI is also undesirable. In this report, we revisit the data from \cite{kuppermann2009identification} and derive an updated decision rule for identifying which child patients need a CT scan. That is, given several descriptors of a patient's status, we translate these into numerical features that we may feed into a statistical model to predict the need for a CT scan. 
 
-TODO: OUTLINE OF SECTIONS
+In this report, we begin by discussing the data in section \ref{sec:data}. We discuss its collection in section \ref{ssec:datacollect} and some of its details in section \ref{ssec:datamean}. We perform a lengthy exploratory data analysis (EDA) in section \ref{ssec:datamean}. In section \ref{sec:model}, we fit models to the data and interpret the results. We discuss the baseline model from \cite{kuppermann2009identification} in section \ref{ssec:baseline} and results in section \ref{ssec:results}. We perform an analysis with an alternative data split (explained later) in section \ref{ssec:verbal}. Finally, we present conclusions in section \ref{sec:conclusions}. 
 
-\section{Data}
+\section{Data}\label{sec:data}
 
-\subsection{Data collection}
+\subsection{Data collection} \label{ssec:datacollect}
 
 % What are the most relevant data to collect to answer the question in (1)? Ideas from experimental design (a subfield of statistics) and active learning (a subfield of machine learning) are useful here. The above question is good to ask even if the data has already been collected because understanding the ideal data collection process might reveal shortcomings of the actual data collection process and shed light on analysis steps to follow. The questions below are useful to ask: How were the data collected? At what locations? Over what time period? Who collected them? What instruments were used? Have the operators and instruments changed over the period? Try to imagine yourself at the data collection site physically.
 
@@ -51,26 +51,25 @@ The authors in \cite{kuppermann2009identification} collected data in a prospecti
 
 For a small subset of patients (approximately 4\%), a second assessment was performed for quality control purposes--note that we do not use this information, but that its presence is reassuring. Note that there will likely be uncaught entry errors or errors arising from incorrect patient reporting in the data, as well as subjective biases in reporting (e.g., what constitutes a severe injury might differ between physicians and parents). All of these are sources of randomness in the data. Moreover, there will be natural differences arising from the different hospitals and the different populations that they serve---we are not privy to this information, but it is a source of potential batch effects. Nonetheless, we believe that apart from age groupings (discussed later), all of the data may be analyzed together. Moreover, each sample in the data comes from a unique person-event combination, that is, there are no repeated samples or temporal dependencies that we know of. It is certainly possible that a patient is in the data twice, but we believe that this is likely a very rare event, if it occurs at all. 
 
-\subsection{Meaning}
+\subsection{Meaning}\label{ssec:datamean}
 
 % What does each variable mean in the data? What does it measure? Does it measure what it is supposed to measure? How could things go wrong? What statistical assumptions is one making by assuming things didn’t go wrong? (Knowing the data collection process helps here.) Meaning of each variable -- ask students to imagine being there at the ER and giving a Glasgow coma score, for example, and also a couple of variables -- ask students what could cause different values written down. How were the data cleaned? By whom?
 
+In this section, we discuss some of the important variables and features in the dataset. 
+
 The study defined death, a hospital admission of over 2 days, intubation for over 24 hours, or the need for surgery following a CT scan as a positive, ciTBI outcome. Other patients were assigned to the negative outcome; to find missed positives, the study coordinators performed telephone surveys to follow up with parents and tracked followup visits. If a positive outcome was missed, the patient's label was updated to positive. 
 
-An important variable in this data set is the GCS score. The Glasgow Coma Scale is a common scoring system used in emergency departments to determine a patient's level of consciousness by rating their ability to pass certain tests for eye and motor movement along with verbal ability. The scores from each of these three categories are summed to form a total GCS score. The lower the score a patient has in each category leads to a lower GCS total score (meaning the worse a state a patient is in). A GCS score ranges from 3-15.
+An important variable in this data set is the GCS score. The Glasgow Coma Scale (GCS) is a common scoring system used in emergency departments to determine a patient's level of consciousness by rating their ability to pass certain tests for eye and motor movement along with verbal ability \cite{teasdale2014glasgow}. The scores from each of these three categories are summed to form a total GCS score, valued in 3-15. The lower the score a patient has in each category leads to a lower GCS total score (meaning the worse a state a patient is in). 
 
-Note that several variables or descriptors in the study require the ability to converse with the child for assignment, e.g., the presence of a headache or whether or not the child is suffering from amnesia. Similarly, a GCS score for a pre-verbal child is also calculated by slightly different metrics than those for an adult. Judging verbal ability, especially, is different with a condition like "inappropriate words" being instead assessed as "cries to pain" for those children who are pre-verbal. Even motor ability has some conditions assessed differently such as looking for "spontaneous
-movement" rather than "follow commands" in preverbal children. Hence, both the authors of \cite{kuppermann2009identification} and us chose to separate patients under the age of two (pre-verbal) from those aged two or older (verbal) in their analysis. Moreover, as children under the age of two are more sensitive to radiation, it is reasonable to consider this group separately \cite{brenner2002estimating}. Note that this is not a perfect grouping as some children will be verbal by age two and some children are not verbal after age 2 (we look into this in our stability analysis) but, nonetheless, it is good developmental benchmark \cite{blackwell2007pediatric}.
+Note that several variables or descriptors in the study require the ability to converse with the child for assignment, e.g., the presence of a headache or whether or not the child is suffering from amnesia. Similarly, a GCS score for a pre-verbal child is also calculated by slightly different metrics than those for an adult. Judging verbal ability, especially, is different with a condition like `inappropriate words' being instead assessed as `cries of pain' for those children who are pre-verbal. Even motor ability has some conditions assessed differently such as looking for `spontaneous movement' rather than `follow commands' in preverbal children. Hence, as in \cite{kuppermann2009identification}, we chose to separate patients under the age of two (presumed pre-verbal) from those aged two or older (presumed verbal) in their analysis. Moreover, as children under the age of two are more sensitive to radiation, it is reasonable to consider this group separately \cite{brenner2002estimating}. Note that this is not a perfect grouping as some children will be verbal by age two and some children are not verbal after age 2 (we look into this in our stability analysis) but, nonetheless, it is good developmental benchmark \cite{blackwell2007pediatric}.
 
-The variables in our data are all categorical or ordinal, except for age (however the categorial version of the age variable where it was discretized by $< 2$ years old and $\geq 2$ years old was used in all our analyses for the reasons stated above). It would be ideal if instead the continuous version of the variables were reported and they were not pre-sorted into sometimes arbitrarily chosen categories (i.e. the length of a seizure is binned as  $< 1$ min, $1 - 5$ min, $5 ‐ 15$ min, and $> 15$ min).
+The variables in our data are all categorical or ordinal, except for age (however the categorial version of the age variable where it was discretized by $< 2$ years old and $\geq 2$ years old was used in all our analyses for the reasons stated above). While it would be ideal if instead the continuous version of the variables were reported and they were not pre-sorted into sometimes arbitrarily chosen categories (i.e. the length of a seizure is binned as  $< 1$ min, $1 - 5$ min, $5 ‐ 15$ min, and $> 15$ min), we are restricted to the categorical data. 
 
-Other important variables included in our data set are the injury mechanism, injury severity, and whether the child is acting normally, is intubated, is paralyzed, and/or is sedated.
-
-Several binary indicator variables exist looking at, respectively, whether a child suffered a loss of consciousness, seizure, headache, vomiting, altered mental state, palpable skull fracture, basilar skull fracture, hematoma, trauma above the clavicles, neurological deficits, or other (non-head) substantial injuries. Each of these variables also has more specific follow up questions, e.g. the type of basilar skull fracture if it is indicated a patient has one.
+Several binary indicator variables exist in the dataset, looking at, respectively, whether a child suffered a loss of consciousness, seizure, headache, vomiting, altered mental state, palpable skull fracture, basilar skull fracture, hematoma, trauma above the clavicles, neurological deficits, or other (non-head) substantial injuries. Each of these variables also has more specific follow up questions, e.g. the type of basilar skull fracture if it is indicated a patient has one. Other important variables included in our data set are the injury mechanism, injury severity, and whether the child is acting normally, is intubated, is paralyzed, and/or is sedated.
 
 Lastly, we also have several meta variables such as patient number, race, ethnicity, gender, position of medical professional, and certification of medical professional. These variables do not affect whether a patient will be positive for ciTBI. However, they may be useful to look at after our analyses are complete in case they are acting as a proxy for something deeper that is taking place but should not be used as feature inputs to our models.
 
-\subsection{Exploratory Data Analysis}
+\subsection{Exploratory Data Analysis} \label{ssec:eda}
 
 \subsubsection{Outcome}
 
@@ -210,15 +209,15 @@ In Figure \ref{fig:pca}, we project the one-hot encoded data to two dimensions t
 	\caption{2-dimensional PCA projection and two natural clusters}\label{fig:pca}
 \end{figure}
 
-\section{Modeling: Results and Discussion}
+\section{Modeling: Results and Discussion}\label{sec:model}
 
 In this section, we fit models to predict whether patients have a ciTBI outcome from their covariates. We consider several models: $\ell_1$-penalized logistic regression \cite{simon2013sparse}, group $\ell_1$-penalized logistic regression \cite{simon2013sparse}, a single decision tree \cite{safavian1991survey}, a random forest \cite{ho1995random}, AdaBoost \cite{schapire2013explaining}, LogitBoost \cite{cai2006using}, and a linear SVM \cite{boser1992training}. All of these models were chosen for their relative ease of implementation and interpretability. As all of these algorithms have one or more parameters that can be tuned, based on practitioner feedback, we chose to operate at a point wherein the sensitivity was at least $0.95$ (or as close to it as possible) and the negative predictive value (NPV) was as close to $1$ as possible. We continue with the data split of age $< 2$ and $\geq 2$ and fit models for each group; we also fit models for the entire, unsplit dataset. The unsplit models can be thought of as a stability and reality check for whether the age-based demarcation is significant and necessary. 
 
-\subsection{Baseline Model}
+\subsection{Baseline Model} \label{ssec:baseline}
 
 Before proceeding, we briefly describe the model from \cite{kuppermann2009identification}, hereafter referred to as the baseline model. The model consists of two decision trees: one for patients with an age under $2$ years, and one for patients aged two years or older. The tree for patients younger than $2$ consists of questions about the presence of: an altered mental status (AMS), scalp hematoma, loss of consciousness for greater than $5$ seconds, a severe cause of injury, a palpable or possible skull fracture, and abnormal behavior per a parent. The questions are asked in the given order, and the presence of a `yes' answer to any leads to a possible ciTBI diagnosis and hence a CT scan; if all answers are `no', no scan is recommended. For patients older than $2$, the tree consists of questions about the presence of: an altered mental status (AMS), loss of consciousness, a history of vomiting, a severe cause of injury, a palpable or possible skull fracture, signs of a basilar skull fracture, and the presence of a severe headache. Once again, any `yes' answer leads to a scan, and all `no' answers leads to no scan. 
 
-\subsection{Results} 
+\subsection{Results} \label{ssec:results}
 
 In Table \ref{tab:val_performance}, we present results for all of the algorithms on the validation set. That is, we trained all algorithms on the training set for a wide variety of parameters (if there were any), selected an appropriate operating point/threshold as described above on the validation set, and have summarized the selected operating points for each algorithm. We see that $\ell_1$-penalized Logistic Regression has the highest AUC while having a sensitivity close to the desired value of $0.95$ and an NPV close to $1$. Moreover, relative to other algorithms with similar characteristics (e.g., the Group $\ell_1$-penalized Logistic Regression and AdaBoost), we see that the specificity is much higher. Hence, we selected $\ell_1$-penalized Logistic Regression as our `best' method. Moreover, we see that this method performs much better than the baseline algorithm. In general, we see that the models trained on the unsplit (by age) data perform slightly worse than both of the models trained on the individual halves. 
 \begin{table}[h]
@@ -272,7 +271,7 @@ Baseline  & all   & 0.777 & 0.623    & 0.933       & 0.621       & 0.999 & 0.777
 \caption{Algorithm performance on test data for each data split}\label{tab:test_performance}
 \end{table}
 
-\subsection{Discussion of the $\ell_1$-regularized Logistic Regression model}
+\subsection{Discussion of the $\ell_1$-regularized Logistic Regression model} \label{ssec:discuss}
 
 In this section, we provide some insights from studying the logistic regression models that we have fit. We note that this from of model is a good choice, as it is naturally interpretable: the $\ell_1$-penalization leads to naturally sparse coefficient vectors, so that only a subset of features are used in prediction. The sparsity combined with the linear nature of the classifier means that the coefficients' magnitudes have meaning, and the form of the model means that the odds ratio is a linear function of the data---this model is hence easy to use. 
 
@@ -316,7 +315,7 @@ Finally, in Figure \ref{fig:lr_lambda_auc}, we study the validation AUC as a fun
 \end{figure}
 
 
-\subsection{A different data split: Pre-verbal v. verbal}
+\subsection{A different data split: Pre-verbal v. verbal} \label{ssec:verbal}
 
 In this section, we return to Figure \ref{fig:preverbal}, where we saw that many patients under the age of $5$ were pre-verbal, but the standard practice is to separate subjects before and after the age of $2$. Moreover, there were relatively few patients over the age of $5$ that were not verbal (~104 subjects in validation), so we conjecture that a rule split based on pre-verbal v. verbal status might be a better choice. Using the same train/validation/test splits, we re-trained our $\ell_1$-regularized Logistic Regression models. 
 
@@ -335,7 +334,7 @@ In Figure \ref{fig:lr_roc_vb}, we present ROC curves for the $\ell_1$-regularize
 	\caption{ROC curves for the $\ell_1$-regularized Logistic Regression model with the pre-verbal/verbal split}\label{fig:lr_roc_vb}
 \end{figure}
 
-\section{Conclusions}
+\section{Conclusions} \label{sec:conclusions}
 asdf.
 
 \subsection{Division of Labor}
