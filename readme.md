@@ -48,9 +48,9 @@ Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md)
     - [x] Document any judgement calls you aren't sure about using the `dataset.get_judgement_calls_dictionary` function
         - See [the template file](rulevetting/templates/dataset.py) for documentation of each function or the [API documentation](https://yu-group.github.io/rule-vetting/)
     - Notebooks / helper functions are optional, all files should be within `rulevetting/projects/{project_name}`
-- [ ] Data description
-  - [ ] Describe each feature in the processed data in a file named `data_dictionary.md`
-  - [ ] Summarize the data and the prediction task in a file named `readme.md`. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
+- [x] Data description
+  - [x] Describe each feature in the processed data in a file named `data_dictionary.md`
+  - [x] Summarize the data and the prediction task in a file named `readme.md`. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
 - [ ] Modeling
   - [ ] Baseline model - implement `baseline.py` for predicting given a baseline rule (e.g. from the existing paper)
     - should override the [model template](rulevetting/templates/model.py) in a class named `Baseline`
