@@ -30,8 +30,8 @@
 \graphicspath{{./notebooks/figs/}}
 
 \title{STAT 215A, Final Project\\Classifying ciTBI in Youth}
-\author{Mark Oussoren, Sahil Saxena, Hyunsuk Kim, Florica Constantine}
-\email{\{mark\_oussoren, sahilsaxena18, hyskim7, florica\}@berkeley.edu}
+\author{Florica Constantine, Hyunsuk Kim, Mark Oussoren, Sahil Saxena}
+\email{\{florica, hyskim7, mark\_oussoren, sahilsaxena18\}@berkeley.edu}
 \date{2021 December 10 Friday}  
 
 \begin{document}
@@ -55,7 +55,7 @@ The authors in \cite{kuppermann2009identification} collected data in a prospecti
 
 For a small subset of patients (approximately 4\%), a second assessment was performed for quality control purposes--note that we do not use this information, but that its presence is reassuring. Note that there will likely be uncaught entry errors or errors arising from incorrect patient reporting in the data, as well as subjective biases in reporting (e.g., what constitutes a severe injury might differ between physicians and parents). All of these are sources of randomness in the data. Moreover, there will be natural differences arising from the different hospitals and the different populations that they serve---we are not privy to this information, but it is a source of potential batch effects. Nonetheless, we believe that apart from age groupings (discussed later), all of the data may be analyzed together. Moreover, each sample in the data comes from a unique person-event combination, that is, there are no repeated samples or temporal dependencies that we know of. It is certainly possible that a patient is in the data twice, but we believe that this is likely a very rare event, if it occurs at all. 
 
-\subsection{Meaning}\label{ssec:datamean}
+\subsection{Data Feature Meaning}\label{ssec:datamean}
 
 % What does each variable mean in the data? What does it measure? Does it measure what it is supposed to measure? How could things go wrong? What statistical assumptions is one making by assuming things didn’t go wrong? (Knowing the data collection process helps here.) Meaning of each variable -- ask students to imagine being there at the ER and giving a Glasgow coma score, for example, and also a couple of variables -- ask students what could cause different values written down. How were the data cleaned? By whom?
 
@@ -360,13 +360,13 @@ There are many threads left unfinished in this work, mostly because of time and 
 
 \subsection{Division of Labor}
 
-Hyunsuk Kim contributed to the exploratory data analysis, implemented the $\ell_1$-penalized logistic regression, grouped $\ell_1$-penalized logistic regression, consolidated everyone's model code into one larger wrapper function, worked on the baseline model, edited and coded functions to find the statistical metrics saved by each of the models, and offered comments on the final report.
+Hyunsuk Kim contributed to the exploratory data analysis, implemented the $\ell_1$-penalized logistic regression, grouped $\ell_1$-penalized logistic regression, consolidated everyone's model code into one larger wrapper function, worked on the baseline model and on implementing \texttt{baseline.py}, edited and coded functions to find the statistical metrics saved by each of the models, and offered comments on the final report.
 
-Mark Oussoren contributed to much of the exploratory data analysis, did much of the data processing and implementation of dataset.py, worked on coding the baseline model, summarized his findings for EDA and the baseline model, and documented the judgement calls made working with this data set, and offered comments on the final report.
+Mark Oussoren contributed to much of the exploratory data analysis, did most of the data processing and implementation of dataset.py, worked on coding the baseline model, summarized his findings for EDA and the baseline model, documented the judgement calls made working with this data set, contributed to the \texttt{data\_dictionary.md} file, and offered comments on the final report.
 
-Sahil Saxena created a slide deck to share with our clinician contact, implemented an SVM model and looked at the effect of different kernels and how SVM works on the first few PCA components, contributed to the data dictionary and README files, and offered comments on the final report.
+Sahil Saxena created a slide deck to share with our clinician contact, implemented an SVM model and looked at the effect of different kernels on SVM performance along with how SVM works on the first few PCA components of our data, contributed to much of the \texttt{data\_dictionary.md} file, contributed to the README file, and offered comments on the final report.
 
-Florica Constantine acted as the project lead overseeing the project, editing others results across all aspects of the project, and also individually worked on much of the exploratory data analysis, implemented the boosting models, implemented the stability analysis, wrote the final report, implemented \texttt{model\_best.py} and \texttt{baseline.py}, and offered comments on the final report.
+Florica Constantine acted as the project lead overseeing the project, editing others results across all aspects of the project, and also individually worked on much of the exploratory data analysis, implemented the boosting models, implemented the stability analysis, implemented \texttt{model\_best.py} and some of \texttt{baseline.py}, wrote much of the README file, and wrote the final report.
 
 \printbibliography
 
