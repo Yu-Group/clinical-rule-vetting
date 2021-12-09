@@ -649,9 +649,9 @@ However, it is non-robust when we perturb the data and the greedy method does no
 ### Procedure and Performance
 
 We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgement calls.
-There are three possible splitting methods in age groups: perverbal children, verbal children, and all children.
+There are three possible splitting methods in age groups: preverbal children, verbal children, and all children.
 And we include two different judgement calls: whether include or exclude all subvariables.
-Although there are six possible datasets, the dataset of perverbal children excluding subvariables contain too few
+Although there are six possible datasets, the dataset of preverbal children excluding subvariables contain too few
 TBI children so we cannot get a reasonable result. Therefore, we will train and evaluate for other five datasets.
 
 For each possible dataset, we split 20\% data into the test data, which will only be used in the model evaluation,
