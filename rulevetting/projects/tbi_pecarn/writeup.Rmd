@@ -654,7 +654,7 @@ import imodels
 
 
 basic = pk.load(open("notebooks/models/basic.pkl", 'rb'))
-maximal = pk.load(open("notebooks/models/basic.pkl", 'rb'))
+maximal = pk.load(open("notebooks/models/maxim.pkl", 'rb'))
 
 brules = basic.get_rules().sort_values("importance", ascending=False)
 mrules = maximal.get_rules().sort_values("importance", ascending=False)
