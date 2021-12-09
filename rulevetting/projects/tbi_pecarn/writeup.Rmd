@@ -684,7 +684,7 @@ is very sensitive to the training data and will not behave well on the test data
 include_graphics('figs/rule_result_on_test.png')
 ```
 
-The performance of rulefit model on test data is in Figure \ref{fig:rule_result_on_test}. We can find that the performance for age-invariant group is quite well. As the sensitivity achieves almost 100\%, the sepecificity is larger than 70\%. And including subvariables
+The performance of rulefit model on test data is in Figure \ref{fig:rule_result_on_test}. We can find that the performance for age-invariant group is quite well. As the sensitivity achieves almost 100\%, the specificity is larger than 70\%. And including subvariables
 increases the performance of classifying the verbal children. Among two verbal children datasets, when sensitivity is larger than 95\%,
 the specificity is about 70\% when we include subvariables, while it drops to 55\% if we exclude them. Finally, for preverbal children,
 the specificity is around 60\% when the sensitivity is about 95\%. These results imply us developing the age-invariant classifier.
