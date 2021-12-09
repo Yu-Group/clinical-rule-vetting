@@ -624,11 +624,11 @@ include_graphics('figs/baseline_res.png')
 The result of baseline model is shown in \ref{fig:baseline_res}. The yellow blocks are identified as positive 
 while the green blocks are identified as negative. In each block, the first number represents the number of children
 experiencing clinically-important TBI, the second number is the number of children in this block, and
-the last one represents the proportion. This result is similar to Kuppermann et al., except the performance of
-the most important rule, that is, altered mental status. In our result the proportions of true positives are 7.5\% and 10.0\%, while 
-Kuppermann implies the proportions as 4.0\% and 3.9\%. The baseline classifiers do intentify almost all of the cases since 
-the sensitivity is 99.3\% and 98.5\% for preverbal children and verbal chilren, respectively. However, the specificity only achieves
-47.7\% and 56.9\%. In our following model, we will propose the one with similar sensitivity and higher specificity. The detailed
+the last one represents the proportion. And we use the whole cleaned dataset to evaluate the model, 
+while Kuppermann et al. splits the data into training set and validation set. The performance of the baseline classifiers
+is similar to the result in Kuppermann et al. The baseline classifiers do identify almost all of the cases since 
+the sensitivity is 98.9\% and 96.8\% for preverbal children and verbal children, respectively. However, the specificity only achieves
+48.3\% and 57.7\%. In our following model, we will propose the one with similar sensitivity and higher specificity. The detailed
 evaluation metrics based on sensitivity and specificity is discussed in the following part.
 
 ## Proposed Model
@@ -637,12 +637,69 @@ Describe the proposed model, it's advantages, disadvantages, how it might compar
 to the original model, etc.
 
 Justify the proposed model, and refer back to discussion in Post-Processing Discussion
-for justification whila also answering Q8 about any randomness assumptions. 
+for justification while also answering Q8 about any randomness assumptions. 
+
+(Xin) I think Andrej will describe rulefit model. Q8 I can only answer this in Logistic regression assumption. Can this be better?
+
+The greedy rule list (CART) model consists of a list of rules, which is similar to the baseline model. 
+Therefore, it is simple to understand, interpret, and pick the important features.
+Since it is also a greedy method, it does not require distributional assumptions and is computationally-efficient.
+However, it is non-robust when we perturb the data and the greedy method does not gurantee a good result.
 
 ### Procedure and Performance
 
-Describe the procedure for training the model with justification
-Give the performance of the model
+We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgement calls.
+There are three possible splitting methods in age groups: perverbal children, verbal children, and all children.
+And we include two different judgement calls: whether include or exclude all subvariables.
+Although there are six possible datasets, the dataset of perverbal children excluding subvariables contain too few
+TBI children so we cannot get a reasonable result. Therefore, we will train and evaluate for other five datasets.
+
+For each possible dataset, we split 20\% data into the test data, which will only be used in the model evaluation,
+while we use 80\% remained data to fine-tune the hyperparameters and fit the model.
+Then we split four cross-validation folds to tune the hyperparameters for each model.
+Since this is an unbalanced dataset, the classification accuracy cannot be a good measure to evaluate the model.
+The best classifier should identify almost all of TBI cases, as well as identify most of children not experiencing TBI as no TBI. 
+Therefore, we define our evaluation measure as follows.
+
+\[ \text{score}=\left \{
+\begin{aligned} 
+& 5 \times \text{sensitivity} + \text{specificity}, \quad \text{if } \text{specificity} > 0.5.\\
+&0, \quad \text{if } \text{specificity} \le 0.5.
+\end{aligned}
+\right.
+\]
+
+For greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
+the maximum number of rules in the list (representing the complexity and the interpretability); for rulefit model, 
+the hyperparameter is the maximum length for each rule. In addition, since rulefit model involves random forest methods to pick the rules, 
+the performance may vary even if we choose same hyperparameters. Therefore, for rulefit model, we also need to run the models 
+with different random states and pick the best one as the result, given the maximum length for each rule. Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
+
+The greedy rule list model performs quite bad. For two datasets excluding the subvariables, the largest mean scores 
+in our CV folds are even smaller than 3, which implies the sensitivity is smaller than 60\%. For the datasets including subvariables,
+although the largest mean scores are over 4, the scores on the test data is much smaller. This means the greedy rule list model
+is very sensitive to the training data and will not behave well on the test data.
+
+```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "60%"}
+include_graphics('figs/rule_result_on_test.png')
+```
+
+The performance of rulefit model on test data is in Figure \ref{fig:rule_result_on_test}. We can find that the performance for age-invariant group is quite well. As the sensitivity achieves almost 100\%, the sepecificity is larger than 70\%. And including subvariables
+increases the performance of classifying the verbal children. Among two verbal children datasets, when sensitivity is larger than 95\%,
+the specificity is about 70\% when we include subvariables, while it drops to 55\% if we exclude them. Finally, for preverbal children,
+the specificity is around 60\% when the sensitivity is about 95\%. These results imply us developing the age-invariant classifier.
+
+```{r rulefit_interpretation, echo = FALSE, fig.cap = 'The important rules for the age-invariant classifier', out.width = "100%"}
+include_graphics('figs/rulefit_interpretation.png')
+```
+
+In Figure \ref{fig:rule_result_on_test}, we lists the important rules for the age-invariant classifier.
+We find that other signs of altered mental status is the most important linear factor. Besides it, loss of consciousness length 
+and history of vomiting are also two important linear factors. The other important rules consists of several variables.
+History of vomiting and basilar skull fracture(hemotympanum) forms an important rule.
+And another important rule involves the severity of injury, loss of consciousness length, 
+feeling depressed in palpable skull fracture, and Neurological deficit(cranial nerve).
+
 
 ### Stability Analysis
 
