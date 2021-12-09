@@ -68,9 +68,10 @@ classifiers, we need a dataset that will enable us to develop classifiers with
 high predictive accuracy and maximal generalizability so as to compare with previous classifiers. 
 For instance, we would need a dataset containing covariates that are both relevant to the presence
 of TBIs and can be measured at the time a child is ushered into the ER. From common
-sense, it seems important information might be the injury mechanism (and a rating of
+sense, as well as consulting with Dr. Robert Inglis of UCSF, it seems important 
+information might be the injury mechanism (and a rating of
 severity), any symptoms such as headache or amnesia, and any results of a physical
-examination that may indicate neurological deficits or skull injury. For both
+examination that may indicate neurological impact or skull injury. For both
 vetting the clinical decision rule and developing an age-invariant rule, it would
 be preferable to have covariates that are as objective as possible so as to avoid
 issues with interrater reliability and improve generalizability of the rules to 
@@ -388,7 +389,11 @@ subvariable AND the parent variable as opposed to the subvariable GIVEN the pare
 After performing this one-hot encoding, we have 137 features in total. We split 
 the data into a training set (19947 observations), a validation set (6649 observations), 
 and a test set (6649 observations). For post-processing EDA, we only consider
-the training set, only using the test set to check model accuracy.
+the training set, only using the test set to check model accuracy. We should note
+that there may be cluster structure in the dataset by virtue of the data
+being collected from different hospitals, presenting a possible comparability issue.
+However, we are not provided with hospital information,
+so we perform a random train-validation-test split.
 
 ## Exploratory Data Analysis
 
@@ -468,8 +473,8 @@ in any classifier for younger children, or for an age-invariant classifier.
 include_graphics('figs/age_preverb.png')
 ```
 
-Next, we recall that, according to Kuppermann et al., for children younger than two,
-a Pediatric GCS score was assigned, whereas for children two or older, a standard
+Next, we recall that, according to Kuppermann et al., for children two or younger,
+a Pediatric GCS score was assigned, whereas for children older than two, a standard
 GCS score was assigned. In essence, these are two different standards for evaluating
 the consciousness of children, since children of different ages have different
 abilities in expressing their consciousness. However, because the standards are
@@ -562,43 +567,59 @@ include_graphics('figs/parent_older.png')
 
 # Models
 
-Short sentence or two about how we will fit decision trees/rules for maximal interpretability
-
 ## Baseline Model
 
-We choose the model proposed by Kuppermann and his colleagues as the baseline model.
-To evaluate their model, we also use the raw data, which consists of 43399 children presenting to the emergency room 
-due to the head trauma at one of the PECARN network hospitals between 2004 and 2006.
-While 763 of them experienced clinically-important traumatic brain injury, 
-the baseline classifier is developed to identify these children. 
-The detailed description can be found in the Data Collection section.
-In addition, we also use the same age splitting method as Kuppermann: 
-preverbal (< 2 years of age) and verbal (2 years and older) children.
-Of 10904 children younger than two years, 153 (1.4%) experienced clinically-important TBI,
-while of 32495 children aged two or older, 610 (1.9%) experienced clinically-important TBI.
-
+We choose the model proposed by Kuppermann and his colleagues as the baseline model
+with which to predict whether a child will have a clinically-important TBI.
+To evaluate their model, we also use the provided dataset cleaned similarly to theirs, 
+consisting of 42412 children presenting to the emergency room 
+due to the head trauma with GCS scores 14 and above and with the final outcome non-missing.
+376 of these observations experienced clinically-important TBIs.
+In addition, we also use the same age splitting method as Kuppermann,
+where we use their baseline classifier for preverbal children (< 2 years of age)
+to predict TBI in this subgroup, and the classifier for verbal children (2 years and older)
+to predict TBI in this subgroup.
 
 ### Description
 
-The baseline classifier is a rule list model, which consists of a list of rules.
-For model fitting or prediction, the child is identified to be positive if and only if this 
-child satisfies at least one rules. For the interpretation, it is assigned an order for these rules.
-For each subject, the model checks the rules based on this order. If a subject satifies one rule and is 
-identified positive, this subject will not check the subsequent rules. Therefore, based on the order,
-each rule is applied to different numbers of children.Then we state the rules for each age group based on the order.
-For preverbal children, the rules are altered mental status, non-frontal scalp haematoma, 
-loss of consciousness for at least 5 seconds, severe injury mechanism, palpable skull fracture, 
-and not acting normally according to the parent. For verbal children, the rules are
-altered mental status, any loss of consciousness, history of vomiting, severe injury mechanism, 
-clinical signs of basilar skull fracture, and severe headache. Here we note that one rule for preverbal children 
-is loss of consciousness for at least 5 seconds, 
-which is stronger than the rule any loss of consciousness in verbal children rule list.
-And in Kuppermann et al., they also mentioned history of vomiting isthe most useful form in the prediction tree
-among the vomiting variables(presence, number, and timing). Each of the rule list has 6 rules.
+The age-based classifiers in Kuppermann et al. are rule-list models, or a models consisting of a list of rules, 
+ordered by importance in indicating a TBI.
+A child is labelled as having a TBI if and only if this 
+child satisfies at least one of the rules, where the rules are checked in the aforementioned order of importance.
+Once we come across a rule that the child satisfies, we stop checking. 
+Therefore, based on the order, each rule is applied to different numbers of children.
+The list below gives the rules for Kuppermann's pre-verbal (younger than 2) classifier.
+Refer to Data Collection for a more in-depth description of the variables mentioned in each rule.
+
+* Altered mental status (*AMS*)? If yes, TBI. If not, continue:
+
+* Occipital, Parietal, or Temporal scalp hematoma (*HemaLoc*)? If yes, TBI. If not, continue:
+
+* Loss of consciousness for more than 5 seconds (*LOCLen*)? If yes, TBI. If not, continue:
+
+* Injury mechanism rated severe (*High_impact_InjSev*)? If yes, TBI. If not, continue:
+
+* Palpable or unclear skull fracture (*SFxPalp*)? If yes, TBI. If not, continue:
+
+* Acting normally according to parent (*ActNorm*)? If yes, TBI. If not, no TBI.
+
+The list below now gives the rules for Kuppermann's verbal (2 or older) classifier.
+
+* Altered mental status (*AMS*)? If yes, TBI. If not, continue:
+
+* Loss of consciousness for more than 5 seconds (*LOCLen*)? If yes, TBI. If not, continue:
+
+* Injury mechanism rated severe (*High_impact_InjSev*)? If yes, TBI. If not, continue:
+
+* Basilar skull fracture (*SFxBas*)? If yes, TBI. If not, continue:
+
+* Severe headache (*HA_Severity*)? If yes, TBI. If not, no TBI.
 
 ### Procedure and Performance
 
-![(#fig:baseline_res) Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.](figs/baseline_res.png)
+```{r baseline_res, echo = FALSE, fig.cap = 'Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.'}
+include_graphics('figs/baseline_res.png')
+```
 
 The result of baseline model is shown in \ref{fig:baseline_res}. The yellow blocks are identified as positive 
 while the green blocks are identified as negative. In each block, the first number represents the number of children
