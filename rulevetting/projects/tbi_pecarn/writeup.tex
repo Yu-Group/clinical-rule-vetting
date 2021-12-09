@@ -12,8 +12,11 @@
 \usepackage{subcaption}
 \usepackage{placeins}
 \usepackage{wrapfig}
+
 \usepackage[backend=bibtex]{biblatex}
 \addbibresource{writeup.bib}
+
+\usepackage{hyperref}
 
 % Force figures to stay with text
 \let\Oldsection\section
@@ -26,8 +29,9 @@
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 \graphicspath{{./notebooks/figs/}}
 
-\title{STAT 215A, Final Project: Classifying ciTBI in Youth}
+\title{STAT 215A, Final Project\\Classifying ciTBI in Youth}
 \author{Mark Oussoren, Sahil Saxena, Hyunsuk Kim, Florica Constantine}
+\email{\{mark\_oussoren, sahilsaxena18, hyskim7, florica\}@berkeley.edu}
 \date{2021 December 10 Friday}  
 
 \begin{document}
@@ -73,7 +77,7 @@ Lastly, we also have several meta variables such as patient number, race, ethnic
 
 \subsubsection{Outcome}
 
-First, we looked at our outcome variable and noted that there were 20 patients that had a missing value. Note, there is a discrepancy where with \cite{kuppermann2009identification}, where they mention 18 not 20 patients have a missing value. However, the reasoning for this difference could not be resolved. Of these 20 patients, 17 of them are negative for all four of the variables making up our outcome (death, hospital admission of longer than 2 days post CT, intubation for more than 24 hours, or neurological surgery). We thus assign these patients as being negative for a ciTBI. For the three remaining patients, they had missing values for one or more of the four outcomes and were dropped. The last remaining patient has missing values for intubation and death by TBI. We impute all three of these patients to also be negative for ciTBI after talking to our clinician collaborators who suggest it is unlikely death by TBI or intubation would not be marked on a medical form if they did in fact take place. The proportion of each of the four outcomes is shown below in Figure \ref{fig:outcome_type}. We can see that the vast majority of people were positive for a prolonged hospital stay.
+First, we looked at our outcome variable and noted that there were 20 patients that had a missing value. Note, there is a discrepancy where with \cite{kuppermann2009identification}, where they mention 18 not 20 patients have a missing value. The reasoning for this difference could not be resolved. Of these 20 patients, 17 of them are negative for all four of the variables making up our outcome (death, hospital admission of longer than 2 days post CT, intubation for more than 24 hours, or neurological surgery). We thus assign these patients as being negative for a ciTBI. For the three remaining patients, they had missing values for one or more of the four outcomes and were dropped. The last remaining patient had missing values for intubation and death by TBI. We impute all three of these patients to also be negative for ciTBI after talking to our clinician collaborators, who suggest it is unlikely death by TBI or intubation would not be marked on a medical form if they did in fact take place. The proportion of each of the four outcomes is shown below in Figure \ref{fig:outcome_type}. We can see that the vast majority of people were positive for a prolonged hospital stay.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\textwidth]{outcome_type.png}
@@ -83,7 +87,7 @@ First, we looked at our outcome variable and noted that there were 20 patients t
 
 \subsubsection{GCS Scores}
 
-From \cite{kuppermann2009identification}, we learned that it is not controversial to perform a CT scan for patients with a GCS score ranging from 3 to 13 as in this group the risk of finding a TBI on a CT is more than 20\%. For our data set, we looked at the proportion of patients positive for ciTBI with a GCS scores in the range of 3-13 and also for those in the range for 14-15 in Figure \ref{fig:GCSClass}. Looking at this we can see that 40\% of patients with a GCS score in the range of 3 to 13 were positive for ciTBI versus only 0.8\% of those with a GCS score of 14 or 15. This is quite a dramatic difference. However, we wanted to know if separating the GCS score into classes with a cutoff GCS score of 14, in particular, was the best possible split. We broke up the previous plot further into individual GCS scores (Figure \ref{fig:GCSTotal}). We can see that, in general, the lower the GCS score the higher the proportion is for a patient to be positive for ciTBI, as expected. Even at a GCS of 13, 20\% of patients were positive for ciTBI. Thus, keeping the current cutoff of 3-13 and 14-15 as the two separate GCS classes seems reasonable. We remove any patients from here on out that have a GCS in the range of 3-13 (969 total patients) as the risk of having a positive ciTBI is too high and any decision rule would suggest always performing a CT scan for this group.
+From \cite{kuppermann2009identification}, we learned that it is not controversial to perform a CT scan for patients with a GCS score ranging from 3 to 13 as in this group the risk of finding a TBI on a CT is more than 20\%. For our data set, we looked at the proportion of patients positive for ciTBI with a GCS scores in the range of 3-13 and also for those in the range for 14-15 in Figure \ref{fig:GCSClass}. Looking at this, we can see that 40\% of patients with a GCS score in the range of 3 to 13 were positive for ciTBI versus only 0.8\% of those with a GCS score of 14 or 15---this is quite a dramatic difference. However, we wanted to know if separating the GCS score into classes with a cutoff GCS score of 14, in particular, was the best possible split. We broke up the previous plot further into individual GCS scores (Figure \ref{fig:GCSTotal}). We can see that, in general, the lower the GCS score the higher the proportion is for a patient to be positive for ciTBI---as expected. Even at a GCS of 13, 20\% of patients were positive for ciTBI. Thus, keeping the current cutoff of 3-13 and 14-15 as the two separate GCS classes seems reasonable. Hence, we remove any patients that have a GCS in the range of 3-13 (969 total patients), as the risk of having a positive ciTBI is too high and any reasonable or acceptable (to a practitioner) decision rule would suggest always performing a CT scan for this group.
 \begin{figure}
 	\begin{minipage}[b]{0.5\linewidth}
 		\centering
@@ -101,11 +105,11 @@ From \cite{kuppermann2009identification}, we learned that it is not controversia
 
 \subsubsection{Data Missingness}
 
-Next we look at the rate of missingness for each feature in Figure \ref{fig:cov_missing}. We note that the features "Dizzy" and "Ethnicity" are missing in more than 35\% of patients. On the data form, ethnicity asks whether the patient is hispanic or not and may potentially be skipped over by a patient if they fill in the race field instead (or if they are too young to fill out a form and the medicial personnel does not want to guess). However, we are already considering ethnicity to be a meta variable and did not use it in our analyses anyway. After speaking with the clinicians, we learned that notating whether a patient is dizzy or not is not very relevant in diagnosing TBI and it is also a very subjective variable as it is highly susceptible to change from patient to patient based on their own personal definition of feeling dizzy. Thus, we decide to drop this variable.
+Next, we look at the rate of missingness for each feature in Figure \ref{fig:cov_missing}. We note that the features `Dizzy' and `Ethnicity' are missing in more than 35\% of patients. On the data form, ethnicity asks whether the patient is hispanic or not and may potentially be skipped over by a patient if they fill in the race field instead (or if they are too young to fill out a form and the medical personnel does not want to guess). However, we are already considering ethnicity to be a meta variable and did not use it in our analyses . After speaking with the clinicians, we learned that notating whether a patient is dizzy or not is not very relevant in diagnosing TBI and it is also a very subjective variable: it is highly susceptible to change from patient to patient based on their own personal definition of feeling dizzy. Thus, as there is no objective way to compare or impute this variable, we decided to drop it.
 
-For the other variables with missingness, they were either imputed with what a `healthy' response would be, e.g. a `No' value would be imputed for missing paralyzed or sedated values. Otherwise, the response that was the mode was used for variables where there is no clear `healthy' response. e.g. hematoma size.
+For the other variables with missingness, they were either imputed with what a `healthy' response would be, e.g. a `No' value would be imputed for missing paralyzed or sedated values. Otherwise, the response that was the mode was used for variables where there was no clear `healthy' response. e.g. hematoma size.
 
-Many variables have a parent question such as `Seiz' for seizure that have follow up question such as the length of the seizure. If a patient has a response of `No' for seizure then in the form `Not applicable' is often marked for each follow up question. We convert these `Not applicable' answers to be `No' to make analyses easier to perform.
+Many variables have a parent question such as `Seiz' for seizure that have follow up question such as the length of the seizure. If a patient has a response of `No' for seizure then in the form `Not applicable' is often marked for each follow up question. Without loss of generality, we convert these `Not applicable' answers to be `No' to make analyses easier to perform.
 
 We further note that the majority of patients have only around 1\% of data features missing, and at most still under 20\% (Figure \ref{fig:sample_missingness}) and thus we do not drop any patients from our analyses.
 \begin{figure}
@@ -122,18 +126,16 @@ We further note that the majority of patients have only around 1\% of data featu
 	\caption{Missingingness in the data}\label{fig:missing_agg}
 \end{figure}
 
-
 \subsubsection{Age Class Cutoff}
 
-The age was a major factor in \cite{kuppermann2009identification} in terms of creating a decision rule. Two rules were created based on age categories of $< 2$ and $\geq 2$. We can see a large portion of the patient population in our data set is younger and around 2 years of age in Figure \ref{fig:age_dist}.
+The age was a major factor in \cite{kuppermann2009identification} for creating a decision rule. Two rules were created based on age categories of $< 2$ and $\geq 2$ years of age. We can see a large portion of the patient population in our data set is younger and around 2 years of age in Figure \ref{fig:age_dist}.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\textwidth]{age_dist.png}
 	\caption{Age Distribution}\label{fig:age_dist}
 \end{figure}
 
-
-We want to check the number of pre-nonverbal subjects at each age to see if two years old is a good cutoff age for being verbal, however. Below, in Figure \ref{fig:preverbal}, we can see that actually there are still a large proportion of subjects that are pre-verbal at ages 2 and 3 when calculated based on responses for whether a patient had a headache or amnesia in the data. Both of these features are the closest proxy we have to knowing how many pre-verbal patients are in our data set as a binary variable for being pre-verbal does not exist. It is reassuring that the proportions between the two for age age are extremely similar.
+Besides radiation exposure risks, one reason to demarcate age at $2$ years is because of verbal ability: below this age, children typically do not talk coherently if at all. We wanted to check the number of pre-nonverbal subjects at each age to see if two years old is actually a good cutoff age for being verbal. In Figure \ref{fig:preverbal}, we can see that actually there are still a large proportion of subjects that are pre-verbal at ages 2 and 3 when calculated based on responses for whether a patient had a headache or amnesia in the data. Both of these features are the closest proxy we have to knowing how many pre-verbal patients are in our data set, as a binary variable for being pre-verbal does not exist. It is reassuring that the proportions between the two for each age are extremely similar. 
 \begin{figure}
 	\begin{minipage}[b]{0.5\linewidth}
 		\centering
@@ -167,29 +169,27 @@ Next, we look at the occurrence of ciTBI in each of our two age categories in Fi
 	\caption{Outcome and Injury Severity}\label{fig:age_distributions}
 \end{figure}
 
-However, there may still be other variables with different proportions of positive ciTBI across age categories in Figure \ref{fig:age_covariate}. That is, for each age category and for each outcome, we look at the proportion of patients with the indicated symptom. This exercise might be indicative as to whether such a variable would potentially lead to a different decision rule between the two groups. We can see that the proportion of patients with ciTBI are noticeably different between age $<2$ and age $\geq 2$ for 'Vomit' and 'OSI' (other non-head injury). Also, remember that the variables measuring amnesia and headache cannot be answered by those that are pre-verbal and thus may be useful in a decision rule for those over age 2 but not under.
+However, there may still be other variables with different proportions of positive ciTBI across age categories in Figure \ref{fig:age_covariate}. That is, for each age category and for each outcome, we look at the proportion of patients with the indicated symptom. This exercise might be indicative as to whether such a variable would potentially lead to a different decision rule between the two groups. We can see that the proportion of patients with ciTBI are noticeably different between age $<2$ and age $\geq 2$ for 'Vomit' and 'OSI' (other non-head injury). Also, we note that the variables measuring amnesia and headache cannot be answered by those that are pre-verbal and thus may be useful in a decision rule for those over age 2 but not under.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{covariate_by_age.png}
 	\caption{Proportion of positive feature identifiers by outcome (ciTBI) and age}\label{fig:age_covariate}
 \end{figure}
 
-
 \subsubsection{Correlation of Features to Outcome}
 
-Next, we examine whether any of the features are particularly correlated to the outcome by calculating the Spearman's $\rho$ coefficient on the ordinal variables against the binary outcome. We can see in Figure \ref{fig:spearman_corr_to_outcome} that none of the features are particularly highly correlated with the outcome. A maximum correlation coefficient of 0.12 is attained by the altered mental state feature.
+Next, we examine whether any of the features are particularly correlated to the outcome by calculating the Spearman's $\rho$ coefficient on the ordinal variables against the binary outcome. We can see in Figure \ref{fig:spearman_corr_to_outcome} that none of the features are well correlated with the outcome. A maximum correlation coefficient of 0.12 is attained by the altered mental state feature.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\textwidth]{spearman_corr_to_outcome.png}
 	\caption{Spearman Correlation of Features to Outcome}\label{fig:spearman_corr_to_outcome}
 \end{figure}
 
-
 \subsubsection{Principal Component Analysis}
 
 We perform Principal Component Analysis (PCA) on the one-hot encoded data \cite{pearson1901liii}. In Figure \ref{fig:pca_cum_var}, we see that the nearly all of the variance is explained by the first 100 components, and that the first few components capture most of the variance (the first two components explain 13\%, the first five explain 30\%, and the first twenty explain 50\% of variation in the data). That is, noting that the PCA eigenvalues (variances) decay rapidly, we might believe that this dataset behaves like a low-rank signal plus noise. 
 
-In Figure \ref{fig:pca}, we project the one-hot encoded data to two dimensions to study if the classes (age and outcome) are visually separable. First, we see that the classes do not separate, but that there are two distinct clusters in the data---since the data were taken from 25 hospitals, we did not suspect a batch effect. Instead, we see that the presence of an OSI (other, non-head-related injury) leads to the two clusters. Note that the prevalence of OSI in the data is low (10\%), but that it is enough to strongly affect the results of PCA. We will keep this in mind when doing our analyses and look to see if the majority of the misclassified points come from patients who had an OSI injury. This means we may want to consider forming a separate decision rule for this subgroup of the patient population.
+In Figure \ref{fig:pca}, we project the one-hot encoded data to two dimensions to study if the classes (age and outcome) are visually separable. First, we see that the classes do not separate, but that there are two distinct clusters in the data---since the data were taken from 25 hospitals and that there was no laboratory or experimental processing of the data, we did not suspect a batch effect (there would only be two potential batches). Instead, we see that the presence of an OSI (other, non-head-related injury) leads to the two clusters. Note that the prevalence of OSI in the data is low (10\%), but that it is enough to strongly affect the results of PCA. We will keep this in mind when doing our analyses and look to see if the majority of the misclassified points come from patients who had an OSI injury. This means we may want to consider forming a separate decision rule for this subgroup of the patient population.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{pca_cum_var.png}
@@ -225,12 +225,12 @@ In Table \ref{tab:val_performance}, we present results for all of the algorithms
 \begin{tabular}{llllllll}
 Algorithm      & Age   & AUC   & Accuracy & Sensitivity & Specificity & NPV   & Balanced Accuracy \\
 \hline
-$\ell_1$-Logistic Regression           & young & 0.938 & 0.764    & 1.0         & 0.762       & 1.0   & 0.881             \\
-$\ell_1$-Logistic Regression            & old   & 0.931 & 0.751    & 0.957       & 0.75        & 1.0   & 0.854             \\
-$\ell_1$-Logistic Regression            & all   & 0.917 & 0.75     & 0.952       & 0.748       & 0.999 & 0.85              \\
-Group $\ell_1$-Logistic Regression & young & 0.908 & 0.728    & 1.0         & 0.726       & 1.0   & 0.863             \\
-Group $\ell_1$-Logistic Regression & old   & 0.917 & 0.68     & 0.957       & 0.678       & 1.0   & 0.818             \\
-Group $\ell_1$-Logistic Regression & all   & 0.917 & 0.745    & 0.952       & 0.743       & 0.999 & 0.848             \\
+$\ell_1$-penalized Logistic Regression            & young & 0.938 & 0.764    & 1.0         & 0.762       & 1.0   & 0.881             \\
+$\ell_1$-penalized Logistic Regression             & old   & 0.931 & 0.751    & 0.957       & 0.75        & 1.0   & 0.854             \\
+$\ell_1$-penalized Logistic Regression             & all   & 0.917 & 0.75     & 0.952       & 0.748       & 0.999 & 0.85              \\
+Group $\ell_1$-penalized Logistic Regression & young & 0.908 & 0.728    & 1.0         & 0.726       & 1.0   & 0.863             \\
+Group $\ell_1$-penalized Logistic Regression & old   & 0.917 & 0.68     & 0.957       & 0.678       & 1.0   & 0.818             \\
+Group $\ell_1$-penalized Logistic Regression & all   & 0.917 & 0.745    & 0.952       & 0.743       & 0.999 & 0.848             \\
 AdaBoost       & young & 0.781 & 0.064    & 1.0         & 0.058       & 1.0   & 0.529             \\
 AdaBoost       & old   & 0.872 & 0.25     & 0.957       & 0.245       & 0.999 & 0.601             \\
 AdaBoost       & all   & 0.899 & 0.59     & 0.952       & 0.587       & 0.999 & 0.77              \\
@@ -243,30 +243,28 @@ Decision Tree  & all   & 0.809 & 0.01     & 0.988       & 0.0         & 0.75  & 
 Random Forest  & young & 0.815 & 0.844    & 0.714       & 0.845       & 0.998 & 0.779             \\
 Random Forest  & old   & 0.889 & 0.796    & 0.894       & 0.795       & 0.999 & 0.844             \\
 Random Forest  & all   & 0.845 & 0.816    & 0.798       & 0.816       & 0.998 & 0.807             \\
-SVM            & young & 0.275 & 0.014    & 1.0         & 0.008       & 1.0   & 0.504             \\
-SVM            & old   & 0.645 & 0.057    & 0.957       & 0.051       & 0.994 & 0.504             \\
-SVM            & all   & 0.644 & 0.063    & 0.952       & 0.054       & 0.991 & 0.503             \\
-Baseline       & young & 0.771 & 0.545    & 1.0         & 0.542       & 1.0   & 0.771             \\
-Baseline       & old   & 0.785 & 0.615    & 0.957       & 0.613       & 0.999 & 0.785             \\
-Baseline       & all   & 0.77  & 0.626    & 0.917       & 0.623       & 0.999 & 0.77             
+Linear SVM            & young & 0.275 & 0.014    & 1.0         & 0.008       & 1.0   & 0.504             \\
+Linear SVM            & old   & 0.645 & 0.057    & 0.957       & 0.051       & 0.994 & 0.504             \\
+Linear SVM            & all   & 0.644 & 0.063    & 0.952       & 0.054       & 0.991 & 0.503             \\
+Baseline       & young & 0.903 & 0.05     & 1.0         & 0.044       & 1.0   & 0.522             \\
+Baseline       & old   & 0.869 & 0.615    & 0.957       & 0.613       & 0.999 & 0.785            
 \end{tabular} }
 \caption{Algorithm performance on validation data for each data split}\label{tab:val_performance}
 \end{table}
 
 We note that the group $\ell_1$-penalized Logistic Regression performed almost as well as the $\ell_1$-penalized Logistic Regression. However, this method is extremely sensitive to the regularization parameter, and we suspect that slight changes in the data used for training would lead to vastly different results. This result is unfortunate, as in principle, the grouping would allow us to enforce sparsity across a group of covariates (e.g., everything vomit related) and hence improve interpretability. We note that the decision tree also performed well (recall that the baseline model is also a decision tree), but that the logistic regression was better. Also, decision trees can heavily depend on the training data in ways that regression models do not. The random forest and boosted models (AdaBoost and LogitBoost) do not perform as well; we noticed that the performance was not linear in the number of trees, and conjecture that there may be some degree of overfitting on the training data. Either way, an ensemble model is naturally harder to interpret than a linear model. The SVM performed quite poorly, in contrast---it is generally surprising that a logistic regression method performs well where a linear SVM does not, but we chose not to investigate further given time and space constraints. 
 
-Hence, we summarize results for $\ell_1$-regularized Logistic Regression and the baseline models on the test set in Table \ref{tab:test_performance}. We see that the test sensitivity is close to $0.95$ and that the NPV is still close to $1$, and that the AUC is close to $0.85$; these numbers are a slight drop from the validation results, but are still good---in particular, they are much better than the baseline model. Once again, we see that the model trained on the unsplit (by age) data performs slightly worse than both of the models trained on the individual halves. 
+Hence, we summarize results for $\ell_1$-regularized Logistic Regression and the baseline models on the test set in Table \ref{tab:test_performance}. We found that the regularization parameters for both the young and old models were $\approx 0.336$ and that the parameter for the model trained on the unsplit data was $\approx 1.129$. We see that the test sensitivity is close to $0.95$ and that the NPV is still close to $1$, and that the AUC is close to $0.85$; these numbers are a slight drop from the validation results, but are still good---in particular, they are much better than the baseline model. Once again, we see that the model trained on the unsplit (by age) data performs slightly worse than both of the models trained on the individual halves. Recalling Figure \ref{fig:pca}, wherein we saw a significant clustering effect based on OSI, we note that OSI and classification accuracy are not well correlated. 
 \begin{table}[h]
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llllllll}
 Algorithm & Age   & AUC   & Accuracy & Sensitivity & Specificity & NPV   & Balanced Accuracy \\
 \hline
-$\ell_1$-Logistic Regression          & young & 0.846 & 0.772    & 0.923       & 0.77        & 0.999 & 0.846             \\
-$\ell_1$-Logistic Regression          & old   & 0.848 & 0.762    & 0.937       & 0.76        & 0.999 & 0.848             \\
-$\ell_1$-Logistic Regression          & all   & 0.822 & 0.794    & 0.85        & 0.793       & 0.999 & 0.822             \\
-Baseline  & young & 0.774 & 0.554    & 1.0         & 0.549       & 1.0   & 0.774             \\
-Baseline  & old   & 0.786 & 0.639    & 0.937       & 0.636       & 0.999 & 0.786             \\
-Baseline  & all   & 0.777 & 0.623    & 0.933       & 0.621       & 0.999 & 0.777            
+$\ell_1$-penalized Logistic Regression         & young & 0.846 & 0.772    & 0.923       & 0.77        & 0.999 & 0.846             \\
+$\ell_1$-penalized Logistic Regression         & old   & 0.848 & 0.762    & 0.937       & 0.76        & 0.999 & 0.848             \\
+$\ell_1$-penalized Logistic Regression         & all   & 0.822 & 0.794    & 0.85        & 0.793       & 0.999 & 0.822             \\
+Baseline  & young & 0.875 & 0.054    & 1.0         & 0.042       & 1.0   & 0.521             \\
+Baseline  & old   & 0.873 & 0.639    & 0.937       & 0.636       & 0.999 & 0.786            
 \end{tabular}}
 \caption{Algorithm performance on test data for each data split}\label{tab:test_performance}
 \end{table}
@@ -314,10 +312,29 @@ Finally, in Figure \ref{fig:lr_lambda_auc}, we study the validation AUC as a fun
 	\caption{Validation AUC for the $\ell_1$-regularized Logistic Regression as a function of regularization strength}\label{fig:lr_lambda_auc}
 \end{figure}
 
+\subsubsection{Model stability}
+
+In this section, we report the results from bootstrapping the training dataset and evaluating the bootstrapped logistic regression models on the validation set. We measure the validation AUC as well as track which regularization parameter led to the best model. Ideally, we would see a tight concentration close to and around the previously observed values. As this step involves a parameter sweep, we used 20 bootstrap samples of size equal to a quarter of the original dataset and searched over 20 values of the regularization parameter. Our results appear in Figure \ref{fig:lr_bootstrap_val}, where we see that all of the AUCs have relatively tight concentration around the previously observed values. Moreover, the chosen regularization parameters are still close to the values picked for the chosen model. We present the mean and standard deviation of the bootstrapped validation AUCs in Table \ref{tab:bs_auc}: the values are consistent with what we saw earlier on the full dataset. 
+\begin{table}[h]
+\begin{tabular}{llll}
+Age & Mean AUC & Standard Deviation of AUC & Model AUC (full data) \\
+\hline
+Young & 0.909 & 0.0172 & 0.938 \\
+Old & 0.905 & 0.0124 & 0.931 \\
+All & 0.892 & 0.009933 & 0.917 
+\end{tabular}
+\caption{Bootstrapped mean and standard deviation of validation AUCs for the $\ell_1$-regularized Logistic Regression model; note that the 20 bootstrapped datasets were of smaller size (one quarter) than the original data.}\label{tab:bs_auc}
+\end{table}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{lr_bootstrap_val.png}
+	\caption{Bootstrapped validation AUC for the $\ell_1$-regularized Logistic Regression and the corresponding regularization parameters. Recall that the young and old models previously had parameters of $0.336$ and the all model had a parameter value of $1.129$.}\label{fig:lr_bootstrap_val}
+\end{figure}
 
 \subsection{A different data split: Pre-verbal v. verbal} \label{ssec:verbal}
 
-In this section, we return to Figure \ref{fig:preverbal}, where we saw that many patients under the age of $5$ were pre-verbal, but the standard practice is to separate subjects before and after the age of $2$. Moreover, there were relatively few patients over the age of $5$ that were not verbal (~104 subjects in validation), so we conjecture that a rule split based on pre-verbal v. verbal status might be a better choice. Using the same train/validation/test splits, we re-trained our $\ell_1$-regularized Logistic Regression models. 
+In this section, we return to Figure \ref{fig:preverbal}, where we saw that many patients under the age of $5$ were pre-verbal, but the standard practice is to separate subjects before and after the age of $2$. Moreover, there were relatively few patients over the age of $5$ that were not verbal (104 subjects in validation), so we conjecture that a rule split based on pre-verbal v. verbal status might be a better choice. Using the same train/validation/test splits, we re-trained our $\ell_1$-regularized Logistic Regression models. 
 
 In Figure \ref{fig:lr_roc_vb}, we present ROC curves for the $\ell_1$-regularized Logistic Regression for the validation and the test data with the new data split. We see that all of the logistic regression models are better than the baseline model, and that the ROC curves are far from the 45-degree line, but that this split leads to slightly worse performance than the original division at the age of $2$. Nonetheless, we believe that this or similar data splits merit further investigation: there are children under the age of two that are verbal and can hence communicate their mental status, but there are also those over the age of two that are not and hence cannot communicate. 
 \begin{figure}
@@ -335,7 +352,11 @@ In Figure \ref{fig:lr_roc_vb}, we present ROC curves for the $\ell_1$-regularize
 \end{figure}
 
 \section{Conclusions} \label{sec:conclusions}
-asdf.
+
+In this report, we have looked at patient data from a prospective cohort study wherein patients between the ages of 0-17 who visited one of a series of hospitals presenting with a potential TBI were enrolled. We were given data from patient questionnaires that was converted to numerical features and fit models to predict the need for a CT scan. We found that an $\ell_1$-penalized logistic regression model performed the best and outperformed the model derived in  \cite{kuppermann2009identification}. 
+
+There are many threads left unfinished in this work, mostly because of time and space constraints. First, it would be interesting to systematically investigate whether a better age cutoff (in terms of model performance) could be obtained, or whether an age cutoff combined with some other factor (like pre-verbal v. verbal) would be better. Additionally, it would be good to compare additional models and to investigate the performance and utility of some model explainability techniques, like LIME \cite{ribeiro2016should} or SHAP \cite{vstrumbelj2014explaining}. 
+
 
 \subsection{Division of Labor}
 
