@@ -228,7 +228,7 @@ def rename_values(df):
     return df
 
 
-def derived_feats(df,veryyoung_age_cutoff=2,nonverbal_age_cutoff=5,young_adult_age_cutoff=12):
+def derived_feats(df,veryyoung_age_cutoff=2,nonverbal_age_cutoff=5,young_adult_age_cutoff=12,stairs_cutoff=2):
     '''Add derived features
     '''
     df['VeryYoung'] = (df['AgeInYears'] < veryyoung_age_cutoff)
@@ -236,7 +236,7 @@ def derived_feats(df,veryyoung_age_cutoff=2,nonverbal_age_cutoff=5,young_adult_a
     df['YoungAdult'] = (df['AgeInYears'] >= young_adult_age_cutoff)
     df.drop(['AgeInYears'],axis=1,inplace=True)
         
-    df['HighRiskFallDownStairs'] = (df['FallDownStairs'].fillna(0) >= 2)    
+    df['HighRiskFallDownStairs'] = (df['FallDownStairs'].fillna(0) >= stairs_cutoff)    
     df.drop(['FallDownStairs'],axis=1,inplace=True)
     df.replace({False: 0., True: 1.}, inplace=True)
 

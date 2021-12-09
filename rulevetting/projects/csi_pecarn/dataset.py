@@ -216,10 +216,7 @@ class Dataset(DatasetTemplate):
         avpu_one_hot = pd.get_dummies(df[avpu_columns])
         df = df.drop(avpu_columns,axis = 1)
         df = df.join(avpu_one_hot)
-        
-        df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0]) # re-caluclated if we impute
-        df['GCSbelow9'] = (df['TotalGCS'] < 9).replace([True,False],[1,0])
-        
+                
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
         
         df = helper.build_binary_covariates(df)
@@ -232,7 +229,8 @@ class Dataset(DatasetTemplate):
         df = helper.rename_values(df)
         df = helper.derived_feats(df,veryyoung_age_cutoff=kwargs['veryyoung_age_cutoff'],\
                                   nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
-                                 young_adult_age_cutoff=kwargs['young_adult_age_cutoff'])
+                                 young_adult_age_cutoff=kwargs['young_adult_age_cutoff'],
+                                 stairs_cutoff=kwargs['stairs_cutoff'])
                     
         '''
         # bin useful continuous variables age
@@ -242,7 +240,7 @@ class Dataset(DatasetTemplate):
         ''' 
         return df
     
-    def impute_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+    def impute_data(self, preprocessed_data: pd.DataFrame, keep_na=False, **kwargs) -> pd.DataFrame:
         df = preprocessed_data
 
         # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
@@ -250,54 +248,54 @@ class Dataset(DatasetTemplate):
                       
         pd.options.mode.chained_assignment = None
         
-        gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
-        # GCS imputation by AlteredMentalStatus is very well justified by EDA, so we don't make it a automated JC
-        # This is approved by Dr. Devlin and Dr. Kornblith
-        for gcs_col in gcs_columns:
-            max_gcs = df[gcs_col].max()
-            df[gcs_col][(df['AlteredMentalStatus'] == 0.0) & (pd.isna(df[gcs_col]))] = max_gcs
+        if not keep_na:
+            gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
+            # GCS imputation by AlteredMentalStatus is very well justified by EDA, so we don't make it a automated JC
+            # This is approved by Dr. Devlin and Dr. Kornblith
+            for gcs_col in gcs_columns:
+                max_gcs = df[gcs_col].max()
+                df[gcs_col][(df['AlteredMentalStatus'] == 0.0) & (pd.isna(df[gcs_col]))] = max_gcs
+
+            if kwargs['impute_outcomes']:
+                # Judgement call to fill ~2% of units without these outcomes as normal
+                df['OutcomeStudySiteMobility_posthoc'][(pd.isna(df['OutcomeStudySiteMobility_posthoc']))] = 'N'
+                df['OutcomeStudySiteNeuro_posthoc'][(pd.isna(df['OutcomeStudySiteNeuro_posthoc']))] = 'NR'
+            else: df = df.dropna(subset=['OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc'])
+
+            # Judgement call to impute remaining ~10% of units without GCS as max e.g. 4/5/6=15
+            # As with AVPU, we add an indicator of whether GCS was NA before imputation
+            df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
+
+            if kwargs['impute_gcs']:
+                # if AMS=0, AVPU < A never occur, therefore we feeled justified imputing with max
+                # AVPU A implies GCS = 15 in the complete data
+
+                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)] = \
+                    df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)]\
+                    .apply(lambda col: col.fillna(col.max()), axis=0)
+
+                # if AMS=1, we use median imputation
+                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)] = \
+                    df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)]\
+                    .apply(lambda col: col.fillna(col.median()), axis=0)
+
+                df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
+
+            else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
+
+
+            for column in df.columns:
+                char_column = df[column] # select column
+                unique_values = pd.unique(char_column) # get unique entries
+
+            # we also tried likehlihood-based random imputation it removes correlations
+            df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
         
-        if kwargs['impute_outcomes']:
-            # Judgement call to fill ~2% of units without these outcomes as normal
-            df['OutcomeStudySiteMobility_posthoc'][(pd.isna(df['OutcomeStudySiteMobility_posthoc']))] = 'N'
-            df['OutcomeStudySiteNeuro_posthoc'][(pd.isna(df['OutcomeStudySiteNeuro_posthoc']))] = 'NR'
-        else: df = df.dropna(subset=['OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc'])
-                    
-        # Judgement call to impute remaining ~10% of units without GCS as max e.g. 4/5/6=15
-        # As with AVPU, we add an indicator of whether GCS was NA before imputation
-        df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
         
-        if kwargs['impute_gcs']:
-            # if AMS=0, AVPU < A never occur, therefore we feeled justified imputing with max
-            # AVPU A implies GCS = 15 in the complete data
-            
-            df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)] = \
-                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==0)]\
-                .apply(lambda col: col.fillna(col.max()), axis=0)
-            
-            # if AMS=1, we use median imputation
-            df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)] = \
-                df[['GCSEye','MotorGCS','VerbalGCS']][(df['AlteredMentalStatus']==1)]\
-                .apply(lambda col: col.fillna(col.median()), axis=0)
-            
-            df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
-            
-        else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
-    
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
-        df['GCSbelow9'] = (df['TotalGCS'] <= 8).replace([True,False],[1,0])
-        
+        df['GCSbelowThreshold'] = (df['TotalGCS'] < kwargs['gcs_threshold']).replace([True,False],[1,0])
         pd.options.mode.chained_assignment = 'warn'
-        
-        for column in df.columns:
-            char_column = df[column] # select column
-            unique_values = pd.unique(char_column) # get unique entries
-        
-        # as a judgement call check, we can impute missing booleans with zero or with 
-        # a bernoulli draw of their observed probability        
-        
-        df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
-        
+
         numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
         numeric_data = numeric_data.astype(float) # cast numeric data as float
         char_data = df.select_dtypes([np.object]) # gets columns encoded as strings
@@ -358,7 +356,7 @@ class Dataset(DatasetTemplate):
         return 'csi_pecarn'  # return the name of the dataset id
 
     def get_meta_keys(self) -> list:
-        return ['Race', 'InitHeartRate', 'InitSysBPRange']  # keys which are useful but not used for prediction
+        return [] # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
@@ -371,12 +369,13 @@ class Dataset(DatasetTemplate):
                 'veryyoung_age_cutoff':[2,1,1.5],
                 'nonverbal_age_cutoff':[5,4,6],
                 'young_adult_age_cutoff':[11,15],
+                'stairs_cutoff':[2,3],
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
-
                 'frac_missing_allowed': [0.05, 0.1],
                 'impute_gcs':[True, False],
+                'gcs_threshold':[8,11],
                 'impute_outcomes':[True, False],
             },
             'split_data': {
@@ -432,9 +431,7 @@ class Dataset(DatasetTemplate):
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
             featurized_data = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-            if not keep_na:
-                imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'])
-            else: imputed_data = featurized_data
+            imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'],keep_na=keep_na)
             
             df_train, df_tune, df_test = cache(self.split_data)(imputed_data, **{'control_types': control_types})
         elif run_perturbations:
