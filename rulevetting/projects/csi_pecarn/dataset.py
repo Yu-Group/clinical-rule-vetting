@@ -237,6 +237,39 @@ class Dataset(DatasetTemplate):
         # manually remove some features
         features_to_remove = ['ReceivedInTransfer','CervicalSpineImmobilization']
         df.drop(features_to_remove,axis=1,inplace=True)
+        
+        if kwargs['aggregate_medicalhistory_covariates']:
+            mh_features = ['HEENT','Cardiovascular','Respiratory','Gastrointestinal',\
+                           'Musculoskeletal','Neurological','Medications','Predisposed']
+            df['AbnormalMedicalHistory'] = df[mh_features].max(numeric_only = True,axis=1) 
+            df.drop(mh_features,axis=1,inplace=True)
+        
+        if kwargs['aggregate_improved_covariates']:
+            improved_features = [col_name for col_name in df.columns.astype(str) if '_improved' in col_name]
+            df['ConditionImproved'] = df[improved_features].max(numeric_only = True,axis=1) 
+            df.drop(improved_features,axis=1,inplace=True)
+        
+        if kwargs['aggregate_comppain_covariates']:
+            pt_comp_other = ['PtCompPainChest','PtCompPainFace','PtCompPainHead']
+            df['PtCompPainOther'] = df[pt_comp_other].max(numeric_only = True,axis=1) 
+            df.drop(pt_comp_other,axis=1,inplace=True)
+            
+        if kwargs['aggregate_subinj_covariates']:
+            subinj_features = ['SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk']
+            df['SubInj'] = df[subinj_features].max(numeric_only = True,axis=1) 
+            df.drop(subinj_features,axis=1,inplace=True)  
+            
+        if kwargs['aggregate_tenderness_covariates']:
+            tender_features = ['PtTenderNeck', 'PtTenderFace', 'PtTenderHead', 'PosMidNeckTenderness', 'TenderNeck']
+            df['TendernessAgg'] = df[tender_features].max(numeric_only = True,axis=1) 
+            df.drop(tender_features,axis=1,inplace=True) 
+            
+        if kwargs['aggregate_highriskmoi_covariates']:
+            highrisk_features = [col_name for col_name in df.columns.astype(str) if 'Highrisk' in col_name]
+            highrisk_features.extend(['Clotheslining','axialloadtop'])
+            df['HighriskMOI'] = df[highrisk_features].max(numeric_only = True,axis=1) 
+            df.drop(highrisk_features,axis=1,inplace=True) 
+            
         '''
         # bin useful continuous variables age
         binning_dict = {}
@@ -385,6 +418,12 @@ class Dataset(DatasetTemplate):
                 'nonverbal_age_cutoff':[5,4,6],
                 'young_adult_age_cutoff':[11,15],
                 'stairs_cutoff':[2,3],
+                'aggregate_medicalhistory_covariates':[True,False],
+                'aggregate_improved_covariates':[True,False],
+                'aggregate_comppain_covariates':[True,False],
+                'aggregate_subinj_covariates':[True,False],
+                'aggregate_tenderness_covariates':[True,False],
+                'aggregate_highriskmoi_covariates':[True,False],
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
