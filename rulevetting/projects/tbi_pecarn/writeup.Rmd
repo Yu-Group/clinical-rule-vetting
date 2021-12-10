@@ -3,6 +3,9 @@ title: 'Predicting Low Risk of Clinically-Important TBI in Children: Vetting and
 author: Jimmy Butler, Andrej Leban, Ian Shen, Xin Zhou
 output: pdf_document
 bibliography: references.bib
+header-includes: \usepackage{float, amsmath}
+urlcolor: red
+papersize: a4
 ---
 
 `GENERAL NOTE: should we refer to the notebooks in the repo that we used to make some of the plots?`
@@ -137,12 +140,12 @@ and preprocessing steps is to keep only covariates relevant to predicting TBI
 at the time a child would present to the ER, keep only observations for whom
 this classification rule would be relevant (children for whom it's a toss-up
 as to whether they'll need a CT scan), and to deal with missing values. We present
-our procedure below, along with relevant judgement calls and their perturbations
+our procedure below, along with relevant judgment calls and their perturbations
 where applicable.
 
 * Remove columns irrelevant to predicting TBI at the time a child enters the emergency room
   + *EmplType*, *Certification*, *Ind...*, *CT...*, *Finding1*, ... *Finding23*, *EDDisposition*, *Observed*, *AgeTwoPlus*, *AgeInMonth*
-  + Judgement Call [`injMech`]: drop *InjuryMech* 
+  + Judgment Call [`injMech`]: drop *InjuryMech* 
     + Perturbation: keep *InjuryMech* 
 
 This includes *EmplType* and *Certification*, any variable about the reasons why a CT scan was ordered, whether sedation would be needed when performing a CT scan, the traumatic findings from the CT scan, the reason why the child left the ER, or 
@@ -154,7 +157,7 @@ at the time a child first enters the ER, or would be known only after
 the decision to obtain a CT scan has been made. So, these are not of interest.
 We also remove an indicator for the individuals being above age 2, as well as
 the age provided in months, opting to keep the age provided in years. Similarly,
-according to judgement call [`injMech`], we drop the injury mechanism, a 13-level categorical variable detailing how the
+according to judgment call [`injMech`], we drop the injury mechanism, a 13-level categorical variable detailing how the
 injury occurred, opting to keep a severity variable, a 3-tiered categorical variable
 rating the severity of the injury mechanism as 'low', 'moderate', or 'high'.
 
@@ -176,12 +179,12 @@ If GCS is less than 14, the individual is quite injured and would likely need a 
 We only keep individuals where the total GCS is 14 or 15.
 
 * Impute and Drop based on GCS scores
-  + Judgement Call [`missSubGCS`]: drop observations with total GCS of 14, but missing any of the GCS subcategory scores (*GCSVerbal*, *GCSMotor*, *GCSEye*) 
+  + Judgment Call [`missSubGCS`]: drop observations with total GCS of 14, but missing any of the GCS subcategory scores (*GCSVerbal*, *GCSMotor*, *GCSEye*) 
     + Perturbation: keep the observations
   + Impute a full score into each GCS subcategory when total GCS is 15 
-  + Judgement Call [`fake15GCS`]: drop observations with total GCS of 15, but suboptimal score in a subcategory 
+  + Judgment Call [`fake15GCS`]: drop observations with total GCS of 15, but suboptimal score in a subcategory 
     + Perturbation: keep the observations
-  + Judgement Call [`fake14GCS`]: drop observations with total GCS of 14, but optimal score in every subcategory 
+  + Judgment Call [`fake14GCS`]: drop observations with total GCS of 14, but optimal score in every subcategory 
     + Perturbation: keep the observations
   
 GCS score is likely an important predictor of TBI, so it is imperative this variable is as completely 
@@ -199,14 +202,14 @@ represent the population of interest for these classification rules.
 
 * Drop and impute based on variables of altered mental status
   + *AMS*, *AMSAgitated*, *AMSSleep*, *AMSSlow*, *AMSRepeat*, *AMSOth*
-  + Judgement Call [`AMS`]: drop observations missing any of the above variables
+  + Judgment Call [`AMS`]: drop observations missing any of the above variables
     + Perturbation: impute missing *AMS* based on presence of any of the subvariables, and drop the subvariables and any remaining missing *AMS* observations
     
 *AMS* is an indicator representing if the child has altered mental status, and
 the remaining variables are subvariables indicating the reason why the child has
 altered mental status (agitated, sleepy, slow to respond, asking repetitive questions, etc.)
 This is likely an important predictor, so it is important to handle missing values.
-By judgement call `AMS`, we drop any observation with a missing value in any of these
+By judgment call `AMS`, we drop any observation with a missing value in any of these
 categories, since if the observation is missing it is impossible to truly know a value
 to impute for *AMS*. As a perturbation, we could impute a 1 in *AMS* if any
 if any of the subcategories is affirmative, and 0 otherwise. However, it would
@@ -215,7 +218,7 @@ these observations.
 
 * Drop and impute based on variables of other non-head substantial injuries
   + *OSI*, *OSIExtremity*, *OSICut*, *OSICspine*, *OSIFlank*, *OSIAbdomen*, *OSIPelvis*, *OSIOth*
-  + Judgement Call [`OSI`]: same procedure as above for *AMS* and its subvariables
+  + Judgment Call [`OSI`]: same procedure as above for *AMS* and its subvariables
     + Perturbation: same procedure as above for *AMS* and its subvariables
     
 *OSI* is an indicator on whether the physician determined the child sustained 
@@ -225,12 +228,12 @@ or a pelvis injury. Although not directly related to head trauma, we find this v
 might be an indicator of the injury severity. If another variable relevant to head trauma
 fails to indicate a TBI for a particular individual, including this variable offers
 another opportunity to diagnose the TBI, possibly suppressing the false negative rate.
-By judgement call `OSI`, we drop any observations missing any of these values or their
-subvariables for the same reason as judgement call `AMS`. 
+By judgment call `OSI`, we drop any observations missing any of these values or their
+subvariables for the same reason as judgment call `AMS`. 
 
 * Drop and impute based on hematoma information
   + *Hema*, *HemaSize*, *HemaLoc*
-  + Judgement Call [`HEMA`]: same procedure as above for *AMS* and its subvariables
+  + Judgment Call [`HEMA`]: same procedure as above for *AMS* and its subvariables
     + Perturbation 1: same procedure as above for *AMS* and its subvariables
     + Perturbation 2: Only drop missing *HemaLoc* and *Hema*, impute missing *Hema* from *HemaLoc* presence, drop remaining missing *Hema*
     
@@ -238,20 +241,24 @@ subvariables for the same reason as judgement call `AMS`.
 *HemaSize* is a categorical variable representing the size (< 1cm, 1-3cm, > 3cm) and
 *HemaLoc* is a categorical variable representing the location (frontal, occipital, parietal/temporal).
 According to domain knowledge, scalp hematomas are fairly good predictors of TBI.
-By judgement call [`HEMA`], we drop all observations missing any of these categories.
+By judgment call [`HEMA`], we drop all observations missing any of these categories.
 By Perturbation 1, we only keep the indicators for the presence of hematoma. By Perturbation 2, we keep the indicator as well as the location, 
 since according to domain knowledge, the impact of head trauma to the brain is dependent on the location of the trauma.
 
 * Drop and impute based on skull fracture variables
   + *SFxPalp*, *SFxPalpDepress*
-  + Judgement Call [`SFx`]: recode an unclear *SFxPalp* observation as true, drop observations missing either *SFxPalp* or *SFxPalpDepress*
+  + Judgment Call [`SFx`]: recode an unclear *SFxPalp* observation as true, drop observations missing either *SFxPalp* or *SFxPalpDepress*
     + Perturbation 1: same procedure as [`AMS`] perturbation
+<<<<<<< HEAD
     + Perturbation 2: recode an unclear *SFxPalp* observation as false, drop observations missing either *SFxPalp* or *SFxPalpDepress*
+=======
+    + Perturbation 2: same procedure as [`AMS`] judgment call
+>>>>>>> c840e49c7a7ef202671d228365747ab983030469
     
 *SFxPalp* is an indicator for a palpable skull fracture, which can also be marked as
 'unclear' if there is too much swelling to make a determination. *SFxPalpDepress*
 is an indicator on whether the fracture feels depressed. Both of these are likely
-important predictors via domain knowledge. As a judgement call, we take an unclear
+important predictors via domain knowledge. As a judgment call, we take an unclear
 observation as being a palpable skull fracture, since even if the examination was unclear,
 there is still substantial head trauma.
 
@@ -266,7 +273,7 @@ variable does not have much predictive value for older children.
 
 * Drop and impute based on basilar skull fracture variables
   + *SFxBas*, *SFxBasHem*, *SFxBasOto*, *SFxBasPer*, *SFxBasRet*, *SFxBasRhi*
-  + Judgement Call [`SFxBas`]: same as [`AMS`] judgement call
+  + Judgment Call [`SFxBas`]: same as [`AMS`] judgment call
     + Perturbation: same as [`AMS`] perturbation
 
 *SFxBas* is an indicator if the physician has determined there is basilar skull fracture
@@ -281,7 +288,7 @@ To do so, we follow the same procedure for *AMS* and its subvariables, regarding
 
 * Drop and impute based on above-the-clavicle injury variables
   + *Clav*, *ClavNeck*, *ClavFro*, *ClavOcc*, *ClavPar*, *ClavTem*
-  + Judgement Call [`Clav`]: same as [`AMS`] judgement call
+  + Judgment Call [`Clav`]: same as [`AMS`] judgment call
     + Perturbation: same as [`AMS`] perturbation
 
 *Clav* is an indicator on whether there was a laceration, abrasion, or hematoma
@@ -292,49 +299,53 @@ could indicate a TBI if one of the head trauma variables fails to.
 
 * Drop and impute based on neurological deficit variables
   + *NeuroD*, *NeuroDMotor*, *NeuroDSensory*, *NeuroDCranial*, *NeuroDReflex*, *NeuroDOth*
-  + Judgement Call [`Neuro`]: same as [`AMS`] judgement call
+  + Judgment Call [`Neuro`]: same as [`AMS`] judgment call
     + Perturbation: same as [`AMS`] perturbation
     
 *NeuroD* is an indicator for whether or not there is some neurological deficit
 besides altered mental status, as determined by the physician. This includes
 motor, sensory, cranial nerve (pupil reactivity), or reflex issues. Generally,
 these categories are quite important for predicting TBI according to domain knowledge.
-As with previous groups of variables, we implement a judgement call to drop
+As with previous groups of variables, we implement a judgment call to drop
 any observation missing any of these values.
 
 * Drop and impute based on vomiting variables
   + *Vomit*, *VomitNbr*, *VomitStart*, *VomitLast*
-  + Judgement Call [`Vomit`]: same as [`AMS`] perturbation
-    + Perturbation: same as [`AMS`] judgement call
+  + Judgment Call [`Vomit`]: same as [`AMS`] perturbation
+    + Perturbation: same as [`AMS`] judgment call
 
 *Vomit* is an indicator for whether the individual vomited (as reported by child
 or parents), *VomitNbr* is the number of times the child vomited post-injury (1, 2, > 2 times),
 *VomitStart* is how soon after the head injury the vomiting started (within 1 hour, 1 - 4 hours, > 4 hours after), and 
 *VomitLast* is how soon before the evaluation was the last
-episode (< 1 hour, 1 - 4 hours, > 4 hours before evaluation). As a judgement call,
+episode (< 1 hour, 1 - 4 hours, > 4 hours before evaluation). As a judgment call,
 we only keep *Vomit* and impute missing values from the subvariables, since according
 to domain knowledge, more details about vomiting is generall unhelpful. As a perturbation,
 we keep these covariates.
 
 * Drop and impute based on headache variables
   + *HA_verb*, *HAStart*, *HASeverity*
-  + Judgement Call [`HA`]: Drop missing *HASeverity*, impute missing *HA_verb* from *HASeverity*, and drop remaining missing *HA_verb*, ignore *HAStart* column 
+  + Judgment Call [`HA`]: Drop missing *HASeverity*, impute missing *HA_verb* from *HASeverity*, and drop remaining missing *HA_verb*, ignore *HAStart* column 
     + Perturbation 1: same as [`AMS`] perturbation
-    + Perturbation 2: same as [`AMS`] judgement call
+    + Perturbation 2: same as [`AMS`] judgment call
     
 *HA_verb* is an indiactor on whether the child had a headache, and is marked differently
 if the child is too young to verbalize that they had a headache, or unable to speak.
 *HAStart* and *HASeverity* are both variables indicating when the headache began
 (before injury, within 1 hour after, 1-4 hours after, > 4 hours after) and the severity
-(mild, moderate, and severe). As a judgement call, we keep *HA_verb* and *HASeverity*
+(mild, moderate, and severe). As a judgment call, we keep *HA_verb* and *HASeverity*
 since these are both more likely to predict TBI than *HAStart*. However, it should be
 noted that this is an age-dependent variable as discussed in the prior section, since
 being able to verbalize headache symptoms requires the child to be of a certain age.
 
 * Drop and impute based on seizure variables
   + *Seiz*, *SeizLen*, *SeizOccur*
+<<<<<<< HEAD
   + Judgement Call [`Seiz`]: Drop missing *SeizLen*, impute missing *Seiz* from *SeizLen*, drop missing *Seiz*, and ignore *SeizOccur* column
     + Perturbation 1: Drop missing *SeizLen* and *Seiz*, exclude *SeizOccur* column
+=======
+  + Judgment Call [`Seiz`]: Drop missing *SeizLen*, impute missing *Seiz* from *SeizLen*, drop missing *Seiz*, and ignore *SeizOccur* column
+>>>>>>> c840e49c7a7ef202671d228365747ab983030469
   
 *Seiz* is an indicator if the child had a seizure, as reported by the parent or child.
 *SeizLen* is how long the seizure lasted (< 1 min, 1-5 min, 5-15 min, >15 min) and
@@ -346,14 +357,20 @@ according to domain knowledge.
 
 * Drop and impute based on loss of consciousness variables
   + *LOCSeparate*, *LocLen*
+<<<<<<< HEAD
   + Judgement Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
     + Perturbation 1: same as [`AMS`] judgement call
     + Perturbation 2: recode 'suspected' as 'no' in *LOCSeparate*, drop missing *LOCSeparate* and *LOCLen*
+=======
+  + Judgment Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
+    + Perturbation 1: same as [`AMS`] perturbation
+    + Perturbation 2: same as [`AMS`] judgment call
+>>>>>>> c840e49c7a7ef202671d228365747ab983030469
     
 *LOCSeparate* is an indicator if the child lost consciousness at all after the injury,
 and *LocLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). 
 Loss of consciousness is generally a good predictor of head trauma, so we wish
-to include this to predict TBI. As a judgement call, we consider a suspected loss of
+to include this to predict TBI. As a judgment call, we consider a suspected loss of
 consciousness as affirmative, since if there is any doubt as to whether the child
 lost consciousness, this should be of concern to err on the side of caution.
 
@@ -365,17 +382,17 @@ although it could be a good predictor for verbal children. *High_impact_InjSev*
 is the rating of the injury mechanism severity, as mentioned above. 
 
 * Impute missing values for *ActNorm*
-  + Judgement Call [`ActNorm`]: recode null values as affirmative
+  + Judgment Call [`ActNorm`]: recode null values as affirmative
     + Perturbation: recode values as not affirmative
 
 *ActNorm* is a subjective assessment by the parent as to whether the parent
 thinks the child is acting normally. Although subjective, domain experts conclude
 that a parents assessement of their child's behavior is a good indicator of
 how severely the child may be injured. Because this is important, we wish to impute
-as many values as possible. As a judgement call, we consider a missing value
+as many values as possible. As a judgment call, we consider a missing value
 as being normal, since if the child was acting normally, it's possible this
 question could have simply been skipped over. As a perturbation, we reverse this
-judgement call.
+judgment call.
 
 * Make a pooled outcome variable
 
@@ -631,7 +648,7 @@ The list below now gives the rules for Kuppermann's verbal (2 or older) classifi
 ### Procedure and Performance
 
 ```{r baseline_res, echo = FALSE, fig.cap = 'Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.'}
-include_graphics('figs/baseline_res.png')
+include_graphics('figs/baseline_res.png', dpi=200)
 ```
 
 The result of baseline model is shown in \ref{fig:baseline_res}. The yellow blocks are identified as positive 
@@ -644,6 +661,10 @@ the sensitivity is 98.9\% and 96.8\% for preverbal children and verbal children,
 48.3\% and 57.7\%. In the following section, we propose a model with similar sensitivity and higher specificity. The detailed
 evaluation metrics based on sensitivity and specificity is discussed in the following part.
 
+
+
+\newpage
+
 ## Proposed Model
 
 *Describe the proposed model, it's advantages, disadvantages, how it might compare to the original model, etc.*
@@ -651,9 +672,71 @@ evaluation metrics based on sensitivity and specificity is discussed in the foll
 *Justify the proposed model, and refer back to discussion in Post-Processing Discussion for justification while also answering Q8 about any randomness assumptions. *
 
 
+<<<<<<< HEAD
 ### `rulefit`: Introduction and Basic Illustrative Implementation
+=======
+### An introduction to and an illustration of `rulefit`
 
-*(Andrej)*
+*Rulefit* was proposed by @2008Friedman and is an example of a wider category of *ensemble methods*.
+At a high level, we wish to describe our output function with a linear combination
+of simpler learners $\mathcal{T}_k$ [@ESL]:
+
+\begin{equation}
+  f(x) = \sum_{k=1}^K \alpha_k~\mathcal{T}_k (x)
+\end{equation}
+
+The $\mathcal{T}$'s need not necessarily be analytic functions, so a common choice
+is an ensemble of *trees*. Suppose we generated a large number of such trees in the first step, e.g. via a boosting
+procedure. We then wish to make the linear combination as concise as possible.
+A usual procedure is to perform a *LASSO* regression of regularization strength $\lambda$ on
+the space of $\mathcal{T}$s for the coefficients $\alpha_k$:
+
+\begin{equation}
+  \alpha(\lambda) = \underset{\vec{\alpha}}{argmin} ~ \sum_{i=1}^N \mathcal{L}(y_i, \vec{\alpha_0} +
+  \sum_{k=1}^N \alpha_k~\mathcal{T}_k (x)) ~+~ \lambda \sum_{k=1}^N |\alpha_k|
+\end{equation}
+
+We also added a linear term in all the original features $\vec{\alpha_0}$, which will come into play especially with 
+the more complex models. The *LASSO* will for sufficiently large $\lambda$ set a large
+portion of the coefficients to zero.
+
+
+*Rulefit* follows the above procedure with an additional twist. After fitting the
+trees via a gradient-boosting algorithm, it extracts *rules* from the generated tree.
+Looking at a tree as a [*trie*](https://en.wikipedia.org/wiki/Trie), each path down a 
+tree encodes a specific combined rule (each node is split solely on a single variable).
+Naturally, the deeper the tree, the more complex a rule can get.
+It can be shown [@ESL] that only the paths ending in leaf nodes describe all the rules for
+the whole tree.
+
+Thus the input to the sum above are the sets of such rules from each tree in the original
+gradient-boosting sequence, which are most often overlapping.
+
+The *LASSO* thus performs regression on the *space of rules* and outputs a parsimonious
+set with potentially added linear terms.
+>>>>>>> c840e49c7a7ef202671d228365747ab983030469
+
+
+As a concrete illustration of `rulefit` in conjunction with our preprocessing and
+judgment call procedure, we present two models:
+
+  * **"basic":**
+    The judgment calls are selected as to be maximally restrictive, combining
+    all sub-variables into their parent variable and throwing away as many of the rest as possible, 
+    as well selecting the call of removing observations whenever possible. The number of
+    rules is restricted to 10.
+
+  * **"full":**
+    The inverse of the above, including as many variables and throwing away as
+    few observations as possible. The number of rules is allowed to go to 20.
+
+These two classifiers should, therefore, illustrate the effects of our judgment calls on the 
+structure of the model.
+
+
+Below are presented the top five rules for each in terms of their importance. The
+latter is similar to the metric in the ensemble of trees, but calculated from the
+*LASSO* re-fitting [@molnar2019]:
 
 ```{python basic_rules, engine.path = "../../../rule-env/bin/python3", include=FALSE}
 # load the statistics from the basic
@@ -674,34 +757,33 @@ kable(py$brules, caption = "Top 5 basic model rules in order of importance")
 ```
 
 ```{r, echo=FALSE}
-kable(py$mrules, caption = "Top 5 maximal model rules in order of importance")
+kable(py$mrules, caption = "Top 5 full model rules in order of importance")
 ```
+
+We can immediately sense the increase in complexity for the *full* model.
+Also note that the *LASSO*-introduced linear terms become important in the complex model,
+perhaps substituting some of the effect of simpler rules.
 
 To see how these relatively basic models perform, we examine their *sensitivity - specificity* curve:
 
-```{r basic_ROC, echo = FALSE, fig.width=6, fig.height=4, fig.cap="Sensitivity-specificity curve for two basic rulefit models with maximal and minimal judgement calls."}
+```{r basic_ROC, echo = FALSE, fig.width=6, fig.height=4, fig.cap="Sensitivity-specificity curve for two basic rulefit models with maximal and minimal judgment calls."}
 include_graphics('figs/basic_ROC.png', dpi=500)
 ```
 
 The minimal model is able to achieve 80%+ in both sensitivity and specificity for one
-threshold value; since we care much more about false negatives than positives, we consequently value
+threshold value; since we, however, care much more about false negatives than positives, we consequently value
 sensitivity far above specificity. Therefore in this case, the fuller model with sensitivities
 above 90% would be preferred.
 
+Comparing these basic rules with the performance of the final model in @kuppermann2009,
+which got approximately 96% sensitivity with 58% specificity, we can surmise that in the case of the
+full model we are approaching that sensitivity and exceeding it in specificity, without any
+specific tweaking to the models being performed at this stage!
 
+As shown in the next section, with some careful construction of the models and selection
+of the judgment call, we can improve this performance considerably.
 
-
-
-
-
-
-
-
-
-
-
-
-
+`TODO: check this text if it still fits:`
 
 (Xin) I think Andrej will describe rulefit model. Q8 I can only answer this in Logistic regression assumption. Can this be better?
 
@@ -712,9 +794,9 @@ However, it is non-robust when we perturb the data and the greedy method does no
 
 ### Procedure and Performance
 
-We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgement calls.
+We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgment calls.
 There are three possible splitting methods in age groups: preverbal children, verbal children, and all children.
-And we include two different judgement calls: whether include or exclude all subvariables.
+And we include two different judgment calls: whether include or exclude all subvariables.
 Although there are six possible datasets, the dataset of preverbal children excluding subvariables contain too few
 TBI children so we cannot get a reasonable result. Therefore, we will train and evaluate for other five datasets.
 
@@ -752,6 +834,10 @@ The performance of rulefit model on test data is in Figure \ref{fig:rule_result_
 increases the performance of classifying the verbal children. Among two verbal children datasets, when sensitivity is larger than 95\%,
 the specificity is about 70\% when we include subvariables, while it drops to 55\% if we exclude them. Finally, for preverbal children,
 the specificity is around 60\% when the sensitivity is about 95\%. These results imply us developing the age-invariant classifier.
+In addition, when we perform the classification, we also need to pick a threshold of the probability, to determine the predicted labels.
+For the age-invariant classifier, based on our discussion of sensitivity and stability, the threshold is set to $1.3 \times 10^{-5}$, 
+which persform well not only on training and validation data, but also on test data. For test data classification,
+the sensitivity is 97.9\% and the specificity is 70.4\%.
 
 ```{r rulefit_interpretation, echo = FALSE, fig.cap = 'The important rules for the age-invariant classifier', out.width = "100%"}
 include_graphics('figs/rulefit_interpretation.png')
@@ -760,21 +846,59 @@ include_graphics('figs/rulefit_interpretation.png')
 In Figure \ref{fig:rule_result_on_test}, we lists the important rules for the age-invariant classifier.
 We find that other signs of altered mental status is the most important linear factor. Besides it, loss of consciousness length 
 and history of vomiting are also two important linear factors. The other important rules consists of several variables.
-History of vomiting and basilar skull fracture(hemotympanum) forms an important rule.
+History of vomiting and basilar skull fracture (hemotympanum) forms an important rule.
 And another important rule involves the severity of injury, loss of consciousness length, 
 feeling depressed in palpable skull fracture, and Neurological deficit(cranial nerve).
 
+
+
 ### Randomness Assessment
 
-What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.
+*Statistical inference concepts such as p-values and confidence intervals rely on randomness. What does randomness mean in the data? Make the randomness in the statistical model as explicit as possible. What domain knowledge supports such a statistical or mathematical abstraction or the randomness in a statistical model?*  
 
-Underneath the model is LASSO regression, a fit on probability space, so describe the randomness mechanism here. Randomness is that the model is greedy,
-so you don't know where it will end up. Also, what LASSO throws away is some randomness..
+`What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.`
 
-Justification for this randomness: throwing away/restricting the feature space
-is just like what a doctor would do in diagnosing a TBI: you already have some
-heuristics to follow, so you would look for those first before looking for less important variables.
-Same thing that our model is doing: looking for more important features.
+`Underneath the model is LASSO regression, a fit on probability space, so describe the randomness mechanism here. Randomness is that the model is greedy, so you don't know where it will end up. Also, what LASSO throws away is some randomness..`  
+
+`Justification for this randomness: throwing away/restricting the feature spaceis just like what a doctor would do in diagnosing a TBI: you already have some  heuristics to follow, so you would look for those first before looking for less important variables. Same thing that our model is doing: looking for more important features.`  
+
+
+The randomness in the data can be divided into two categories: *intrinsic* and *measurement-related*.
+
+Under intrinsic we can count the natural variation in people's physiologies, where the a
+kind of an injury might lead to traumatic brain injury in one child, but not in another, as well as
+the minute differences in the injury mechanics, etc. These might spare one and not another from developing
+a traumatic brain injury. Even if our rules somehow covered all the potential avenues to *ciTBI*, these
+would, together with potential additional confounding factors, still conspire to make the prediction a probabilistic 
+exercise, not a deterministic one.
+
+To the above, we can add the many sources of *measurement-related* randomness: many
+of the variables are subjective evaluations performed by the clinical personnel, the 
+parents, or the children themselves (verbal indication of a headache, for example).
+These containing a degree of random "noise" should be obvious. As Dr. Inglis pointed
+out, however, an experienced physician might also *encode* a degree of domain knowledge - colloquially, "gut feel" - 
+in some of these categories, making them a stronger instead of a weaker predictor.
+
+A potential trap in understanding the model is to see it as a causal "if-then" model, 
+such as the baseline one. As shown in [An introduction to and an illustration of `rulefit`], the 
+rules instead act in an additive fashion, each adding a degree of certainty in the outcome.
+Additionally, the model itself is random. While the *LASSO* procedure in step 2 is 
+deterministic, it can only select rules from the initial bag given.
+
+The latter is generated via a tree generation procedure, which is most commonly *not deterministic* 
+(gradient boosting, for example, performs subsampling). The randomness in rule generation
+is somewhat ameliorated by the large number of trees we're usually generating, 
+which should work towards obtaining the set of all feasible rules.
+
+There is also a kind of arbitrariness in using the $L_1$ penalty, i.e. *LASSO*, as opposed to 
+others in the feature selection step, which is going to privilege some rules above the others
+without a domain-based reason.
+
+However, we can argue that physicians themselves follow an analogous heuristic when evaluating
+alternative hypotheses for a diagnosis: since the realm of possible causes is usually exceedingly large,
+they restrict themselves to a set of plausible causes using a "gut-feel" that could be likened
+to the $L_1$ shrinkage employed by the *LASSO*.
+
 
 ### Stability Analysis
 
@@ -806,9 +930,41 @@ isolates general signs of basilar skull fracture, we isolate a particular sign (
 and while the baseline simply checks for parietal, temporal, or occipital scalp hematoma,
 we find that only parietal and temporal hematomas are of most use.
 
-*Insert comparison with Andrej's rules above in the demonstration section*
+The next models to which we will compare our best classifier is an age-invariant random
+forest classifier.
+For our random forest, the judgement calls used to obtain the dataset were those that flattened the data, 
+removing the umbrella variables and giving the variables below them a binary classification. 
+We also removed age-variant predictors such as GCS. To create our cross-validation structure, we withheld 
+a random sample of 4739 observations for validation, stratified on outcome level. From there, the remaining 
+30,000 observations were randomly split into three equal folds, likewise stratified, and used to run a 
+three-fold CV in order to evaluate a given model's sensitivity and specificity, averaged over the three 
+possible train-test splits. 
 
-*Insert a few paragraphs about Random Forests and their results (maybe refer to notebook or something to see more specifics)*
+With the folds set up, we use this average sensitivity and specificity to tune our model's hyperparameters.
+One possible hyperparameter, number of trees, was found during exploratory analysis to have functionally no 
+effect on anything except computation time beyond around 200 trees, so all models were run with 200 trees.
+The forest's maximum depth, on the other hand, was optimized over, as an increase in max depth would generally
+result in an increase in specificity at the expense of sensitivity. The unbalanced nature of our output
+(less than 1% of children actually had a TBI) leads us to another hyperparameter: weight. Essentially, if we
+do not weight our model in order to favor true positives over true negatives, any random forest will predict
+that no child has a TBI; thus we add a weight factor to our "1" outcome in order to increase our model's sensitivity.
+
+The values evaluated for our hyperparameters (chosen via cursory exploratory analysis) include max depth ranging
+from 5 to 11 and weight parameter evaluated at 1 and then every multiple of 100, up to 1000. We optimized over both of
+these parameters, testing a total of 77 models for the ideal model that maximizes 2(Sens) + Spec, Spec>0.5, and generated
+ROC curves for each, which can be seen in tbi_rf.pdf. 
+
+```{r RF importance, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
+include_graphics('figs/RF Importance.PNG')
+```
+Our final model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
+impressive sensitivity of 0.971 and specificity of 0.617- good given the relative costs of letting a TBI go undiagnosed
+versus performing an unneeded CT test. In terms of importance, hemotympamnum was by far the most important predictor,
+which is entirely in keeping with its high prevalence in our rule-fitting model. Other important factors included ActNorm,
+ClavPar (scalp trauma), and AMSSlow- all of which show up somewhere in rules as well. Somewhat curiously, no vomiting-related
+values were in the top 10 (highest was VomitLast=1 which was 13th most important) despite its high prevalence in our rule-fitting
+classifier; this may be a consequence of the flattening of the vomit variable, leaving us with many minor effects instead of the 
+one overall binary indicator of whether or not the child was vomiting.
 
 #### Classification Result Stability
 
@@ -877,4 +1033,6 @@ when collecting data to ensure no TBIs are missed in the future.
 # Conclusion
 
 Just wrap it up
+
+# References
 
