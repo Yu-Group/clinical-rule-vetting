@@ -14,7 +14,11 @@ library(gridExtra)
 tbidata <- read.csv("tbi_flattened.csv")
 #  ciTBI and outcome are the same, we only need one.
 tbidata <- subset(tbidata,select=-c(ciTBI))
+# make age invariant 
+tbidata <- subset(tbidata,select=-c(GCSEye,GCSVerbal,GCSMotor,FontBulg,Amnesia_verb_0.0,Amnesia_verb_1.0,Amnesia_verb_91.0))
 tbidata$outcome <- as.factor(tbidata$outcome)
+# create ID value
+tbidata$id = 1:34739
 
 set.seed(2112)
 # proportion of overall data that has TBI
@@ -23,7 +27,7 @@ p <- mean(tbidata$outcome==1)
 
 stratsample <- function(data,n){
  stratas <- strata(data, c("outcome"),size = c(round(n*(1-p)),round(n*p)), method = "srswor") 
- return(getdata(data,stratas)[,1:94])
+ return(getdata(data,stratas)[,1:88])
 }
 
 valid <- stratsample(tbidata,4739)
@@ -45,15 +49,15 @@ However, due to the unbalanced nature of our outputs (around 0.7% of children ha
 ```{r}
 pred_rf_sens <- function(train,test,trees=200,depth=5,weight=1){
   # Gives the sensitivity of a random forest prediction on the TBI data. Increasing the weight of positive outcomes makes the model more heavily penalize false negatives.
-    fit <- ranger(outcome ~ .-Race-Gender-AgeinYears, data = train, num.trees=trees, max.depth = depth,class.weights=c(1,weight))
-    pred <- ranger:::predict.ranger(fit,subset(test,select=c(-Race,-Gender,-AgeinYears,-outcome)))
+    fit <- ranger(outcome ~ .-Race-Gender-AgeinYears-id, data = train, num.trees=trees, max.depth = depth,class.weights=c(1,weight))
+    pred <- ranger:::predict.ranger(fit,subset(test,select=c(-Race,-Gender,-AgeinYears,-outcome,-id)))
     return(sum(pred$predictions==test$outcome & test$outcome==1)/sum(test$outcome==1))
 }
 
 pred_rf_spec <- function(train,test,trees=200,depth=5,weight=1){
   # As before, but with specificity this time.
-    fit <- ranger(outcome ~ .-Race-Gender-AgeinYears, data = train, num.trees=trees, max.depth = depth,class.weights=c(1,weight))
-    pred <- ranger:::predict.ranger(fit,subset(test,select=c(-Race,-Gender,-AgeinYears,-outcome)))
+    fit <- ranger(outcome ~ .-Race-Gender-AgeinYears-id, data = train, num.trees=trees, max.depth = depth,class.weights=c(1,weight))
+    pred <- ranger:::predict.ranger(fit,subset(test,select=c(-Race,-Gender,-AgeinYears,-outcome,-id)))
     return(sum(pred$predictions==test$outcome & test$outcome==0)/sum(test$outcome==0))
 }
 
@@ -82,16 +86,16 @@ for(i in 6:11){
 
 ```
 
-Overall, random forest in general does not do as well as other classifiers, with any decent level of sensitivity generally coming alongside a significant amount of false positives. Overall it seems like the best model is depth 8 with weight 200, with a sensitivity above 0.75 and a specificity around 0.65. Let's see how it does on the validation set, and what variables are important:
+Overall, random forest in general does not do as well as other classifiers, with any decent level of sensitivity generally coming alongside a significant amount of false positives. Overall it seems like the best model is depth 8 with weight 400, with a sensitivity around 0.9 and a specificity around 0.65. Let's see how it does on the validation set, and what variables are important:
 ```{r}
-pred_rf_sens(cvdata,valid,depth=8,weight=200)
-pred_rf_spec(cvdata,valid,depth=8,weight=200)
+pred_rf_sens(cvdata,valid,depth=8,weight=400)
+pred_rf_spec(cvdata,valid,depth=8,weight=400)
 
-rf_final <- ranger(outcome ~ .-Race-Gender-AgeinYears, data = tbidata, num.trees=200, max.depth = 8,class.weights=c(1,200),importance="impurity")
+rf_final <- ranger(outcome ~ .-Race-Gender-AgeinYears-id, data = tbidata, num.trees=200, max.depth = 8,class.weights=c(1,400),importance="impurity")
 imp <- importance(rf_final)
 head(sort(imp,decreasing=T))
 ```
-As it turns out, the model's sensitivity goes up to a respectable 85% when applied to the validation set, and its specificity increases to a decent 74%; probably good given that we would rather give an unnecessary test than miss a TBI. 
+As it turns out, the model's sensitivity goes up to a respectable 97% when applied to the validation set, though its specificity decreases to a still-decent 62%; probably good given that we would rather give an unnecessary test than miss a TBI. 
 
-The highest importance factors are the basilar hemorrhage, which makes sense given its high prevalence in other classifiers, and GCS verbal score, which also somewhat make sense, though it may be somewhat acting as a proxy for age. It is followed by parietal(scalp) trauma, acting normal, and an altered mental state of slowness- all things we would expect to have an effect given domain knowledge. Unfortunately, random forests do not give coefficients in the traditional sense, so we cannot exactly determine the direction each predictor's association with TBI goes, but we can infer most of those from domain knowledge and common sense.
+The highest importance factor by far is the basilar hemorrhage, which makes sense given its high prevalence in other classifiers. Other important rules include whether or not the child acts normal, whether they had parietal (scalp) trauma, and whether or not they appeared to be responding slower than normal. Unfortunately, random forests do not give coefficients in the traditional sense, so we cannot exactly determine the direction each predictor's association with TBI goes, but we can infer the direction of most of these splits from domain knowledge and common sense.
 
