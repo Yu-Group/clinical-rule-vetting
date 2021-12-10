@@ -655,7 +655,7 @@ evaluation metrics based on sensitivity and specificity is discussed in the foll
 *Justify the proposed model, and refer back to discussion in Post-Processing Discussion for justification while also answering Q8 about any randomness assumptions. *
 
 
-### An introduction to and an ilustration of `rulefit`
+### An introduction to and an illustration of `rulefit`
 
 *Rulefit* was proposed by @2008Friedman and is an example of a wider category of *ensemble methods*.
 At a high level, we wish to describe our output function with a linear combination
@@ -676,7 +676,7 @@ the space of $\mathcal{T}$s for the coefficients $\alpha_k$:
   \sum_{k=1}^N \alpha_k~\mathcal{T}_k (x)) ~+~ \lambda \sum_{k=1}^N |\alpha_k|
 \end{equation}
 
-We also added a linear term of all the original features $\vec{\alpha_0}$, which will come into play especially with 
+We also added a linear term in all the original features $\vec{\alpha_0}$, which will come into play especially with 
 the more complex models. The *LASSO* will for sufficiently large $\lambda$ set a large
 portion of the coefficients to zero.
 
@@ -759,8 +759,8 @@ which got approximately 96% sensitivity with 58% specificity, we can surmise tha
 full model we are approaching that sensitivity and exceeding it in specificity, without any
 specific tweaking to the models being performed at this stage!
 
-As shown in the next chapters, with some careful construction of the models and selection
-of the judgment call
+As shown in the next section, with some careful construction of the models and selection
+of the judgment call, we can improve this performance considerably.
 
 `TODO: check this text if it still fits:`
 
@@ -825,17 +825,55 @@ History of vomiting and basilar skull fracture (hemotympanum) forms an important
 And another important rule involves the severity of injury, loss of consciousness length, 
 feeling depressed in palpable skull fracture, and Neurological deficit(cranial nerve).
 
+
+
 ### Randomness Assessment
 
-*What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.*
+*Statistical inference concepts such as p-values and confidence intervals rely on randomness. What does randomness mean in the data? Make the randomness in the statistical model as explicit as possible. What domain knowledge supports such a statistical or mathematical abstraction or the randomness in a statistical model?*  
 
-Underneath the model is LASSO regression, a fit on probability space, so describe the randomness mechanism here. Randomness is that the model is greedy,
-so you don't know where it will end up. Also, what LASSO throws away is some randomness..
+`What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.`
 
-Justification for this randomness: throwing away/restricting the feature space
-is just like what a doctor would do in diagnosing a TBI: you already have some
-heuristics to follow, so you would look for those first before looking for less important variables.
-Same thing that our model is doing: looking for more important features.
+`Underneath the model is LASSO regression, a fit on probability space, so describe the randomness mechanism here. Randomness is that the model is greedy, so you don't know where it will end up. Also, what LASSO throws away is some randomness..`  
+
+`Justification for this randomness: throwing away/restricting the feature spaceis just like what a doctor would do in diagnosing a TBI: you already have some  heuristics to follow, so you would look for those first before looking for less important variables. Same thing that our model is doing: looking for more important features.`  
+
+
+The randomness in the data can be divided into two categories: *intrinsic* and *measurement-related*.
+
+Under intrinsic we can count the natural variation in people's physiologies, where the a
+kind of an injury might lead to traumatic brain injury in one child, but not in another, as well as
+the minute differences in the injury mechanics, etc. These might spare one and not another from developing
+a traumatic brain injury. Even if our rules somehow covered all the potential avenues to *ciTBI*, these
+would, together with potential additional confounding factors, still conspire to make the prediction a probabilistic 
+exercise, not a deterministic one.
+
+To the above, we can add the many sources of *measurement-related* randomness: many
+of the variables are subjective evaluations performed by the clinical personnel, the 
+parents, or the children themselves (verbal indication of a headache, for example).
+These containing a degree of random "noise" should be obvious. As Dr. Inglis pointed
+out, however, an experienced physician might also *encode* a degree of domain knowledge - colloquially, "gut feel" - 
+in some of these categories, making them a stronger instead of a weaker predictor.
+
+A potential trap in understanding the model is to see it as a causal "if-then" model, 
+such as the baseline one. As shown in [An introduction to and an illustration of `rulefit`], the 
+rules instead act in an additive fashion, each adding a degree of certainty in the outcome.
+Additionally, the model itself is random. While the *LASSO* procedure in step 2 is 
+deterministic, it can only select rules from the initial bag given.
+
+The latter is generated via a tree generation procedure, which is most commonly *not deterministic* 
+(gradient boosting, for example, performs subsampling). The randomness in rule generation
+is somewhat ameliorated by the large number of trees we're usually generating, 
+which should work towards obtaining the set of all feasible rules.
+
+There is also a kind of arbitrariness in using the $L_1$ penalty, i.e. *LASSO*, as opposed to 
+others in the feature selection step, which is going to privilege some rules above the others
+without a domain-based reason.
+
+However, we can argue that physicians themselves follow an analogous heuristic when evaluating
+alternative hypotheses for a diagnosis: since the realm of possible causes is usually exceedingly large,
+they restrict themselves to a set of plausible causes using a "gut-feel" that could be likened
+to the $L_1$ shrinkage employed by the *LASSO*.
+
 
 ### Stability Analysis
 
@@ -864,4 +902,6 @@ things we missed that we would have done with more time, etc.)
 # Conclusion
 
 Just wrap it up
+
+# References
 
