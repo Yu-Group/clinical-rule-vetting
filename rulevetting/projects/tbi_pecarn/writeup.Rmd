@@ -749,7 +749,7 @@ include_graphics('figs/basic_ROC.png', dpi=500)
 ```
 
 The minimal model is able to achieve 80%+ in both sensitivity and specificity for one
-threshold value; since we, however, care much more about false negatives than positives, we consequently value
+threshold value. However, since we care much more about false negatives than positives, we consequently value
 sensitivity far above specificity. Therefore in this case, the fuller model with sensitivities
 above 90% would be preferred.
 
@@ -767,21 +767,21 @@ of the judgment call, we can improve this performance considerably.
 
 The greedy rule list (CART) model consists of a list of rules, which is similar to the baseline model. 
 Therefore, it is simple to understand, interpret, and pick the important features.
-Since it is also a greedy method, it does not require distributional assumptions and is computationally-efficient.
+Since it is also a greedy method, it does not require distributional assumptions and is computationally efficient.
 However, it is non-robust when we perturb the data and the greedy method does not guarantee a good result.
 
 ### Procedure and Performance
 
 We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgment calls.
 There are three possible splitting methods in age groups: preverbal children, verbal children, and all children.
-And we include two different judgment calls: whether include or exclude all subvariables.
+We also include two different judgment calls: whether to include or exclude all subvariables.
 Although there are six possible datasets, the dataset of preverbal children excluding subvariables contain too few
-TBI children so we cannot get a reasonable result. Therefore, we will train and evaluate for other five datasets.
+TBI children so we cannot get a reasonable result. Therefore, we will train and evaluate for the other five datasets.
 
-For each possible dataset, we split 20\% data into the test data, which will only be used in the model evaluation,
-while we use 80\% remained data to fine-tune the hyperparameters and fit the model.
-Then we split four cross-validation folds to tune the hyperparameters for each model.
-Since this is an unbalanced dataset, the classification accuracy cannot be a good measure to evaluate the model.
+For each possible dataset, we split 20\% of the data into the test data, which will only be used in the model evaluation,
+while we use the remaining 80\% to fine-tune the hyperparameters and fit the model. Then we split four cross-validation 
+folds to tune the hyperparameters for each model. Since this is an unbalanced dataset, raw classification accuracy will be
+a poor means of evaluating the model, as a model that simply predicts that no children have a TBI would be more than 99% accurate. 
 The best classifier should identify almost all of TBI cases, as well as identify most of children not experiencing TBI as no TBI. 
 Therefore, we define our evaluation measure as follows.
 
@@ -793,56 +793,57 @@ Therefore, we define our evaluation measure as follows.
 \right.
 \]
 
-For greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
-the maximum number of rules in the list (representing the complexity and the interpretability); for rulefit model, 
-the hyperparameter is the maximum length for each rule. In addition, since rulefit model involves random forest methods to pick the rules, 
-the performance may vary even if we choose same hyperparameters. Therefore, for rulefit model, we also need to run the models 
+For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
+the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
+the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves random forest methods to pick the rules, 
+the performance may vary even if we choose same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
 with different random states and pick the best one as the result, given the maximum length for each rule. Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
 
-The greedy rule list model performs quite bad. For two datasets excluding the subvariables, the largest mean scores 
-in our CV folds are even smaller than 3, which implies the sensitivity is smaller than 60\%. For the datasets including subvariables,
-although the largest mean scores are over 4, the scores on the test data is much smaller. This means the greedy rule list model
+The greedy rule list model performs quite poorly. For two datasets excluding the subvariables, the largest mean scores 
+in our CV folds are smaller than 3, which implies the sensitivity is smaller than 60\%. For the datasets including subvariables,
+although the largest mean scores are over 4, the scores on the test data are much smaller. This means the greedy rule list model
 is very sensitive to the training data and will not behave well on the test data.
 
 ```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "60%"}
 include_graphics('figs/rule_result_on_test.png')
 ```
 
-The performance of rulefit model on test data is in Figure \ref{fig:rule_result_on_test}. We can find that the performance for age-invariant group is quite well. As the sensitivity achieves almost 100\%, the specificity is larger than 70\%. And including subvariables
-increases the performance of classifying the verbal children. Among two verbal children datasets, when sensitivity is larger than 95\%,
-the specificity is about 70\% when we include subvariables, while it drops to 55\% if we exclude them. Finally, for preverbal children,
-the specificity is around 60\% when the sensitivity is about 95\%. These results imply us developing the age-invariant classifier.
-In addition, when we perform the classification, we also need to pick a threshold of the probability, to determine the predicted labels.
-For the age-invariant classifier, based on our discussion of sensitivity and stability, the threshold is set to $1.3 \times 10^{-5}$, 
-which persform well not only on training and validation data, but also on test data. For test data classification,
-the sensitivity is 97.9\% and the specificity is 70.4\%.
+The performance of our rulefit model on test data can be found in Figure \ref{fig:rule_result_on_test}. 
+We can find that the age-invariant group performs quite well. As the sensitivity achieves almost 100\%, the specificity is larger than 70\%. 
+And including subvariables increases the model's performance when classifying verbal children. Among the two verbal children datasets, when sensitivity 
+is larger than 95\%, the specificity is about 70\% when we include subvariables, while it drops to 55\% if we exclude them. Finally, for 
+preverbal children,the specificity is around 60\% when the sensitivity is about 95\%. These results imply that we should develop an age-invariant
+classifier as opposed to splitting the data as Kuppermann et al. did. In addition, when we perform the classification, we also need to pick 
+a probability threshold to determine the predicted labels. For the age-invariant classifier, based on our discussion of sensitivity and stability, 
+the threshold is set to $1.3 \times 10^{-5}$, which persform well not only on training and validation data, but also on test data.
+For test data classification, the sensitivity is 97.9\% and the specificity is 70.4\%.
 
 ```{r rulefit_interpretation, echo = FALSE, fig.cap = 'The important rules for the age-invariant classifier', out.width = "100%"}
 include_graphics('figs/rulefit_interpretation.png')
 ```
 
 In Figure \ref{fig:rule_result_on_test}, we lists the important rules for the age-invariant classifier.
-We find that other signs of altered mental status is the most important linear factor. Besides it, loss of consciousness length 
-and history of vomiting are also two important linear factors. The other important rules consists of several variables.
-History of vomiting and basilar skull fracture (hemotympanum) forms an important rule.
-And another important rule involves the severity of injury, loss of consciousness length, 
-feeling depressed in palpable skull fracture, and Neurological deficit(cranial nerve).
+We find that other signs of altered mental status is the most important linear factor. Other important linear factors include
+loss of consciousness length and history of vomiting. In addition to our linear predictors, we have numerous
+binary rules that appear in our classifier, the most important of which are history of vomiting and basilar skull fracture (hemotympanum).
+Other important rules involve the severity of injury, loss of consciousness length, depression in a palpable skull fracture, and 
+neurological deficit in the cranial nerve.
 
 ### Randomness Assessment
 
 The randomness in the data can be divided into two categories: *intrinsic* and *measurement-related*.
 
-Under intrinsic we can count the natural variation in people's physiologies, where the a
-kind of an injury might lead to traumatic brain injury in one child, but not in another, as well as
-the minute differences in the injury mechanics, etc. These might spare one and not another from developing
-a traumatic brain injury. Even if our rules somehow covered all the potential avenues to *ciTBI*, these
-would, together with potential additional confounding factors, still conspire to make the prediction a probabilistic 
-exercise, not a deterministic one.
+Under intrinsic randomness we can include the natural variation in people's physiologies, where the same
+kind of injury might lead to a TBI in one child, but not in another, as well as the minute differences 
+in the injury mechanics beyond the broader categories evaluated that might spare one child and not another 
+from developing a TBI. Even if our rules somehow covered all the potential avenues to *ciTBI*, these
+would, together with potential additional confounding factors, still make the prediction a
+probabilistic exercise, not a deterministic one.
 
 To the above, we can add the many sources of *measurement-related* randomness: many
 of the variables are subjective evaluations performed by the clinical personnel, the 
 parents, or the children themselves (verbal indication of a headache, for example).
-These containing a degree of random "noise" should be obvious. As Dr. Inglis pointed
+These variables containing a degree of random "noise" should be obvious. As Dr. Inglis pointed
 out, however, an experienced physician might also *encode* a degree of domain knowledge - colloquially, "gut feel" - 
 in some of these categories, making them a stronger instead of a weaker predictor.
 
@@ -854,7 +855,7 @@ deterministic, it can only select rules from the initial bag given.
 
 The latter is generated via a tree generation procedure, which is most commonly *not deterministic* 
 (gradient boosting, for example, performs subsampling). The randomness in rule generation
-is somewhat ameliorated by the large number of trees we're usually generating, 
+is somewhat ameliorated by the large number of trees we are generating, 
 which should work towards obtaining the set of all feasible rules.
 
 There is also a kind of arbitrariness in using the $L_1$ penalty, i.e. *LASSO*, as opposed to 
@@ -912,30 +913,30 @@ effect on anything except computation time beyond around 200 trees, so all model
 The forest's maximum depth, on the other hand, was optimized over, as an increase in max depth would generally
 result in an increase in specificity at the expense of sensitivity. The unbalanced nature of our output
 (less than 1% of children actually had a TBI) leads us to another hyperparameter: weight. Essentially, if we
-do not weight our model in order to favor true positives over true negatives, any random forest will predict
-that no child has a TBI; thus we add a weight factor to our "1" outcome in order to increase our model's sensitivity.
+do not weight our model in order to favor true positives over true negatives, any random forest will always predict
+that the child does not have a TBI; thus we add a weight factor to our "1" outcome in order to increase our model's sensitivity.
 
 The values evaluated for our hyperparameters (chosen via cursory exploratory analysis) include max depth ranging
 from 5 to 11 and weight parameter evaluated at 1 and then every multiple of 100, up to 1000. We optimized over both of
-these parameters, testing a total of 77 models for the ideal model that maximizes 2(Sens) + Spec, Spec>0.5, and generated
-ROC curves for each, which can be seen in `tbi_rf.pdf`. 
+these parameters, testing a total of 77 models for the ideal model that maximizes our aforementioned evaluation measure of 
+2(Sens) + Spec, Spec>0.5, and generated ROC curves for each max depth, which can be seen in `tbi_rf.pdf`. 
 
 ```{r RF importance, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
 include_graphics('figs/RF Importance.PNG')
 ```
 Our final model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
-impressive sensitivity of 0.971 and specificity of 0.617- good given the relative costs of letting a TBI go undiagnosed
-versus performing an unneeded CT test. In terms of importance, hemotympamnum was by far the most important predictor,
-which is entirely in keeping with its high prevalence in our rule-fitting model. Other important factors included ActNorm,
-ClavPar (scalp trauma), and AMSSlow- all of which show up somewhere in rules as well. Somewhat curiously, no vomiting-related
-values were in the top 10 (highest was VomitLast=1 which was 13th most important) despite its high prevalence in our rule-fitting
-classifier; this may be a consequence of the flattening of the vomit variable, leaving us with many minor effects instead of the 
-one overall binary indicator of whether or not the child was vomiting.
+impressive sensitivity of 0.971 and specificity of 0.617- slightly worse than our best classifier, but better than Kuppermann's 
+classifier and overall good given our aforementioned preference for sensitivity over specificity. In terms of importance, 
+hemotympamnum was by far the most important predictor, which is entirely in keeping with its high prevalence in our rule-fitting 
+model. Other important factors included ActNorm, ClavPar (scalp trauma), and AMSSlow- all of which show up somewhere in rules 
+as well. Somewhat curiously, no vomiting-related predictors were in the top 6 (highest was VomitLast=1 which was 13th most important) 
+despite its high prevalence in our rule-fitting classifier; this may be a consequence of the flattening of the vomit variable, 
+leaving us with many minor effects instead of the one overall binary indicator of whether or not the child was vomiting.
 
 #### Classification Result Stability
 
 To check the classification result stability, we run through a cartesian product
-of our possible perturbations for our judgement calls and, using the best classifier,
+of our possible perturbations for our judgement calls and, using our best classifier,
 predict on this perturbed test data for each combination of judgement calls. Because
 many of our judgement calls had to do with the inclusion/exclusion of certain sets of columns,
 for which it would be impossible to evaluate a model trained on a different feature space,
@@ -956,8 +957,8 @@ a result marked 'unclear' was coded as 'true'. An interesting perturbation would
 to see if coding these observations as 'false' changes the results substantially.
 
 We loop through every possible combination of the above 5 judgement calls and their
-perturbations and obtain a test dataset (32 test datasets in total), and for each
-set, we evaluate the sensitivity and specificity using our best rulefit model.
+perturbations and obtain a test dataset (32 test datasets in total). For each of those
+sets, we evaluate the sensitivity and specificity using our best rulefit model.
 A histogram of specificities and sensitivities are provided in Figure \ref{fig:perturb_res}
 
 ```{r perturb_res, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
@@ -984,8 +985,8 @@ with a grain of salt.
 *how well it compared to the baseline, etc.*
 
 Additionally, on the testing set, our best classifier only had one false negative:
-patient number 5295, a four year-old black male. Upon examining his covariates, it seems the only abnormal
-responses was the presence of a large frontal hematoma, an above-the-clavicle injury on the frontal part of the scalp, 
+patient number 5295, a four year-old Black male. Upon examining his covariates, it seems the only abnormal
+responses were the presence of a large frontal hematoma, an above-the-clavicle injury on the frontal part of the scalp, 
 an injury mechanism of moderate severity. Every other covariate was listed as normal.
 With such a patient, Kuppermann's classifier would also have listed him as not having a TBI.
 So, while it is unfortunate that we would have misclassified this individual and
