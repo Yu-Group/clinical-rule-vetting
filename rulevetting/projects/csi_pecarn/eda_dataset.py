@@ -76,18 +76,30 @@ class Dataset(DatasetTemplate):
         # judgement call to use kappa variables where appropriate
         if kwargs['use_kappa']:
             kappa_data = r['kappa.csv']
-            kappa_data = kappa_data.set_index('id')
+            
+            rename_dict = {
+                'Assault':'Assault_posthoc', 'ChildAbuse':'ChildAbuse_posthoc',
+                'EDDocumentation':'EDDocumentation_outside', 'FallDownStairs':'FallDownStairs_posthoc',
+                'FallFromElevation':'FallFromElevation_posthoc', 'FieldDocumentation':'FieldDocumentation_ems',
+                'Helmet':'helmet_posthoc', 'InjuryPrimaryMechanism':'InjuryPrimaryMechanism_posthoc',
+                'PassRestraint':'PassRestraint_posthoc', 'PatientsPosition':'PatientsPosition_ems',
+                'PtAmbulatoryPriorEMSArrival':'PtAmbulatoryPriorEMSArrival_ems',
+                'ShakenBabySyndrome':'ShakenBabySyndrome_posthoc', 'clotheslining':'Clotheslining'
+            }
+
+            kappa_data.rename(columns=rename_dict,inplace=True) # rename with proper suffix if possible
+            
             # drop kappa columns not in full dataset
-            to_drop_kappa_cols = kappa_data.columns.difference(df_features.columns)
+            to_drop_kappa_cols = kappa_data.columns.difference(df.columns)
             kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
+            
             # replace with kappa data at relavent locations
-            df_features.loc[kappa_data.index,kappa_data.columns] = kappa_data
+            df.loc[kappa_data.index,kappa_data.columns] = kappa_data
         
-        # remove text columns
+        # remove 35 text columns
         txt_columns = [col_name for col_name in df.columns.astype(str) if col_name.__contains__('txt')]
 
         df.drop(txt_columns,axis=1,inplace=True)
-        
         return df
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -297,7 +309,7 @@ class Dataset(DatasetTemplate):
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
             'clean_data': { 
-                'use_kappa':[False, True],
+                'use_kappa':[True, False, True],
             },
             'preprocess_data': {             
             },'extract_features': { 
@@ -329,7 +341,9 @@ class Dataset(DatasetTemplate):
                  load_csvs: bool = False,
                  run_perturbations: bool = False,
                  control_types=['ran','moi','ems'],
-                 keep_na = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 preprocess = True,
+                 extract_features = True,
+                 impute = True) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -366,16 +380,16 @@ class Dataset(DatasetTemplate):
             func_kwargs = kwargs[key]
             default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
-
-        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
-        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-        featurized_data = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-        #if not keep_na:
-        #    imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'])
-        #else: imputed_data = featurized_data
         
-        imputed_data = featurized_data
-        df_train, df_tune, df_test = cache(self.split_data)(imputed_data, **{'control_types': control_types})
+        data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+        if preprocess:
+            data = cache(self.preprocess_data)(data, **default_kwargs['preprocess_data'])
+        if preprocess and extract_features:
+            data = cache(self.extract_features)(data, **default_kwargs['extract_features'])
+        if preprocess and extract_features and impute:
+            data = cache(self.impute_data)(data, **default_kwargs['impute_data'])
+        
+        df_train, df_tune, df_test = cache(self.split_data)(data, **{'control_types': control_types})
 
         return df_train, df_tune, df_test
 
