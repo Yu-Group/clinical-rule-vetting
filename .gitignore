@@ -39,3 +39,8 @@ dist
 experiments/data/
 !experiments/data/get_datasets.ipynb
 .hypothesis
+
+
+data/
+rule-env/
+
