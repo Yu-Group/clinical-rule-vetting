@@ -340,12 +340,8 @@ being able to verbalize headache symptoms requires the child to be of a certain 
 
 * Drop and impute based on seizure variables
   + *Seiz*, *SeizLen*, *SeizOccur*
-<<<<<<< HEAD
   + Judgement Call [`Seiz`]: Drop missing *SeizLen*, impute missing *Seiz* from *SeizLen*, drop missing *Seiz*, and ignore *SeizOccur* column
-    + Perturbation 1: Drop missing *SeizLen* and *Seiz*, exclude *SeizOccur* column
-=======
-  + Judgment Call [`Seiz`]: Drop missing *SeizLen*, impute missing *Seiz* from *SeizLen*, drop missing *Seiz*, and ignore *SeizOccur* column
->>>>>>> c840e49c7a7ef202671d228365747ab983030469
+    + Perturbation: Drop missing *SeizLen* and *Seiz*, exclude *SeizOccur* column
   
 *Seiz* is an indicator if the child had a seizure, as reported by the parent or child.
 *SeizLen* is how long the seizure lasted (< 1 min, 1-5 min, 5-15 min, >15 min) and
@@ -357,15 +353,9 @@ according to domain knowledge.
 
 * Drop and impute based on loss of consciousness variables
   + *LOCSeparate*, *LocLen*
-<<<<<<< HEAD
   + Judgement Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
     + Perturbation 1: same as [`AMS`] judgement call
     + Perturbation 2: recode 'suspected' as 'no' in *LOCSeparate*, drop missing *LOCSeparate* and *LOCLen*
-=======
-  + Judgment Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
-    + Perturbation 1: same as [`AMS`] perturbation
-    + Perturbation 2: same as [`AMS`] judgment call
->>>>>>> c840e49c7a7ef202671d228365747ab983030469
     
 *LOCSeparate* is an indicator if the child lost consciousness at all after the injury,
 and *LocLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). 
@@ -661,21 +651,11 @@ the sensitivity is 98.9\% and 96.8\% for preverbal children and verbal children,
 48.3\% and 57.7\%. In the following section, we propose a model with similar sensitivity and higher specificity. The detailed
 evaluation metrics based on sensitivity and specificity is discussed in the following part.
 
-
-
 \newpage
 
 ## Proposed Model
 
-*Describe the proposed model, it's advantages, disadvantages, how it might compare to the original model, etc.*
-
-*Justify the proposed model, and refer back to discussion in Post-Processing Discussion for justification while also answering Q8 about any randomness assumptions. *
-
-
-<<<<<<< HEAD
-### `rulefit`: Introduction and Basic Illustrative Implementation
-=======
-### An introduction to and an illustration of `rulefit`
+### `Rulefit`: Introduction and Basic Illustrative Implementation
 
 *Rulefit* was proposed by @2008Friedman and is an example of a wider category of *ensemble methods*.
 At a high level, we wish to describe our output function with a linear combination
@@ -714,8 +694,6 @@ gradient-boosting sequence, which are most often overlapping.
 
 The *LASSO* thus performs regression on the *space of rules* and outputs a parsimonious
 set with potentially added linear terms.
->>>>>>> c840e49c7a7ef202671d228365747ab983030469
-
 
 As a concrete illustration of `rulefit` in conjunction with our preprocessing and
 judgment call procedure, we present two models:
@@ -850,18 +828,7 @@ History of vomiting and basilar skull fracture (hemotympanum) forms an important
 And another important rule involves the severity of injury, loss of consciousness length, 
 feeling depressed in palpable skull fracture, and Neurological deficit(cranial nerve).
 
-
-
 ### Randomness Assessment
-
-*Statistical inference concepts such as p-values and confidence intervals rely on randomness. What does randomness mean in the data? Make the randomness in the statistical model as explicit as possible. What domain knowledge supports such a statistical or mathematical abstraction or the randomness in a statistical model?*  
-
-`What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.`
-
-`Underneath the model is LASSO regression, a fit on probability space, so describe the randomness mechanism here. Randomness is that the model is greedy, so you don't know where it will end up. Also, what LASSO throws away is some randomness..`  
-
-`Justification for this randomness: throwing away/restricting the feature spaceis just like what a doctor would do in diagnosing a TBI: you already have some  heuristics to follow, so you would look for those first before looking for less important variables. Same thing that our model is doing: looking for more important features.`  
-
 
 The randomness in the data can be divided into two categories: *intrinsic* and *measurement-related*.
 
@@ -880,7 +847,7 @@ out, however, an experienced physician might also *encode* a degree of domain kn
 in some of these categories, making them a stronger instead of a weaker predictor.
 
 A potential trap in understanding the model is to see it as a causal "if-then" model, 
-such as the baseline one. As shown in [An introduction to and an illustration of `rulefit`], the 
+such as the baseline one. As shown in [`Rulefit`: Introduction and Basic Illustrative Implementation], the 
 rules instead act in an additive fashion, each adding a degree of certainty in the outcome.
 Additionally, the model itself is random. While the *LASSO* procedure in step 2 is 
 deterministic, it can only select rules from the initial bag given.
@@ -898,7 +865,6 @@ However, we can argue that physicians themselves follow an analogous heuristic w
 alternative hypotheses for a diagnosis: since the realm of possible causes is usually exceedingly large,
 they restrict themselves to a set of plausible causes using a "gut-feel" that could be likened
 to the $L_1$ shrinkage employed by the *LASSO*.
-
 
 ### Stability Analysis
 
@@ -952,7 +918,7 @@ that no child has a TBI; thus we add a weight factor to our "1" outcome in order
 The values evaluated for our hyperparameters (chosen via cursory exploratory analysis) include max depth ranging
 from 5 to 11 and weight parameter evaluated at 1 and then every multiple of 100, up to 1000. We optimized over both of
 these parameters, testing a total of 77 models for the ideal model that maximizes 2(Sens) + Spec, Spec>0.5, and generated
-ROC curves for each, which can be seen in tbi_rf.pdf. 
+ROC curves for each, which can be seen in `tbi_rf.pdf`. 
 
 ```{r RF importance, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
 include_graphics('figs/RF Importance.PNG')
@@ -1035,4 +1001,7 @@ when collecting data to ensure no TBIs are missed in the future.
 Just wrap it up
 
 # References
+
+Special thanks to Dr. Rob Inglis of UCSF for graciously offering his time and expertise
+to discuss our results!
 
