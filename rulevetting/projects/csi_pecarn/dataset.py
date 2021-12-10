@@ -280,7 +280,7 @@ class Dataset(DatasetTemplate):
     
     def impute_data(self, preprocessed_data: pd.DataFrame, keep_na=False, **kwargs) -> pd.DataFrame:
         df = preprocessed_data
-
+        
         # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
         # and we make a judgement call to assume that all relavent abnormal information is recorded
                       

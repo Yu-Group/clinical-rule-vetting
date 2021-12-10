@@ -273,7 +273,7 @@ def impute_missing_binary(df, n = 0.05):
        'Predisposed', 'HighriskDiving', 'HighriskFall', 'HighriskHanging',
        'HighriskHitByCar', 'HighriskMVC', 'HighriskOtherMV', 'AxialLoadAnyDoc',
        'axialloadtop', 'Clotheslining']
-    robust_an_names = [covar_name if covar_name in df.columns else covar_name+'2' for covar_name in an_names]
+    robust_an_names = [covar_name for covar_name in an_names if covar_name in df.columns]
     
     df.loc[:,'missing_rate'] = df[robust_an_names].isna().sum(axis = 1)/len(robust_an_names) # calculate missing fraction
     df = df[df.loc[:,'missing_rate'] < n] # drop observations with missing rate higer than n-fraction
