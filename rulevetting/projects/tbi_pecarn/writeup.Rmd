@@ -138,12 +138,12 @@ and preprocessing steps is to keep only covariates relevant to predicting TBI
 at the time a child would present to the ER, keep only observations for whom
 this classification rule would be relevant (children for whom it's a toss-up
 as to whether they'll need a CT scan), and to deal with missing values. We present
-our procedure below, along with relevant judgement calls and their perturbations
+our procedure below, along with relevant judgment calls and their perturbations
 where applicable.
 
 * Remove columns irrelevant to predicting TBI at the time a child enters the emergency room
   + *EmplType*, *Certification*, *Ind...*, *CT...*, *Finding1*, ... *Finding23*, *EDDisposition*, *Observed*, *AgeTwoPlus*, *AgeInMonth*
-  + Judgement Call [`injMech`]: drop *InjuryMech* 
+  + Judgment Call [`injMech`]: drop *InjuryMech* 
     + Perturbation: keep *InjuryMech* 
 
 This includes *EmplType* and *Certification*, any variable about the reasons why a CT scan was ordered, whether sedation would be needed when performing a CT scan, the traumatic findings from the CT scan, the reason why the child left the ER, or 
@@ -155,7 +155,7 @@ at the time a child first enters the ER, or would be known only after
 the decision to obtain a CT scan has been made. So, these are not of interest.
 We also remove an indicator for the individuals being above age 2, as well as
 the age provided in months, opting to keep the age provided in years. Similarly,
-according to judgement call [`injMech`], we drop the injury mechanism, a 13-level categorical variable detailing how the
+according to judgment call [`injMech`], we drop the injury mechanism, a 13-level categorical variable detailing how the
 injury occurred, opting to keep a severity variable, a 3-tiered categorical variable
 rating the severity of the injury mechanism as 'low', 'moderate', or 'high'.
 
@@ -177,12 +177,12 @@ If GCS is less than 14, the individual is quite injured and would likely need a 
 We only keep individuals where the total GCS is 14 or 15.
 
 * Impute and Drop based on GCS scores
-  + Judgement Call [`missSubGCS`]: drop observations with total GCS of 14, but missing any of the GCS subcategory scores (*GCSVerbal*, *GCSMotor*, *GCSEye*) 
+  + Judgment Call [`missSubGCS`]: drop observations with total GCS of 14, but missing any of the GCS subcategory scores (*GCSVerbal*, *GCSMotor*, *GCSEye*) 
     + Perturbation: keep the observations
   + Impute a full score into each GCS subcategory when total GCS is 15 
-  + Judgement Call [`fake15GCS`]: drop observations with total GCS of 15, but suboptimal score in a subcategory 
+  + Judgment Call [`fake15GCS`]: drop observations with total GCS of 15, but suboptimal score in a subcategory 
     + Perturbation: keep the observations
-  + Judgement Call [`fake14GCS`]: drop observations with total GCS of 14, but optimal score in every subcategory 
+  + Judgment Call [`fake14GCS`]: drop observations with total GCS of 14, but optimal score in every subcategory 
     + Perturbation: keep the observations
   
 GCS score is likely an important predictor of TBI, so it is imperative this variable is as completely 
@@ -200,14 +200,14 @@ represent the population of interest for these classification rules.
 
 * Drop and impute based on variables of altered mental status
   + *AMS*, *AMSAgitated*, *AMSSleep*, *AMSSlow*, *AMSRepeat*, *AMSOth*
-  + Judgement Call [`AMS`]: drop observations missing any of the above variables
+  + Judgment Call [`AMS`]: drop observations missing any of the above variables
     + Perturbation: impute missing *AMS* based on presence of any of the subvariables, and drop the subvariables and any remaining missing *AMS* observations
     
 *AMS* is an indicator representing if the child has altered mental status, and
 the remaining variables are subvariables indicating the reason why the child has
 altered mental status (agitated, sleepy, slow to respond, asking repetitive questions, etc.)
 This is likely an important predictor, so it is important to handle missing values.
-By judgement call `AMS`, we drop any observation with a missing value in any of these
+By judgment call `AMS`, we drop any observation with a missing value in any of these
 categories, since if the observation is missing it is impossible to truly know a value
 to impute for *AMS*. As a perturbation, we could impute a 1 in *AMS* if any
 if any of the subcategories is affirmative, and 0 otherwise. However, it would
@@ -216,7 +216,7 @@ these observations.
 
 * Drop and impute based on variables of other non-head substantial injuries
   + *OSI*, *OSIExtremity*, *OSICut*, *OSICspine*, *OSIFlank*, *OSIAbdomen*, *OSIPelvis*, *OSIOth*
-  + Judgement Call [`OSI`]: same procedure as above for *AMS* and its subvariables
+  + Judgment Call [`OSI`]: same procedure as above for *AMS* and its subvariables
     + Perturbation: same procedure as above for *AMS* and its subvariables
     
 *OSI* is an indicator on whether the physician determined the child sustained 
@@ -226,12 +226,12 @@ or a pelvis injury. Although not directly related to head trauma, we find this v
 might be an indicator of the injury severity. If another variable relevant to head trauma
 fails to indicate a TBI for a particular individual, including this variable offers
 another opportunity to diagnose the TBI, possibly suppressing the false negative rate.
-By judgement call `OSI`, we drop any observations missing any of these values or their
-subvariables for the same reason as judgement call `AMS`. 
+By judgment call `OSI`, we drop any observations missing any of these values or their
+subvariables for the same reason as judgment call `AMS`. 
 
 * Drop and impute based on hematoma information
   + *Hema*, *HemaSize*, *HemaLoc*
-  + Judgement Call [`HEMA`]: same procedure as above for *AMS* and its subvariables
+  + Judgment Call [`HEMA`]: same procedure as above for *AMS* and its subvariables
     + Perturbation 1: same procedure as above for *AMS* and its subvariables
     + Perturbation 2: Only drop missing *HemaLoc* and *Hema*, impute missing *Hema* from *HemaLoc* presence, drop remaining missing *Hema*
     
@@ -239,20 +239,20 @@ subvariables for the same reason as judgement call `AMS`.
 *HemaSize* is a categorical variable representing the size (< 1cm, 1-3cm, > 3cm) and
 *HemaLoc* is a categorical variable representing the location (frontal, occipital, parietal/temporal).
 According to domain knowledge, scalp hematomas are fairly good predictors of TBI.
-By judgement call [`HEMA`], we drop all observations missing any of these categories.
+By judgment call [`HEMA`], we drop all observations missing any of these categories.
 By Perturbation 1, we only keep the indicators for the presence of hematoma. By Perturbation 2, we keep the indicator as well as the location, 
 since according to domain knowledge, the impact of head trauma to the brain is dependent on the location of the trauma.
 
 * Drop and impute based on skull fracture variables
   + *SFxPalp*, *SFxPalpDepress*
-  + Judgement Call [`SFx`]: recode an unclear *SFxPalp* observation as true, drop observations missing either *SFxPalp* or *SFxPalpDepress*
+  + Judgment Call [`SFx`]: recode an unclear *SFxPalp* observation as true, drop observations missing either *SFxPalp* or *SFxPalpDepress*
     + Perturbation 1: same procedure as [`AMS`] perturbation
-    + Perturbation 2: same procedure as [`AMS`] judgement call
+    + Perturbation 2: same procedure as [`AMS`] judgment call
     
 *SFxPalp* is an indicator for a palpable skull fracture, which can also be marked as
 'unclear' if there is too much swelling to make a determination. *SFxPalpDepress*
 is an indicator on whether the fracture feels depressed. Both of these are likely
-important predictors via domain knowledge. As a judgement call, we take an unclear
+important predictors via domain knowledge. As a judgment call, we take an unclear
 observation as being a palpable skull fracture, since even if the examination was unclear,
 there is still substantial head trauma.
 
@@ -267,7 +267,7 @@ variable does not have much predictive value for older children.
 
 * Drop and impute based on basilar skull fracture variables
   + *SFxBas*, *SFxBasHem*, *SFxBasOto*, *SFxBasPer*, *SFxBasRet*, *SFxBasRhi*
-  + Judgement Call [`SFxBas`]: same as [`AMS`] judgement call
+  + Judgment Call [`SFxBas`]: same as [`AMS`] judgment call
     + Perturbation: same as [`AMS`] perturbation
 
 *SFxBas* is an indicator if the physician has determined there is basilar skull fracture
@@ -282,7 +282,7 @@ To do so, we follow the same procedure for *AMS* and its subvariables, regarding
 
 * Drop and impute based on above-the-clavicle injury variables
   + *Clav*, *ClavNeck*, *ClavFro*, *ClavOcc*, *ClavPar*, *ClavTem*
-  + Judgement Call [`Clav`]: same as [`AMS`] judgement call
+  + Judgment Call [`Clav`]: same as [`AMS`] judgment call
     + Perturbation: same as [`AMS`] perturbation
 
 *Clav* is an indicator on whether there was a laceration, abrasion, or hematoma
@@ -293,48 +293,48 @@ could indicate a TBI if one of the head trauma variables fails to.
 
 * Drop and impute based on neurological deficit variables
   + *NeuroD*, *NeuroDMotor*, *NeuroDSensory*, *NeuroDCranial*, *NeuroDReflex*, *NeuroDOth*
-  + Judgement Call [`Neuro`]: same as [`AMS`] judgement call
+  + Judgment Call [`Neuro`]: same as [`AMS`] judgment call
     + Perturbation: same as [`AMS`] perturbation
     
 *NeuroD* is an indicator for whether or not there is some neurological deficit
 besides altered mental status, as determined by the physician. This includes
 motor, sensory, cranial nerve (pupil reactivity), or reflex issues. Generally,
 these categories are quite important for predicting TBI according to domain knowledge.
-As with previous groups of variables, we implement a judgement call to drop
+As with previous groups of variables, we implement a judgment call to drop
 any observation missing any of these values.
 
 * Drop and impute based on vomiting variables
   + *Vomit*, *VomitNbr*, *VomitStart*, *VomitLast*
-  + Judgement Call [`Vomit`]: same as [`AMS`] perturbation
-    + Perturbation: same as [`AMS`] judgement call
+  + Judgment Call [`Vomit`]: same as [`AMS`] perturbation
+    + Perturbation: same as [`AMS`] judgment call
 
 *Vomit* is an indicator for whether the individual vomited (as reported by child
 or parents), *VomitNbr* is the number of times the child vomited post-injury (1, 2, > 2 times),
 *VomitStart* is how soon after the head injury the vomiting started (within 1 hour, 1 - 4 hours, > 4 hours after), and 
 *VomitLast* is how soon before the evaluation was the last
-episode (< 1 hour, 1 - 4 hours, > 4 hours before evaluation). As a judgement call,
+episode (< 1 hour, 1 - 4 hours, > 4 hours before evaluation). As a judgment call,
 we only keep *Vomit* and impute missing values from the subvariables, since according
 to domain knowledge, more details about vomiting is generall unhelpful. As a perturbation,
 we keep these covariates.
 
 * Drop and impute based on headache variables
   + *HA_verb*, *HAStart*, *HASeverity*
-  + Judgement Call [`HA`]: Drop missing *HASeverity*, impute missing *HA_verb* from *HASeverity*, and drop remaining missing *HA_verb*, ignore *HAStart* column 
+  + Judgment Call [`HA`]: Drop missing *HASeverity*, impute missing *HA_verb* from *HASeverity*, and drop remaining missing *HA_verb*, ignore *HAStart* column 
     + Perturbation 1: same as [`AMS`] perturbation
-    + Perturbation 2: same as [`AMS`] judgement call
+    + Perturbation 2: same as [`AMS`] judgment call
     
 *HA_verb* is an indiactor on whether the child had a headache, and is marked differently
 if the child is too young to verbalize that they had a headache, or unable to speak.
 *HAStart* and *HASeverity* are both variables indicating when the headache began
 (before injury, within 1 hour after, 1-4 hours after, > 4 hours after) and the severity
-(mild, moderate, and severe). As a judgement call, we keep *HA_verb* and *HASeverity*
+(mild, moderate, and severe). As a judgment call, we keep *HA_verb* and *HASeverity*
 since these are both more likely to predict TBI than *HAStart*. However, it should be
 noted that this is an age-dependent variable as discussed in the prior section, since
 being able to verbalize headache symptoms requires the child to be of a certain age.
 
 * Drop and impute based on seizure variables
   + *Seiz*, *SeizLen*, *SeizOccur*
-  + Judgement Call [`Seiz`]: Drop missing *SeizLen*, impute missing *Seiz* from *SeizLen*, drop missing *Seiz*, and ignore *SeizOccur* column
+  + Judgment Call [`Seiz`]: Drop missing *SeizLen*, impute missing *Seiz* from *SeizLen*, drop missing *Seiz*, and ignore *SeizOccur* column
   
 *Seiz* is an indicator if the child had a seizure, as reported by the parent or child.
 *SeizLen* is how long the seizure lasted (< 1 min, 1-5 min, 5-15 min, >15 min) and
@@ -346,14 +346,14 @@ according to domain knowledge.
 
 * Drop and impute based on loss of consciousness variables
   + *LOCSeparate*, *LocLen*
-  + Judgement Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
+  + Judgment Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
     + Perturbation 1: same as [`AMS`] perturbation
-    + Perturbation 2: same as [`AMS`] judgement call
+    + Perturbation 2: same as [`AMS`] judgment call
     
 *LOCSeparate* is an indicator if the child lost consciousness at all after the injury,
 and *LocLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). 
 Loss of consciousness is generally a good predictor of head trauma, so we wish
-to include this to predict TBI. As a judgement call, we consider a suspected loss of
+to include this to predict TBI. As a judgment call, we consider a suspected loss of
 consciousness as affirmative, since if there is any doubt as to whether the child
 lost consciousness, this should be of concern to err on the side of caution.
 
@@ -365,17 +365,17 @@ although it could be a good predictor for verbal children. *High_impact_InjSev*
 is the rating of the injury mechanism severity, as mentioned above. 
 
 * Impute missing values for *ActNorm*
-  + Judgement Call [`ActNorm`]: recode null values as affirmative
+  + Judgment Call [`ActNorm`]: recode null values as affirmative
     + Perturbation: recode values as not affirmative
 
 *ActNorm* is a subjective assessment by the parent as to whether the parent
 thinks the child is acting normally. Although subjective, domain experts conclude
 that a parents assessement of their child's behavior is a good indicator of
 how severely the child may be injured. Because this is important, we wish to impute
-as many values as possible. As a judgement call, we consider a missing value
+as many values as possible. As a judgment call, we consider a missing value
 as being normal, since if the child was acting normally, it's possible this
 question could have simply been skipped over. As a perturbation, we reverse this
-judgement call.
+judgment call.
 
 * Make a pooled outcome variable
 
@@ -697,10 +697,10 @@ set with potentially added linear terms.
 
 
 As a concrete illustration of `rulefit` in conjunction with our preprocessing and
-judgement call procedure, we present two models:
+judgment call procedure, we present two models:
 
   * **"basic":**
-    The judgement calls are selected as to be maximally restrictive, combining
+    The judgment calls are selected as to be maximally restrictive, combining
     all sub-variables into their parent variable and throwing away as many of the rest as possible, 
     as well selecting the call of removing observations whenever possible. The number of
     rules is restricted to 10.
@@ -709,7 +709,7 @@ judgement call procedure, we present two models:
     The inverse of the above, including as many variables and throwing away as
     few observations as possible. The number of rules is allowed to go to 20.
 
-These two classifiers should, therefore, illustrate the effects of our judgement calls on the 
+These two classifiers should, therefore, illustrate the effects of our judgment calls on the 
 structure of the model.
 
 
@@ -745,7 +745,7 @@ perhaps substituting some of the effect of simpler rules.
 
 To see how these relatively basic models perform, we examine their *sensitivity - specificity* curve:
 
-```{r basic_ROC, echo = FALSE, fig.width=6, fig.height=4, fig.cap="Sensitivity-specificity curve for two basic rulefit models with maximal and minimal judgement calls."}
+```{r basic_ROC, echo = FALSE, fig.width=6, fig.height=4, fig.cap="Sensitivity-specificity curve for two basic rulefit models with maximal and minimal judgment calls."}
 include_graphics('figs/basic_ROC.png', dpi=500)
 ```
 
@@ -759,7 +759,10 @@ which got approximately 96% sensitivity with 58% specificity, we can surmise tha
 full model we are approaching that sensitivity and exceeding it in specificity, without any
 specific tweaking to the models being performed at this stage!
 
+As shown in the next chapters, with some careful construction of the models and selection
+of the judgment call
 
+`TODO: check this text if it still fits:`
 
 (Xin) I think Andrej will describe rulefit model. Q8 I can only answer this in Logistic regression assumption. Can this be better?
 
@@ -770,9 +773,9 @@ However, it is non-robust when we perturb the data and the greedy method does no
 
 ### Procedure and Performance
 
-We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgement calls.
+We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgment calls.
 There are three possible splitting methods in age groups: preverbal children, verbal children, and all children.
-And we include two different judgement calls: whether include or exclude all subvariables.
+And we include two different judgment calls: whether include or exclude all subvariables.
 Although there are six possible datasets, the dataset of preverbal children excluding subvariables contain too few
 TBI children so we cannot get a reasonable result. Therefore, we will train and evaluate for other five datasets.
 
@@ -818,13 +821,13 @@ include_graphics('figs/rulefit_interpretation.png')
 In Figure \ref{fig:rule_result_on_test}, we lists the important rules for the age-invariant classifier.
 We find that other signs of altered mental status is the most important linear factor. Besides it, loss of consciousness length 
 and history of vomiting are also two important linear factors. The other important rules consists of several variables.
-History of vomiting and basilar skull fracture(hemotympanum) forms an important rule.
+History of vomiting and basilar skull fracture (hemotympanum) forms an important rule.
 And another important rule involves the severity of injury, loss of consciousness length, 
 feeling depressed in palpable skull fracture, and Neurological deficit(cranial nerve).
 
 ### Randomness Assessment
 
-What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.
+*What does randomness mean in the data? Measurement randomness, genetics/confounding factors that make TBIs more or less likely given some covariates, etc.*
 
 Underneath the model is LASSO regression, a fit on probability space, so describe the randomness mechanism here. Randomness is that the model is greedy,
 so you don't know where it will end up. Also, what LASSO throws away is some randomness..
@@ -845,9 +848,9 @@ Structure:
   This will justify the stability of the rules our best classifier isolated
   
 - Stability of performance across data perturbations
-  - perturb the data by selecting some of the judgement calls, but only perturb test data and see how the model fares (the classification errors)
+  - perturb the data by selecting some of the judgment calls, but only perturb test data and see how the model fares (the classification errors)
   
-  judgement calls to turn on/off: `SFxPalp`, `Seiz` (change from recoding to not recoding), `ActNorm` recoding (change it up), `Vomit` (either union and impute or not)
+  judgment calls to turn on/off: `SFxPalp`, `Seiz` (change from recoding to not recoding), `ActNorm` recoding (change it up), `Vomit` (either union and impute or not)
   (if we have enough time, talk more about subsampling, otherwise just work on this)
 
 # Discussion
