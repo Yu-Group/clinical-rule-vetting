@@ -813,6 +813,10 @@ The performance of rulefit model on test data is in Figure \ref{fig:rule_result_
 increases the performance of classifying the verbal children. Among two verbal children datasets, when sensitivity is larger than 95\%,
 the specificity is about 70\% when we include subvariables, while it drops to 55\% if we exclude them. Finally, for preverbal children,
 the specificity is around 60\% when the sensitivity is about 95\%. These results imply us developing the age-invariant classifier.
+In addition, when we perform the classification, we also need to pick a threshold of the probability, to determine the predicted labels.
+For the age-invariant classifier, based on our discussion of sensitivity and stability, the threshold is set to $1.3 \times 10^{-5}$, 
+which persform well not only on training and validation data, but also on test data. For test data classification,
+the sensitivity is 97.9\% and the specificity is 70.4\%.
 
 ```{r rulefit_interpretation, echo = FALSE, fig.cap = 'The important rules for the age-invariant classifier', out.width = "100%"}
 include_graphics('figs/rulefit_interpretation.png')
