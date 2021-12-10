@@ -910,8 +910,8 @@ from 5 to 11 and weight parameter evaluated at 1 and then every multiple of 100,
 these parameters, testing a total of 77 models for the ideal model that maximizes 2(Sens) + Spec, Spec>0.5, and generated
 ROC curves for each, which can be seen in tbi_rf.pdf. 
 
-```{r demographics, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
-include_graphics('figs/RF importance.png')
+```{r RF importance, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
+include_graphics('figs/RF Importance.PNG')
 ```
 Our final model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
 impressive sensitivity of 0.971 and specificity of 0.617- good given the relative costs of letting a TBI go undiagnosed
