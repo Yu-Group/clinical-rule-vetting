@@ -246,7 +246,7 @@ class Dataset(DatasetTemplate):
         
         if kwargs['aggregate_improved_covariates']:
             improved_features = [col_name for col_name in df.columns.astype(str) if '_improved' in col_name]
-            df['ConditionImproved'] = df[improved_features].max(numeric_only = True,axis=1) 
+            df['ConditionImproved'] = df[improved_features].max(numeric_only = True,axis=1).replace([0,1],[1,0])
             df.drop(improved_features,axis=1,inplace=True)
         
         if kwargs['aggregate_comppain_covariates']:
@@ -418,12 +418,12 @@ class Dataset(DatasetTemplate):
                 'nonverbal_age_cutoff':[5,4,6],
                 'young_adult_age_cutoff':[11,15],
                 'stairs_cutoff':[2,3],
-                'aggregate_medicalhistory_covariates':[True,False],
+                'aggregate_medicalhistory_covariates':[False],
                 'aggregate_improved_covariates':[True,False],
-                'aggregate_comppain_covariates':[True,False],
-                'aggregate_subinj_covariates':[True,False],
-                'aggregate_tenderness_covariates':[True,False],
-                'aggregate_highriskmoi_covariates':[True,False],
+                'aggregate_comppain_covariates':[False],
+                'aggregate_subinj_covariates':[False],
+                'aggregate_tenderness_covariates':[False],
+                'aggregate_highriskmoi_covariates':[False],
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
