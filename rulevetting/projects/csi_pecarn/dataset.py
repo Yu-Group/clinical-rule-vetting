@@ -246,7 +246,7 @@ class Dataset(DatasetTemplate):
         
         if kwargs['aggregate_improved_covariates']:
             improved_features = [col_name for col_name in df.columns.astype(str) if '_improved' in col_name]
-            df['ConditionImproved'] = df[improved_features].max(numeric_only = True,axis=1).replace([0,1],[1,0])
+            df['ConditionNotImproved'] = df[improved_features].max(numeric_only = True,axis=1).replace([0,1],[1,0])
             df.drop(improved_features,axis=1,inplace=True)
         
         if kwargs['aggregate_comppain_covariates']:
