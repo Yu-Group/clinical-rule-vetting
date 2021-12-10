@@ -4,16 +4,20 @@ import pandas as pd
 from rulevetting.templates.model import ModelTemplate
 
 
-class Model(ModelTemplate):
+class Baseline(ModelTemplate):
     def __init__(self):
         # query for each rule + resulting predicted probability
         self.rules = [
-            ('AbdTrauma_or_SeatBeltSign_yes == 1', 5.7),
-            ('GCSScore < 14', 4.6),
-            ('AbdTenderDegree_None == 0', 1.4),
+            ('HighriskDiving>0', 81.4),
+            ('FocalNeuroFindings2 >0', 41.9),
+            ('Torticollis2>0', 31.9),
+            ('Predisposed>0', 31.2),
+            ('AlteredMentalStatus2 >0', 17.3),
+            ('PainNeck2>0', 13.3),
+            ('subinj_TorsoTrunk2>0', 7.2),
+            ('HighriskMVC>0', 6.1),
 
             # final condition is just something that is always true
-            ('GCSScore == GCSScore', 0.1),
         ]
 
     def _traverse_rule(self, df_features: pd.DataFrame):
@@ -27,10 +31,11 @@ class Model(ModelTemplate):
             df_rhs = df.query(query)
             idxs_satisfying_rule = df_rhs.index
             predicted_probabilities.loc[idxs_satisfying_rule] = prob
+
             df.drop(index=idxs_satisfying_rule, inplace=True)
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
             query_print = query.replace(' == 1', '')
-            if j < len(self.rules) - 1:
+            if j < len(self.rules):
                 str_print += f'\033[96mIf {query_print:<35}\033[00m \u2192 {df_rhs[o].sum():>3} / {df_rhs.shape[0]:>4} ({computed_prob:0.1f}%)\n\t\u2193 \n   {df[o].sum():>3} / {df.shape[0]:>5}\t \n'
         predicted_probabilities = predicted_probabilities.values
         self.str_print = str_print
@@ -41,20 +46,19 @@ class Model(ModelTemplate):
         return (predicted_probabilities > 0.11).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
-        predicted_probabilities = self._traverse_rule(df_features)
+        predicted_probabilities = self._traverse_rule(df_features) / 100
         return np.vstack((1 - predicted_probabilities, predicted_probabilities)).transpose()
 
     def print_model(self, df_features):
         self._traverse_rule(df_features)
         return self.str_print
 
-
 if __name__ == '__main__':
-    from rulevetting.projects.iai_pecarn.dataset import Dataset
-
-    df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
+    from rulevetting.projects.csi_pecarn.dataset import Dataset
+    # df_train, df_tune, df_test = Dataset().get_data(load_csvs=True) # if there are processed data in /data/csi_pecarn/processed
+    df_train, df_tune, df_test = Dataset().get_data()
     df_full = pd.concat((df_train, df_tune, df_test))
-    model = Model()
+    model = Baseline()
     preds_proba = model.predict_proba(df_full)
     print(model.print_model(df_full))
     # preds = baseline.predict(df_train)
