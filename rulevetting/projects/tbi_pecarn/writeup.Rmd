@@ -881,6 +881,47 @@ Structure:
 
 - Rules/variable importance stability:
   - Model perturbations: Compare rules isolated by Ian's RF, baseline classifier, and Xin's best model to assess stability across models
+
+
+One form of perturbation in our analysis will be a change of model; by comparing the importance of different 
+rules across similar models we can get a sense of how consistently the effect appears and thus how stable it is. 
+The models to which we will compare our best classifier are both tree-based, including an age-invariant random 
+forest classifier and the baseline age-splitting classifier that Kupperman et al. used.
+
+For our random forest, the judgment calls used to obtain the dataset were those that flattened the data, 
+removing the umbrella variables and giving the variables below them a binary classification. 
+We also removed age-variant predictors such as GCS. To create our cross-validation structure, we withheld 
+a random sample of 4739 observations for validation, stratified on outcome level. From there, the remaining 
+30,000 observations were randomly split into three equal folds, likewise stratified, and used to run a 
+three-fold CV in order to evaluate a given model's sensitivity and specificity, averaged over the three 
+possible train-test splits. 
+
+With the folds set up, we use this average sensitivity and specificity to tune our model's hyperparameters.
+One possible hyperparameter, number of trees, was found during exploratory analysis to have functionally no 
+effect on anything except computation time beyond around 200 trees, so all models were run with 200 trees.
+The forest's maximum depth, on the other hand, was optimized over, as an increase in max depth would generally
+result in an increase in specificity at the expense of sensitivity. The unbalanced nature of our output
+(less than 1% of children actually had a TBI) leads us to another hyperparameter: weight. Essentially, if we
+do not weight our model in order to favor true positives over true negatives, any random forest will predict
+that no child has a TBI; thus we add a weight factor to our "1" outcome in order to increase our model's sensitivity.
+
+The values evaluated for our hyperparameters (chosen via cursory exploratory analysis) include max depth ranging
+from 5 to 11 and weight parameter evaluated at 1 and then every multiple of 100, up to 1000. We optimized over both of
+these parameters, testing a total of 77 models for the ideal model that maximizes 2(Sens) + Spec, Spec>0.5, and generated
+ROC curves for each, which can be seen in tbi_rf.pdf. 
+
+```{r demographics, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
+include_graphics('figs/RF importance.png')
+```
+Our final model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
+impressive sensitivity of 0.971 and specificity of 0.617- good given the relative costs of letting a TBI go undiagnosed
+versus performing an unneeded CT test. In terms of importance, basilar hemorrhage was by far the most important predictor,
+which is entirely in keeping with its high prevalence in our rule-fitting model. Other important factors included ActNorm,
+ClavPar (scalp trauma), and AMSSlow- all of which show up somewhere in rules as well. Somewhat curiously, no vomiting-related
+values were in the top 10 (highest was VomitLast=1 which was 13th most important) despite its high prevalence in our rule-fitting
+classifier; this may be a consequence of the flattening of the vomit variable, leaving us with many minor effects instead of the 
+one overall binary indicator of whether or not the child was vomiting.
+
   - Similar for data perturbations since baseline is different from ours, and Andrej's is different data
   
   This will justify the stability of the rules our best classifier isolated
