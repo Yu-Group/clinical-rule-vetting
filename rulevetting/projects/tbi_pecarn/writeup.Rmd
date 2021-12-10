@@ -5,6 +5,8 @@ output: pdf_document
 bibliography: references.bib
 ---
 
+`GENERAL NOTE: should we refer to the notebooks in the repo that we used to make some of the plots?`
+
 ```{r setup, echo = FALSE}
 library(knitr)
 
@@ -244,7 +246,7 @@ since according to domain knowledge, the impact of head trauma to the brain is d
   + *SFxPalp*, *SFxPalpDepress*
   + Judgement Call [`SFx`]: recode an unclear *SFxPalp* observation as true, drop observations missing either *SFxPalp* or *SFxPalpDepress*
     + Perturbation 1: same procedure as [`AMS`] perturbation
-    + Perturbation 2: same procedure as [`AMS`] judgement call
+    + Perturbation 2: recode an unclear *SFxPalp* observation as false, drop observations missing either *SFxPalp* or *SFxPalpDepress*
     
 *SFxPalp* is an indicator for a palpable skull fracture, which can also be marked as
 'unclear' if there is too much swelling to make a determination. *SFxPalpDepress*
@@ -332,6 +334,7 @@ being able to verbalize headache symptoms requires the child to be of a certain 
 * Drop and impute based on seizure variables
   + *Seiz*, *SeizLen*, *SeizOccur*
   + Judgement Call [`Seiz`]: Drop missing *SeizLen*, impute missing *Seiz* from *SeizLen*, drop missing *Seiz*, and ignore *SeizOccur* column
+    + Perturbation 1: Drop missing *SeizLen* and *Seiz*, exclude *SeizOccur* column
   
 *Seiz* is an indicator if the child had a seizure, as reported by the parent or child.
 *SeizLen* is how long the seizure lasted (< 1 min, 1-5 min, 5-15 min, >15 min) and
@@ -344,8 +347,8 @@ according to domain knowledge.
 * Drop and impute based on loss of consciousness variables
   + *LOCSeparate*, *LocLen*
   + Judgement Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
-    + Perturbation 1: same as [`AMS`] perturbation
-    + Perturbation 2: same as [`AMS`] judgement call
+    + Perturbation 1: same as [`AMS`] judgement call
+    + Perturbation 2: recode 'suspected' as 'no' in *LOCSeparate*, drop missing *LOCSeparate* and *LOCLen*
     
 *LOCSeparate* is an indicator if the child lost consciousness at all after the injury,
 and *LocLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). 
@@ -638,7 +641,7 @@ the last one represents the proportion. And we use the whole cleaned dataset to 
 while Kuppermann et al. splits the data into training set and validation set. The performance of the baseline classifiers
 is similar to the result in Kuppermann et al. The baseline classifiers do identify almost all of the cases since 
 the sensitivity is 98.9\% and 96.8\% for preverbal children and verbal children, respectively. However, the specificity only achieves
-48.3\% and 57.7\%. In our following model, we will propose the one with similar sensitivity and higher specificity. The detailed
+48.3\% and 57.7\%. In the following section, we propose a model with similar sensitivity and higher specificity. The detailed
 evaluation metrics based on sensitivity and specificity is discussed in the following part.
 
 ## Proposed Model
@@ -648,14 +651,15 @@ evaluation metrics based on sensitivity and specificity is discussed in the foll
 *Justify the proposed model, and refer back to discussion in Post-Processing Discussion for justification while also answering Q8 about any randomness assumptions. *
 
 
-### Introduction to and an ilustration of `rulefit`
+### `rulefit`: Introduction and Basic Illustrative Implementation
 
 *(Andrej)*
 
 ```{python basic_rules, engine.path = "../../../rule-env/bin/python3", include=FALSE}
+# load the statistics from the basic
+
 import pickle as pk
 import imodels
-
 
 basic = pk.load(open("notebooks/models/basic.pkl", 'rb'))
 maximal = pk.load(open("notebooks/models/maxim.pkl", 'rb'))
@@ -667,7 +671,6 @@ mrules = maximal.get_rules().sort_values("importance", ascending=False).round(2)
 
 ```{r, echo=FALSE}
 kable(py$brules, caption = "Top 5 basic model rules in order of importance")
-
 ```
 
 ```{r, echo=FALSE}
@@ -705,7 +708,7 @@ above 90% would be preferred.
 The greedy rule list (CART) model consists of a list of rules, which is similar to the baseline model. 
 Therefore, it is simple to understand, interpret, and pick the important features.
 Since it is also a greedy method, it does not require distributional assumptions and is computationally-efficient.
-However, it is non-robust when we perturb the data and the greedy method does not gurantee a good result.
+However, it is non-robust when we perturb the data and the greedy method does not guarantee a good result.
 
 ### Procedure and Performance
 
@@ -775,27 +778,101 @@ Same thing that our model is doing: looking for more important features.
 
 ### Stability Analysis
 
-Structure:
+In our stability analysis, we focus our efforts on checking both the stability of the
+derived rules and feature importance subject to data and model perturbations, as well as
+the stability of our classification results subject to data perturbations of the test set.
 
-- Rules/variable importance stability:
-  - Model perturbations: Compare rules isolated by Ian's RF, baseline classifier, and Xin's best model to assess stability across models
-  - Similar for data perturbations since baseline is different from ours, and Andrej's is different data
-  
-  This will justify the stability of the rules our best classifier isolated
-  
-- Stability of performance across data perturbations
-  - perturb the data by selecting some of the judgement calls, but only perturb test data and see how the model fares (the classification errors)
-  
-  judgement calls to turn on/off: `SFxPalp`, `Seiz` (change from recoding to not recoding), `ActNorm` recoding (change it up), `Vomit` (either union and impute or not)
-  (if we have enough time, talk more about subsampling, otherwise just work on this)
+#### Feature Stability
+
+To address the former, we can first compare the isolated features with those of the
+classifier from Kupperman et al., whose results are presented in Baseline Model.
+We cleaned our data differently, so this is a stability assessment of the rules
+subject to data perturbations. Additionally, we use different classifier methods,
+giving us a sense of stability subject to model perturbations. Note that there is
+significant overlap between the rules of Kupperman's two age-dependent classifiers,
+and most of the isolated rules are for variables we consider to be age-invariant.
+So, comparisons between these two models will be meaningful. 
+
+Looking at the first few variables isolated in Figure \ref{fig:rulefit_interpretation},
+we see that the individual having altered mental status, a history of vomiting,
+hemotympanum (sign of basilar skull fracture), an injury rated 'severe', loss of consciousness
+for more than 5 seconds, and neurological deficits related to the cranial nerve,
+and a parietal or temporal scalp hematoma are of utmost importance in determining
+if someone has a clinically-important TBI. Comparing to the baseline classifier's variables in 
+Figure \ref{fig:baseline_res}, we see that all of these variables are included in
+their rules to some extent. In fact, sometimes our classifier isolates a more
+specific version of a parent variable. For instance, while the baseline classifier
+isolates general signs of basilar skull fracture, we isolate a particular sign (hemotympanum),
+and while the baseline simply checks for parietal, temporal, or occipital scalp hematoma,
+we find that only parietal and temporal hematomas are of most use.
+
+*Insert comparison with Andrej's rules above in the demonstration section*
+
+*Insert a few paragraphs about Random Forests and their results (maybe refer to notebook or something to see more specifics)*
+
+#### Classification Result Stability
+
+To check the classification result stability, we run through a cartesian product
+of our possible perturbations for our judgement calls and, using the best classifier,
+predict on this perturbed test data for each combination of judgement calls. Because
+many of our judgement calls had to do with the inclusion/exclusion of certain sets of columns,
+for which it would be impossible to evaluate a model trained on a different feature space,
+we choose a set of 5 judgement calls, along with their perturbations, that involve
+imputing/dropping missing values and recoding categories. Please refer to Data Collection
+for a dictionary of the judgement calls and their perturbations.
+
++ original judgement call: [`SFx`]; perturbation 2
++ original judgement call: [`Seiz`]; perturbation 2
++ original judgement call: [`LOC`]; perturbation 2
++ original judgement call: [`ActNorm`]; perturbation (only perturbation listed)
++ original judgement call: [`Vomit`]; perturbation (only perturbation listed)
+
+This set of judgement calls effectively covers perturbations due to the inclusion or
+exclusion of missing values, imputation of missing values, as well as recoding
+observations. For instance, [`SFx`] and [`LOC`] are both judgement calls where
+a result marked 'unclear' was coded as 'true'. An interesting perturbation would be
+to see if coding these observations as 'false' changes the results substantially.
+
+We loop through every possible combination of the above 5 judgement calls and their
+perturbations and obtain a test dataset (32 test datasets in total), and for each
+set, we evaluate the sensitivity and specificity using our best rulefit model.
+A histogram of specificities and sensitivities are provided in Figure \ref{fig:perturb_res}
+
+```{r perturb_res, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
+include_graphics('figs/perturbation_results.png')
+```
+
+In Figure \ref{fig:perturb_res}, we see that, subject to these different combinations of judgement calls and
+their perturbations, the sensitivities and specificities are quite stable. We note that,
+in a large number of the judgement call combinations, the sensitivity drops to around
+0.92 to 0.93. Upon further examination, it seems this sensitivity occurs when the 
+perturbation for [`Vomit`] is applied. Instead of imputing missing values
+from the subvariable columns as in the [`Vomit`] judgement call, the perturbation
+drops any observation for which any of the subvariables or parent variables are missing,
+the reason being that if any of the criteria is missing, any provided results
+cannot be trusted. However, a counterargument would be that the physician could have
+been tired and possibly skipped through some of the subcategories, or felt that
+marking a the main vomit category after having marked a subcategory was redundant.
+So, while our results are slightly impacted by this perturbation, we should take this
+with a grain of salt.
 
 # Discussion
 
-Discuss the performance, the results, the stability subject to perturbations,
-how well it compared to the baseline, etc.
+*Discuss the performance, the results, the stability subject to perturbations,*
+*how well it compared to the baseline, etc.*
 
-Discuss future directions on what we can do (other models, other perturbations,
-things we missed that we would have done with more time, etc.)
+Additionally, on the testing set, our best classifier only had one false negative:
+patient number 5295, a four year-old black male. Upon examining his covariates, it seems the only abnormal
+responses was the presence of a large frontal hematoma, an above-the-clavicle injury on the frontal part of the scalp, 
+an injury mechanism of moderate severity. Every other covariate was listed as normal.
+With such a patient, Kuppermann's classifier would also have listed him as not having a TBI.
+So, while it is unfortunate that we would have misclassified this individual and
+decided not to pursue a CT scan, the classifier we wish to improve upon would have
+also missed this diagnosis. This may indicate the need for new features to observe
+when collecting data to ensure no TBIs are missed in the future.
+
+*Discuss future directions on what we can do (other models, other perturbations,*
+*things we missed that we would have done with more time, etc.)*
 
 # Conclusion
 

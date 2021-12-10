@@ -297,6 +297,11 @@ class Dataset(DatasetTemplate):
             tbi_df.drop(tbi_df.loc[(tbi_df['HemaLoc'].isnull()) |
                                    (tbi_df['HemaSize'].isnull())].index,
                         inplace=True)
+
+            # Judgement call: drop the hema size column nonetheless
+            if not judg_calls['step9a_HEMA']:
+                tbi_df.drop(['HemaSize'], axis=1, inplace=True)
+
         else:
             raise NotImplementedError("Desired Hema preprocess step not implemented!")
 
@@ -327,6 +332,11 @@ class Dataset(DatasetTemplate):
 
         # Judgement call: be strict about missing sub-categories
         elif judg_calls["step10_SFx"] == 3:
+
+            # Judgement call: make the unclear observations be 0 (no fracture)
+            if judg_calls["step10a_SFx"]:
+                tbi_df.loc[(tbi_df['SFxPalp'] == 2), 'SFxPalp'] = 0
+
             tbi_df.drop(tbi_df.loc[(tbi_df['SFxPalpDepress'].isnull())].index,
                         inplace=True)
         else:
@@ -464,6 +474,11 @@ class Dataset(DatasetTemplate):
                                    (tbi_df.VomitStart.isnull()) |
                                    (tbi_df.VomitLast.isnull())].index,
                         inplace=True)
+
+            # Judgement call: drop the other vomit variables nonetheless
+            if not judg_calls["step14a_Vomit"]:
+                tbi_df.drop(['VomitNbr', 'VomitStart', 'VomitLast'], axis = 1, inplace = True)
+
         else:
             raise NotImplementedError("Desired Vomit preprocess step not implemented!")
 
@@ -588,6 +603,10 @@ class Dataset(DatasetTemplate):
 
         # Judgement call: be strict about missing sub-categories
         elif judg_calls["step17_LOC"] == 3:
+            # Judgement call: recode the unsure LOC obs as no LOC
+            if judg_calls["step17a_LOC"]:
+                tbi_df.loc[(tbi_df['LOCSeparate'] == 2), 'LOCSeparate'] = 0
+
             tbi_df.drop(tbi_df.loc[(tbi_df['LocLen'].isnull())].index,
                         inplace=True)
         else:
@@ -881,8 +900,12 @@ class Dataset(DatasetTemplate):
                     "step8_OSI"       : [3, 1, 2],
                     # Raised scalp hematoma or swelling?
                     "step9_HEMA"      : [3, 1, 2],
+                    # Keep the HEMA size column?
+                    "step9a_HEMA"     : [True, False],
                     # Palpable skull fracture?
                     "step10_SFx"      : [2, 3, 1],
+                    # Unclear skull fracture means no skull fracture?
+                    "step10a_SFx"     : [True, False],
                     # Signs of basilar skull fracture?
                     "step11_SFxBas"   : [3, 2, 1],
                     # Evidence of trauma above the clavicles
@@ -891,6 +914,8 @@ class Dataset(DatasetTemplate):
                     "step13_NeuroD"   : [3, 2, 1],
                     # Whether the individual vomited after the injury
                     "step14_Vomit"    : [1, 2, 3],
+                    # Whether to drop the other vomit variables
+                    "step14a_Vomit"   : [False, True],
                     # Whether there was a headache at the time of evaluation
                     "step15_HA"       : [2, 3, 1],
                     # only affects 3 above
@@ -901,6 +926,8 @@ class Dataset(DatasetTemplate):
                     "step16_SeizOccur": [False, True],
                     # History of loss of consciousness
                     "step17_LOC"      : [2, 3, 1],
+                    # Unclear LOC means no LOC?
+                    "step17a_LOC"     : [True, False],
                     # Clinical suspicion for alcohol or drug intoxication
                     "step19_Drugs"    : [False, True],
                     # Whether the parent thinks the child is acting normally

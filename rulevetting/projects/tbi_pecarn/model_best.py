@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-
-
+import pickle as pkl
+from os.path import join as oj
 from rulevetting.templates.model import ModelTemplate
 
 
@@ -44,4 +44,3 @@ if __name__ == '__main__':
     model = Model()
     preds = model.predict(X_full)
     print(model.print_model())
-
