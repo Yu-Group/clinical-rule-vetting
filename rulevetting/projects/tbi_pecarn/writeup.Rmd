@@ -883,7 +883,7 @@ we see that the individual having altered mental status, a history of vomiting,
 hemotympanum (sign of basilar skull fracture), an injury rated 'severe', loss of consciousness
 for more than 5 seconds, and neurological deficits related to the cranial nerve,
 and a parietal or temporal scalp hematoma are of utmost importance in determining
-if someone has a clinically-important TBI. Comparing to the baseline classifier's variables in 
+if someone has a clinically-important TBI. Compared to the baseline classifier's variables in 
 Figure \ref{fig:baseline_res}, we see that all of these variables are included in
 their rules to some extent. In fact, sometimes our classifier isolates a more
 specific version of a parent variable. For instance, while the baseline classifier
@@ -915,10 +915,12 @@ from 5 to 11 and weight parameter evaluated at 1 and then every multiple of 100,
 these parameters, testing a total of 77 models for the ideal model that maximizes our aforementioned evaluation measure of 
 2(Sens) + Spec, Spec>0.5, and generated ROC curves for each max depth, which can be seen in `tbi_rf.pdf`. 
 
+`(Xin) i think we should not refer tbi_rf.pdf n our report. And for RF Importance features, we do not need it to be a plot I think. But I'm not sure how to do this..`
+
 ```{r RF importance, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
 include_graphics('figs/RF Importance.PNG')
 ```
-Our final model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
+Our final random forest model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
 impressive sensitivity of 0.971 and specificity of 0.617- slightly worse than our best classifier, but better than Kuppermann's 
 classifier and overall good given our aforementioned preference for sensitivity over specificity. In terms of importance, 
 hemotympamnum was by far the most important predictor, which is entirely in keeping with its high prevalence in our rule-fitting 
