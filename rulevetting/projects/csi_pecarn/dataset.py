@@ -322,10 +322,15 @@ class Dataset(DatasetTemplate):
                     
                 # impute with GCS median is patient has altered mental status    
                 for col in columns:
-                    df[col][(df['AlteredMentalStatus']==1)]=\
-                        df[col][(df['AlteredMentalStatus']==1)]\
-                            .fillna(np.nanmedian(df[col][(df['AlteredMentalStatus']==1)]))
-               
+                    if kwargs['impute_gcs_method'] == 'median':
+                        df[col][(df['AlteredMentalStatus']==1)]=\
+                            df[col][(df['AlteredMentalStatus']==1)]\
+                                .fillna(np.nanmedian(df[col][(df['AlteredMentalStatus']==1)]))
+                    else:
+                        df[col][(df['AlteredMentalStatus']==1)]=\
+                            df[col][(df['AlteredMentalStatus']==1)]\
+                                .fillna(np.nanmean(df[col][(df['AlteredMentalStatus']==1)]))
+                        
                 df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
                 
             else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
@@ -412,15 +417,15 @@ class Dataset(DatasetTemplate):
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
             'clean_data': { 
-                'use_kappa':[False, True],
+                'use_kappa':[False],# True],
             },
             'preprocess_data': { 
             },'extract_features': { 
                 # age cutoffs choices based on rules shared by Dr. Devlin
-                'veryyoung_age_cutoff':[2.,1,1.5],
-                'nonverbal_age_cutoff':[5,4,6],
-                'young_adult_age_cutoff':[11,15],
-                'stairs_cutoff':[2,3],
+                'veryyoung_age_cutoff':[2, 1],
+                'nonverbal_age_cutoff':[5],#4],
+                'young_adult_age_cutoff':[12,10],
+                'stairs_cutoff':[2],
                 'aggregate_medicalhistory_covariates':[False],
                 'aggregate_improved_covariates':[True, False],
                 'aggregate_comppain_covariates':[False],
@@ -431,13 +436,14 @@ class Dataset(DatasetTemplate):
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
                 'frac_missing_allowed': [0.05, 0.1],
-                'impute_gcs':[True, False],
+                'impute_gcs':[True],
+                'impute_gcs_method':['median','mean'],
                 'gcs_threshold':[8,11],
-                'impute_outcomes':[True, False],
+                'impute_outcomes':[True],
             },
             'split_data': {
                 # drop cols with vals missing this percent of the time
-                'control_types': [['ran','moi','ems']],
+                'control_types': [['ran']],
             }
         }
     
