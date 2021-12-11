@@ -14,8 +14,8 @@ papersize: a4
 library(knitr)
 
 library(reticulate)
-reticulate::use_python("../../../rule-env/bin/python3", required = TRUE)
-reticulate::use_virtualenv("../../../rule-env/", required = TRUE)
+reticulate::use_python("../../../rule-env/bin/python3", required = FALSE)
+reticulate::use_virtualenv("../../../rule-env/", required = FALSE)
 knitr::knit_engines$set(python = reticulate::eng_python)
 knitr::opts_chunk$set(engine.path = list(python = "../../../rule-env/bin/python3"))
 ```
