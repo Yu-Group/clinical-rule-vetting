@@ -757,15 +757,6 @@ specific tweaking to the models being performed at this stage!
 As shown in the next section, with some careful construction of the models and selection
 of the judgment call, we can improve this performance considerably.
 
-`TODO: check this text if it still fits:`
-
-(Xin) I think Andrej will describe rulefit model. Q8 I can only answer this in Logistic regression assumption. Can this be better?
-
-The greedy rule list (CART) model consists of a list of rules, which is similar to the baseline model. 
-Therefore, it is simple to understand, interpret, and pick the important features.
-Since it is also a greedy method, it does not require distributional assumptions and is computationally efficient.
-However, it is non-robust when we perturb the data and the greedy method does not guarantee a good result.
-
 ### Procedure and Performance
 
 We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgment calls.
@@ -788,6 +779,13 @@ Therefore, we define our evaluation measure as follows.
 \end{aligned}
 \right.
 \]
+
+To evaluate the performance, we also aim to train one model to get similar results to the baseline model, which 
+is a rule list model. In our report, we pick one specific rule list model, i.e., greedy rule list (CART) model.
+The greedy rule list (CART) model consists of a list of rules, which makes it 
+simple to understand, interpret, and pick the important features.
+For both greedy rule list model and rulefit model, we use the same procedure to train and validate, and evaluate
+the performance on the test data. The only difference is the hyperparameters we aim to tune in the cross-validation procudure.
 
 For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
 the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
