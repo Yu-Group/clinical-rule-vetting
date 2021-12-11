@@ -33,8 +33,10 @@ def extract_numeric_data(input_df,categorical_covariates):
     binary_data = pd.DataFrame(index=noncat_data.index) # init with study subject ID as index
     
     # add the suffix `_binary` to numeric variables with only 0 and 1 as non-nan inputs
+    
     binary_numeric_cols = [col_name for col_name in numeric_data.columns\
                            if np.isin(numeric_data[col_name].dropna().unique(), [0, 1]).all()]
+    
     numeric_data.columns = [col_name + '_binary' if col_name in binary_numeric_cols else col_name\
                                 for col_name in numeric_data.columns]
     
@@ -132,8 +134,9 @@ def build_binary_covariates(df):
 
     for robust_av in robust_av_names:
         base_av = robust_av[:-8] # strip off 2_binary
-        df[base_av+'_improved'] = df[robust_av].copy()
-        df[base_av+'_improved'][df[base_av+'_binary']==1] = 0 # condition remains indicated at study site
+        base_av_improved = base_av + '_improved'
+        df[base_av_improved] = df[robust_av].copy()
+        df[base_av_improved][df[base_av+'_binary'].copy()==1] = 0 # condition remains indicated at study site
         # note we remove the `_binary` suffix, will do this for other variables later in this function
     df.drop(robust_av_names,axis=1,inplace=True)
   
@@ -172,7 +175,7 @@ def build_binary_covariates(df):
     # of data measured away from and at the study site, only GCS scores are not converted to improved
 
     df.columns = [col_name[:-7] if col_name.endswith('_binary') else col_name for col_name in df.columns]
-
+    
     return df
 
 def get_outcomes():

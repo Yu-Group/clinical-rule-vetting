@@ -22,6 +22,20 @@ class Dataset(DatasetTemplate):
         
         # all the fnames to be loaded and searched over        
         fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
+        
+        # suffix to covariates for differentiation between source datasets
+        suffix_dictionary = {'analysisvariables.csv':'',
+                             'clinicalpresentationsite.csv':'',
+                             'clinicalpresentationoutside.csv':'_outside',
+                            'clinicalpresentationfield.csv':'_ems',
+                            'demographics.csv':'_posthoc',
+                            'injuryclassification.csv':'_posthoc',
+                            'injurymechanism.csv':'',
+                            'kappa.csv':'',
+                            'medicalhistory.csv':'',
+                            'radiologyoutside.csv':'_outside',
+                            'radiologyreview.csv':'_posthoc',
+                            'radiologysite.csv':'_posthoc'}
             
         # read through each fname and save into the r dictionary
         r = {}
@@ -36,11 +50,17 @@ class Dataset(DatasetTemplate):
             df.columns = [re.sub('SITE','site',x) for x in df.columns]
             df.columns = [re.sub('CaseID','case_id',x,flags=re.IGNORECASE) for x in df.columns]
             df.columns = [re.sub('ControlType','control_type',x,flags=re.IGNORECASE) for x in df.columns]
-            df.columns = [re.sub('CSpine','CervicalSpine',x) for x in df.columns]
-            df.columns = [re.sub('subinj_','SubInj_',x) for x in df.columns]
+            df.columns = [re.sub('^CSpine','CervicalSpine',x) for x in df.columns]
+            df.columns = [re.sub('^CS','CervicalSpine',x) for x in df.columns]
+            df.columns = [re.sub('^subinj_','SubInj_',x) for x in df.columns]
                             
             assert ('id' in df.keys())
             df = df.set_index(['id','case_id','site','control_type']) # use a multiIndex
+            
+            # add suffix to distinguish original datasets
+            covar_suffix = suffix_dictionary[fname]
+            df.columns = df.columns.astype(str) + covar_suffix
+
             r[fname] = df
 
         # Get filenames we consider in our covariate analysis
@@ -52,58 +72,64 @@ class Dataset(DatasetTemplate):
                         and not 'kappa' in fname]
         
         df = r['analysisvariables.csv']
-        
-        # suffix to covariates for differentiation between source datasets
-        suffix_dictionary = {'clinicalpresentationsite.csv':'',
-                             'clinicalpresentationoutside.csv':'_outside',
-                            'clinicalpresentationfield.csv':'_ems',
-                            'demographics.csv':'_posthoc',
-                            'injuryclassification.csv':'_posthoc',
-                            'injurymechanism.csv':'_posthoc',
-                            'medicalhistory.csv':'',
-                            'radiologyoutside.csv':'_outside',
-                            'radiologysite.csv':'_posthoc'}
-        
+               
         print('merging all of the dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
             df2 = r[fname].copy()
-            
-            covar_suffix = suffix_dictionary[fname]
-            df2.columns = df2.columns.astype(str) + covar_suffix
             df = pd.merge(df,df2,how="left",left_index=True,right_index=True)
         
         
         # judgement call to use kappa variables where appropriate
         if kwargs['use_kappa']:
             kappa_data = r['kappa.csv']
-            kappa_data = kappa_data.set_index('id')
-            # drop kappa columns not in full dataset
-            to_drop_kappa_cols = kappa_data.columns.difference(df_features.columns)
-            kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
-            # replace with kappa data at relavent locations
-            df_features.loc[kappa_data.index,kappa_data.columns] = kappa_data
-        
-        # remove text columns
-        txt_columns = [col_name for col_name in df.columns.astype(str) if col_name.__contains__('txt')]
+            
+            kappa_rename_dict = {
+                'EDDocumentation':'EDDocumentation_outside',
+                'FieldDocumentation':'FieldDocumentation_ems',
+                'PatientsPosition':'PatientsPosition_ems',
+                'PtAmbulatoryPriorEMSArrival':'PtAmbulatoryPriorEMSArrival_ems',
+                'ShakenBabySyndrome':'ShakenBabySyndrome_posthoc', 'clotheslining':'Clotheslining'
+            }
 
+            kappa_data.rename(columns=kappa_rename_dict,inplace=True) # rename with proper suffix if possible
+            
+            # drop kappa columns not in full dataset
+            to_drop_kappa_cols = kappa_data.columns.difference(df.columns)
+            kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
+            
+            # replace with kappa data at relavent locations
+            df.loc[kappa_data.index,kappa_data.columns] = kappa_data
+        
+        # remove 35 text columns
+        txt_columns = [col_name for col_name in df.columns.astype(str) if col_name.__contains__('txt')]
         df.drop(txt_columns,axis=1,inplace=True)
         
-        return df
-
-    def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        # remove duplicate from analysis variables
+        df.drop(['clotheslining'],axis=1,inplace=True)
         
+        # change some names to match dataset.py
+        rename_dict = {"Ligamentoptions_posthoc": "LigamentInjury_posthoc"}
+        df.rename(columns=rename_dict,inplace=True)
+        
+        # judgement call to remove any columns with date or time information
+        datatime_columns = [col_name for col_name in df.columns.astype(str) if (('date' in col_name.lower()) |\
+                                                                                ('time' in col_name.lower()))]
+        df.drop(datatime_columns,axis=1,inplace=True)
+        
+        return (df, r)
+
+    def preprocess_data(self, cleaned_data: pd.DataFrame, datasets, **kwargs) -> pd.DataFrame:
         # list of categorical columns to ignore
-        categorical_covariates = ['Race_posthoc','PayorType_posthoc',\
+        categorical_covariates = ['Race_posthoc','PayorType_posthoc','Ethnicity_posthoc',\
                                   'OutcomeStudySite_posthoc','OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc']
         df = cleaned_data
         oss_columns = [c for c in df.columns.astype(str) if "OutcomeStudySite" in c]
         df.columns = [c +'_posthoc' if c in oss_columns else c for c in df.columns]
         
-        df.rename(columns = {"AgeInYears_posthoc": "AgeInYears","FallDownStairs_posthoc": "FallDownStairs"}, 
+        df.rename(columns = {"AgeInYears_posthoc": "AgeInYears"}, 
           inplace = True)
         
         # add a binary outcome variable for CSI injury 
-
         df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
 
         # convert numeric columns encoded as strings
@@ -122,26 +148,55 @@ class Dataset(DatasetTemplate):
         df.drop(['ambulatory'], axis=1, inplace=True)
         
         # change gender in to binary indicator for male (60% majority category)
-        df.loc[:,'Male'] = df.loc[:,'Gender_posthoc'].replace(['M','F','ND'],[True,False,False])
+        df.loc[:,'Male'] = df.loc[:,'Gender_posthoc'].replace(['M','F','ND'],[1,0,0])
         df.drop(['Gender_posthoc'], axis=1, inplace=True)
+                
+        # remove ic covariates that are aggregated by other covariates
+        injury_classifictation_covar = list(datasets['injuryclassification.csv'].columns.astype(str))
+        # take intersection to account for txt columns already removed
+        injury_classifictation_covar = list(set(injury_classifictation_covar).intersection(set(df.columns.astype(str))))
+        injury_classifictation_aggregates =['CervicalSpineFractures_posthoc','LigamentInjury_posthoc',\
+                                           'CervicalSpineSignalChange_posthoc']
+        injury_classifictation_removed = [covar_name for covar_name in injury_classifictation_covar\
+                                              if covar_name not in injury_classifictation_aggregates]
+        print("IC Removed:",len(injury_classifictation_removed))
+        df.drop(injury_classifictation_removed,axis=1,inplace=True)
+        
+        # remove radiology covariates that are aggregated by other covariates
+        radiology_covar = list(datasets['radiologysite.csv'].columns.astype(str)) +\
+            list(datasets['radiologyoutside.csv'].columns.astype(str))
+        radiology_aggregates = ['XRays_posthoc','CTPerformed_posthoc','MRIPerformed_posthoc',\
+                                'XRays_outside','CTPerformed_outside','MRIPerformed_outside']
+        radiology_removed = [covar_name for covar_name in radiology_covar\
+                                              if covar_name not in radiology_aggregates]
+        print("Radiology Removed:",len(radiology_removed))
+        df.drop(radiology_removed,axis=1,inplace=True)  
+        
+        # remove MOI information summarized by Leonard et al.
+        moi_covar_all = list(datasets['injurymechanism.csv'].columns.astype(str))
+        moi_covar_keep = ['PassRestraint','Assault','ChildAbuse','helmet','FallDownStairs']
+        moi_covar_names = list(set(moi_covar_all).intersection(set(df.columns.astype(str))))
+        moi_removed = [covar_name for covar_name in moi_covar_names\
+                                              if covar_name not in moi_covar_keep]
+        print("MOI Removed:",len(moi_removed))
+        df.drop(moi_removed,axis=1,inplace=True)
         
         # drop uniformative columns which only contains a single value
         # should be 0
         no_information_columns = df.columns[df.nunique() <= 1]
         df.drop(no_information_columns, axis=1, inplace=True)
-
+        print("# no information:", len(no_information_columns))
+        
         # create one-hot encoding of AVPU data
         avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
-        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN)
+        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN).replace('Y',np.NaN)
         
         df[avpu_columns] = 'AVPU_' + df[avpu_columns].astype(str)
         avpu_one_hot = pd.get_dummies(df[avpu_columns])
         df = df.drop(avpu_columns,axis = 1)
           
         df = df.join(avpu_one_hot)
-        
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
-        
         df = helper.build_binary_covariates(df)
         
         return df
@@ -160,6 +215,7 @@ class Dataset(DatasetTemplate):
         binning_dict['AgeInYears'] = (2,6,12)        
         df = helper.bin_continuous_data(df, binning_dict)
         ''' 
+        
         return df
     
     def impute_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -259,6 +315,7 @@ class Dataset(DatasetTemplate):
         df_test
         """
         print('split_data kwargs', kwargs)
+        if 'none' in kwargs['control_types']: return tuple([preprocessed_data,None,None])
         
         col_names = ['id','case_id','site','control_type'] + list(preprocessed_data.columns.copy())
         df_train = pd.DataFrame(columns=col_names)
@@ -269,7 +326,7 @@ class Dataset(DatasetTemplate):
         df_test = df_test.set_index(['id','case_id','site','control_type'])
         
         study_site_list = [i for i in range(1,18)]
-        print(kwargs['control_types'])
+        
         selected_control_types = ['case']+kwargs['control_types']
         
         for ss in study_site_list:
@@ -297,7 +354,7 @@ class Dataset(DatasetTemplate):
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
             'clean_data': { 
-                'use_kappa':[False, True],
+                'use_kappa':[True, False, True],
             },
             'preprocess_data': {             
             },'extract_features': { 
@@ -329,7 +386,9 @@ class Dataset(DatasetTemplate):
                  load_csvs: bool = False,
                  run_perturbations: bool = False,
                  control_types=['ran','moi','ems'],
-                 keep_na = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 preprocess = True,
+                 extract_features = True,
+                 impute = True) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -366,16 +425,16 @@ class Dataset(DatasetTemplate):
             func_kwargs = kwargs[key]
             default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
-
-        cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
-        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-        featurized_data = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-        #if not keep_na:
-        #    imputed_data = cache(self.impute_data)(featurized_data, **default_kwargs['impute_data'])
-        #else: imputed_data = featurized_data
         
-        imputed_data = featurized_data
-        df_train, df_tune, df_test = cache(self.split_data)(imputed_data, **{'control_types': control_types})
+        data, datasets = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+        if preprocess:
+            data = cache(self.preprocess_data)(data, datasets, **default_kwargs['preprocess_data'])
+        if preprocess and extract_features:
+            data = cache(self.extract_features)(data, **default_kwargs['extract_features'])
+        if preprocess and extract_features and impute:
+            data = cache(self.impute_data)(data, **default_kwargs['impute_data'])
+        
+        df_train, df_tune, df_test = cache(self.split_data)(data, **{'control_types': control_types})
 
         return df_train, df_tune, df_test
 
