@@ -147,7 +147,7 @@ Figure \blue{\ref{fig:corr-map}} shows a correlation heatmap of the reduced feat
 Moreover, most features have absolute correlation $|\rho| < 0.5$, indicating weak association throughout the feature space in general. Because of this, we feel confident that we will not encounter any issues surrounding variance inflation and multicollinearity in the modeling stage.
 
 \begin{figure}[H]
-\includegraphics[height=4.2in, width=6in]{corr-map.png}
+\includegraphics[height=4.2in, width=6in]{figs/corr-map.png}
 \centering
 \caption{Correlation heatmap of reduced feature space of `r ncol(all) - 1` features.} 
 \label{fig:corr-map}
@@ -298,7 +298,7 @@ The `DxCspineInjury` feature (explained in Section \blue{\ref{sec:corr-out}}) ha
 A rigorous inspection of the raw data reveals that this feature has **zero** missing or indeterminate values. Thus, we can rely on this information to be provided in general. We then examined how this feature was recorded. Fortunately, our data documentation contains a copy of the form that a nurse or EMT fills out when examining the patient. The question of CSI suspicion appears in the survey along with the other questions that are part of our feature space. If we envision ourselves as the nurse or physician, we can see them record their personal judgment of the patient just like they will record other measurements, such as AVPU or neck tenderness, for example. A copy of the questionnaire with the `DxCspineInjury` feature is shown in Figure \blue{\ref{fig:dxcspine}}.
 
 \begin{figure}[H]
-\includegraphics[height=3.5in, width=5in]{dx_survey.png}
+\includegraphics[height=3.5in, width=5in]{figs/dx_survey.png}
 \centering
 \caption{Copy of data recording mechanism for CSI suspicion.} 
 \label{fig:dxcspine}
