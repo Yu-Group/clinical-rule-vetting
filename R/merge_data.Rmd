@@ -1,0 +1,44 @@
+---
+title: "Outcome Data Merging"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(tidyverse)
+```
+
+
+
+
+
+```{r,eval=TRUE}
+# read csv files
+setwd("..")
+names <- c("analysisvariables", "clinicalpresentationfield", 
+           "clinicalpresentationoutside", "clinicalpresentationsite",
+           "demographics", "injuryclassification", "injurymechanism",
+           "kappa", "medicalhistory", "radiologyoutside", "radiologyreview",
+           "radiologyonsite")
+filenames <- paste0("../../../../data/csi_pecarn/csv/", names, ".csv")
+cpSite <- read.csv(filenames[4])
+
+```
+
+
+
+# Important Features
+
+## AnalysisVariables
+
+```
+'ControlType', 'SubjectID', 'AlteredMentalStatus', 'LOC', 'PainNeck'
+```
+
+
+
+
+
+
+
+

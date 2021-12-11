@@ -1,7 +1,6 @@
 **.ipynb_checkpoints
 **.pkl
 **cache*
-**.pdf
 **.zip
 **.npy
 **AutogluonModels*
@@ -39,3 +38,4 @@ dist
 experiments/data/
 !experiments/data/get_datasets.ipynb
 .hypothesis
+.Rproj.user
