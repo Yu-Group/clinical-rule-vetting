@@ -51,10 +51,10 @@ Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md)
 - [x] Data description
   - [x] Describe each feature in the processed data in a file named `data_dictionary.md`
   - [x] Summarize the data and the prediction task in a file named `readme.md`. This should include basic details of data collection (who, how, when, where), why the task is important, and how a clinical decision rule may be used in this context. Should also include your names/affiliations.
-- [ ] Modeling
-  - [ ] Baseline model - implement `baseline.py` for predicting given a baseline rule (e.g. from the existing paper)
+- [x] Modeling
+  - [x] Baseline model - implement `baseline.py` for predicting given a baseline rule (e.g. from the existing paper)
     - should override the [model template](rulevetting/templates/model.py) in a class named `Baseline`
-  - [ ] New model - implement `model_best.py` for making predictions using your newly derived best model
+  - [x] New model - implement `model_best.py` for making predictions using your newly derived best model
     - also should override the [model template](rulevetting/templates/model.py) in a class named `Model`
 - [ ] Lab writeup (see [instructions](docs/lab_writeup.md))    
   - [ ] Save writeup into `writeup.pdf` + include source files
