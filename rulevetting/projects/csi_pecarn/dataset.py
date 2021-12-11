@@ -162,28 +162,14 @@ class Dataset(DatasetTemplate):
 
         
         # New Data Source
-                # judgement call to use kappa variables where appropriate
+        # judgement call to use re-abstracted kappa infromation for appropriate units and features
         if kwargs['use_kappa']:
             kappa_data = r['kappa.csv']
-            
-            rename_dict = {
-                'Assault':'Assault_posthoc', 'ChildAbuse':'ChildAbuse_posthoc',
-                'EDDocumentation':'EDDocumentation_outside', 'FallDownStairs':'FallDownStairs_posthoc',
-                'FallFromElevation':'FallFromElevation_posthoc', 'FieldDocumentation':'FieldDocumentation_ems',
-                'Helmet':'helmet_posthoc', 'InjuryPrimaryMechanism':'InjuryPrimaryMechanism_posthoc',
-                'PassRestraint':'PassRestraint_posthoc', 'PatientsPosition':'PatientsPosition_ems',
-                'PtAmbulatoryPriorEMSArrival':'PtAmbulatoryPriorEMSArrival_ems',
-                'ShakenBabySyndrome':'ShakenBabySyndrome_posthoc', 'clotheslining':'Clotheslining'
-            }
-
-            kappa_data.rename(columns=rename_dict,inplace=True) # rename with proper suffix if possible
-            
             # drop kappa columns not in full dataset
-            to_drop_kappa_cols = kappa_data.columns.difference(df.columns)
+            to_drop_kappa_cols = kappa_data.columns.difference(df_features.columns)
             kappa_data.drop(to_drop_kappa_cols, axis=1, inplace=True)
-            
             # replace with kappa data at relavent locations
-            df.loc[kappa_data.index,kappa_data.columns] = kappa_data
+            df_features.loc[kappa_data.index,kappa_data.columns] = kappa_data
         
         
         print("{0} Raw Covariates Selected".format(df_features.shape[1]))
@@ -226,7 +212,7 @@ class Dataset(DatasetTemplate):
                  
         # create one-hot encoding of AVPU data
         avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
-        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN).replace('Y',np.NaN)
+        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN)
 
         df[avpu_columns] = 'AVPU_' + df[avpu_columns].astype(str)
         avpu_one_hot = pd.get_dummies(df[avpu_columns])
@@ -260,7 +246,7 @@ class Dataset(DatasetTemplate):
         
         if kwargs['aggregate_improved_covariates']:
             improved_features = [col_name for col_name in df.columns.astype(str) if '_improved' in col_name]
-            df['ConditionNotImproved'] = df[improved_features].max(numeric_only = True,axis=1).replace([0,1],[1,0])
+            # df['ConditionNotImproved'] = df[improved_features].max(numeric_only = True,axis=1).replace([0,1],[1,0])
             df.drop(improved_features,axis=1,inplace=True)
         
         if kwargs['aggregate_comppain_covariates']:

@@ -15,6 +15,7 @@ from rulevetting.projects.csi_pecarn import helper
 from rulevetting.templates.dataset import DatasetTemplate
 
 def find_best(data, v_list, method = "gini"):
+    
     '''
     find the best one to split the data from a variable list
     
@@ -31,26 +32,30 @@ def find_best(data, v_list, method = "gini"):
     for i in range(v):
         
         variable = v_list[i]
-        
-        v1c1 = data[(data[variable] == 1) & (data['csi_injury'] == 1)].shape[0]
-        v1c0 = data[(data[variable] == 1) & (data['csi_injury'] == 0)].shape[0]
-        if (v1c1+v1c0) == 0:
-            p1 = 1/2
+        nv = data[data[variable] == 1].shape[0]
+
+        if nv == 0:
+            score[i] = 2
         else:
-            p1 = v1c1/(v1c1+v1c0)
-        
-        v0c1 = data[(data[variable] == 0) & (data['csi_injury'] == 1)].shape[0]
-        v0c0 = data[(data[variable] == 0) & (data['csi_injury'] == 0)].shape[0]
-        if (v0c1+v0c0) == 0:
-            p2 = 1/2
-        else:
-            p2 = v0c1/(v0c1+v0c0)
-        
-        if method == 'gini':
-            score[i] = (v1c1+v1c0)/n * p1 * (1-p1) + (v0c1+v0c0)/n * p2 * (1-p2)
+            v1c1 = data[(data[variable] == 1) & (data['csi_injury'] == 1)].shape[0]
+            v1c0 = data[(data[variable] == 1) & (data['csi_injury'] == 0)].shape[0]
+            if (v1c1+v1c0) == 0:
+                p1 = 0
+            else:
+                p1 = v1c1/(v1c1+v1c0)
             
-        elif method == 'semi_gini':
-            score[i] = 1-p1
+            v0c1 = data[(data[variable] == 0) & (data['csi_injury'] == 1)].shape[0]
+            v0c0 = data[(data[variable] == 0) & (data['csi_injury'] == 0)].shape[0]
+            if (v0c1+v0c0) == 0:
+                p2 = 0
+            else:
+                p2 = v0c1/(v0c1+v0c0)
+            
+            if method == 'gini':
+                score[i] = (v1c1+v1c0)/n * p1 * (1-p1) + (v0c1+v0c0)/n * p2 * (1-p2)
+                
+            elif method == 'semi_gini':
+                score[i] = 1-p1
             
         # print(variable, p1, score[i])
     
@@ -62,6 +67,7 @@ def find_best(data, v_list, method = "gini"):
     return [variable_best, v_list, data_update]
 
 def find_best_two(data, v_list, method = "gini"):
+
     '''
     find the best one to split the data from a variable list
     
@@ -149,8 +155,9 @@ def find_best_two(data, v_list, method = "gini"):
 def make_decision_ob(observation, v_list):
     
     '''
-    make decision by v_list with two columns
+    make decision by v_list for one single observation
     '''
+
     n = len(v_list)
     for i in range(n):
         
@@ -167,6 +174,10 @@ def make_decision_ob(observation, v_list):
         
 
 def make_decision_data(data, v_list):
+
+    '''
+    make decision by v_list for one dataframe
+    '''
     
     n = data.shape[0]
     decision = [0]*n
@@ -176,6 +187,10 @@ def make_decision_data(data, v_list):
     return decision
 
 def evaluate_vlist(data, v_list, method = 'one'):
+
+    '''
+    generate the sensitity and sepecifity for v_list on data
+    '''
     
     data0 = pd.DataFrame({'csi_injury': data['csi_injury']})
     
@@ -196,8 +211,19 @@ def evaluate_vlist(data, v_list, method = 'one'):
     return [sensitivity, specificity]
 
 def simple_tree(data_list, tree_method, select_method):
+
+    '''
+    1. train model on data_list training set by tree_method and select_method
+    2. evaluate model on data_list tuning set
     
-    data = data_list[0]
+    return 
+    1. the variablelist for the fitted model
+    2. evaluation list of TPR and FPR on training set
+    3. evaluation list of TPR and FPR on tuning set
+
+    '''
+    
+    data = data_list[0].copy()
     v_list = list(data.columns)
     v_list.remove('csi_injury')
     variable_rank = []
@@ -221,19 +247,18 @@ def simple_tree(data_list, tree_method, select_method):
     TPR = [0]*l
     FPR = [0]*l
     for i in ind:
-        r = evaluate_vlist(data,variable_rank[0:i], tree_method)
+        r = evaluate_vlist(data_list[0],variable_rank[0:i], tree_method)
         TPR[i] = r[0]
         FPR[i] = 1- r[1]
     d = {'num': ind, 'TPR': TPR, 'FPR': FPR}
     evaluation_training = pd.DataFrame(data = d)
 
-    data = data_list[1]
     l = len(variable_rank)
     ind = range(l)
     TPR = [0]*l
     FPR = [0]*l
     for i in ind:
-        r = evaluate_vlist(data,variable_rank[0:i], tree_method)
+        r = evaluate_vlist(data_list[1],variable_rank[0:i], tree_method)
         TPR[i] = r[0]
         FPR[i] = 1- r[1]
     d = {'num': ind, 'TPR': TPR, 'FPR': FPR}
