@@ -34,10 +34,12 @@ if __name__ == '__main__':
     import pickle as pkl
     from os.path import join as oj
 
-
+    # default judgment call
     df_train, df_tune, df_test = Dataset().get_data(split_age=AgeSplit.AGEINVARIANT,load_csvs=False)
     df_full = pd.concat((df_train, df_tune, df_test))
-    df_full = df_full.drop(columns=['AgeinYears', 'Race', 'Gender'])
+
+    # Rulefit model need to specify X(features) and y(outcome)
+    df_full = df_full.drop(columns=['AgeinYears', 'Race', 'Gender']) #metakeys removed
     X_full = df_full.drop(columns="outcome")
     y_full = df_full["outcome"].values
 

@@ -8,6 +8,7 @@ class Baseline(ModelTemplate):
     def __init__(self, agegroup: str):
         # query for each rule + resulting predicted probability
         self.agegroup = agegroup
+        # Kuppermann get two classifiers based on chilren age < 2 or >= 2
         if self.agegroup == 'young':
             self.rules = [
                 ('AMS == 1', 4.1),
@@ -85,14 +86,14 @@ if __name__ == '__main__':
     tbi_df = Dataset().clean_data()
     tbi_df.index = tbi_df.PatNum.copy()
 
-    # data processing
+    # data processing - same as Kuppermann
     tbi_df = tbi_df[tbi_df['GCSGroup'] == 2]
     tbi_df.drop(tbi_df[tbi_df.PosIntFinal.isnull()].index,
                         inplace=True)
 
 
 
-    # divided by ages
+    # divided by ages - same as Kuppermann
     tbi_df_young = tbi_df[tbi_df['AgeinYears'] < 2]
     tbi_df_old = tbi_df[tbi_df['AgeinYears'] >= 2]
 
