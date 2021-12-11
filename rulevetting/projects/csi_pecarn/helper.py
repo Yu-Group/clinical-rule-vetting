@@ -33,8 +33,10 @@ def extract_numeric_data(input_df,categorical_covariates):
     binary_data = pd.DataFrame(index=noncat_data.index) # init with study subject ID as index
     
     # add the suffix `_binary` to numeric variables with only 0 and 1 as non-nan inputs
+    
     binary_numeric_cols = [col_name for col_name in numeric_data.columns\
                            if np.isin(numeric_data[col_name].dropna().unique(), [0, 1]).all()]
+    
     numeric_data.columns = [col_name + '_binary' if col_name in binary_numeric_cols else col_name\
                                 for col_name in numeric_data.columns]
     
@@ -173,7 +175,7 @@ def build_binary_covariates(df):
     # of data measured away from and at the study site, only GCS scores are not converted to improved
 
     df.columns = [col_name[:-7] if col_name.endswith('_binary') else col_name for col_name in df.columns]
-
+    
     return df
 
 def get_outcomes():

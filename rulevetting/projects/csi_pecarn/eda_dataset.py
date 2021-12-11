@@ -72,7 +72,7 @@ class Dataset(DatasetTemplate):
                         and not 'kappa' in fname]
         
         df = r['analysisvariables.csv']
-                
+               
         print('merging all of the dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
             df2 = r[fname].copy()
@@ -108,19 +108,19 @@ class Dataset(DatasetTemplate):
         df.drop(['clotheslining'],axis=1,inplace=True)
         
         # change some names to match dataset.py
-        rename_dict = {"Race": "Race_posthoc", "PayorType": "PayorType_posthoc",\
-                       "Ligamentoptions_posthoc": "LigamentInjury_posthoc"}
+        rename_dict = {"Ligamentoptions_posthoc": "LigamentInjury_posthoc"}
         df.rename(columns=rename_dict,inplace=True)
         
         # judgement call to remove any columns with date or time information
         datatime_columns = [col_name for col_name in df.columns.astype(str) if (('date' in col_name.lower()) |\
                                                                                 ('time' in col_name.lower()))]
+        df.drop(datatime_columns,axis=1,inplace=True)
+        
         return (df, r)
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, datasets, **kwargs) -> pd.DataFrame:
-        
         # list of categorical columns to ignore
-        categorical_covariates = ['Race_posthoc','PayorType_posthoc',\
+        categorical_covariates = ['Race_posthoc','PayorType_posthoc','Ethnicity_posthoc',\
                                   'OutcomeStudySite_posthoc','OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc']
         df = cleaned_data
         oss_columns = [c for c in df.columns.astype(str) if "OutcomeStudySite" in c]
@@ -148,9 +148,9 @@ class Dataset(DatasetTemplate):
         df.drop(['ambulatory'], axis=1, inplace=True)
         
         # change gender in to binary indicator for male (60% majority category)
-        df.loc[:,'Male'] = df.loc[:,'Gender_posthoc'].replace(['M','F','ND'],[True,False,False])
+        df.loc[:,'Male'] = df.loc[:,'Gender_posthoc'].replace(['M','F','ND'],[1,0,0])
         df.drop(['Gender_posthoc'], axis=1, inplace=True)
-        
+                
         # remove ic covariates that are aggregated by other covariates
         injury_classifictation_covar = list(datasets['injuryclassification.csv'].columns.astype(str))
         # take intersection to account for txt columns already removed
@@ -196,9 +196,7 @@ class Dataset(DatasetTemplate):
         df = df.drop(avpu_columns,axis = 1)
           
         df = df.join(avpu_one_hot)
-        #
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
-        
         df = helper.build_binary_covariates(df)
         
         return df
@@ -217,6 +215,7 @@ class Dataset(DatasetTemplate):
         binning_dict['AgeInYears'] = (2,6,12)        
         df = helper.bin_continuous_data(df, binning_dict)
         ''' 
+        
         return df
     
     def impute_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -316,6 +315,7 @@ class Dataset(DatasetTemplate):
         df_test
         """
         print('split_data kwargs', kwargs)
+        if 'none' in kwargs['control_types']: return tuple([preprocessed_data,None,None])
         
         col_names = ['id','case_id','site','control_type'] + list(preprocessed_data.columns.copy())
         df_train = pd.DataFrame(columns=col_names)
@@ -326,7 +326,7 @@ class Dataset(DatasetTemplate):
         df_test = df_test.set_index(['id','case_id','site','control_type'])
         
         study_site_list = [i for i in range(1,18)]
-        print(kwargs['control_types'])
+        
         selected_control_types = ['case']+kwargs['control_types']
         
         for ss in study_site_list:
@@ -426,9 +426,9 @@ class Dataset(DatasetTemplate):
             default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
         
-        data_tuple = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+        data, datasets = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
         if preprocess:
-            data = cache(self.preprocess_data)(data_tuple[0], data_tuple[1], **default_kwargs['preprocess_data'])
+            data = cache(self.preprocess_data)(data, datasets, **default_kwargs['preprocess_data'])
         if preprocess and extract_features:
             data = cache(self.extract_features)(data, **default_kwargs['extract_features'])
         if preprocess and extract_features and impute:
