@@ -657,7 +657,7 @@ the sensitivity is 98.9\% and 96.8\% for preverbal children and verbal children,
 
 ### `Rulefit`: Introduction and Basic Illustrative Implementation
 
-*Rulefit* was proposed by @2008Friedman and is an example of a wider category of *ensemble methods*.
+`Rulefit` was proposed by @2008Friedman and is an example of a wider category of *ensemble methods*.
 At a high level, we wish to describe our output function with a linear combination
 of simpler learners $\mathcal{T}_k$ [@ESL]:
 
@@ -681,7 +681,7 @@ the more complex models. The *LASSO* will for sufficiently large $\lambda$ set a
 portion of the coefficients to zero.
 
 
-*Rulefit* follows the above procedure with an additional twist. After fitting the
+`Rulefit` follows the above procedure with an additional twist. After fitting the
 trees via a gradient-boosting algorithm, it extracts *rules* from the generated tree.
 Looking at a tree as a [*trie*](https://en.wikipedia.org/wiki/Trie), each path down a 
 tree encodes a specific combined rule (each node is split solely on a single variable).
@@ -695,7 +695,7 @@ gradient-boosting sequence, which are most often overlapping.
 The *LASSO* thus performs regression on the *space of rules* and outputs a parsimonious
 set with potentially added linear terms.
 
-As a concrete illustration of `rulefit` using our preprocessing and
+As a concrete illustration of `Rulefit` using our preprocessing and
 judgment call procedure, we first present the following two models. Note that these are
 solely illustrative: our best model presentation comes later.
 
@@ -788,25 +788,25 @@ According to these specifications, we define our evaluation measure as follows.
 \right.
 \]
 
-`@Xin: I thought we were just going to talk about the rulefit model, which is what I said above, but then we immediately start talking about greedy CART, and we don't provide any figures on it, maybe just reduce the greedy CART down to just a sentence?`
+`@Xin: I thought we were just going to talk about the `Rulefit` model, which is what I said above, but then we immediately start talking about greedy CART, and we don't provide any figures on it, maybe just reduce the greedy CART down to just a sentence? -Jimmy`
 
 For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
-the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
-the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves random forest methods to pick the rules, 
-the performance may vary even if we choose the same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
+the maximum number of rules in the list (representing the complexity and the interpretability); for the `Rulefit` model, 
+the hyperparameter is the maximum length for each rule. In addition, since our  model involves random forest methods to pick the rules, 
+the performance may vary even if we choose the same hyperparameters. Therefore, for our `Rulefit` model, we also need to run the models 
 To evaluate the performance, we also aim to train one model to get similar results to the baseline model, which 
 is a rule list model.
-`FIXME: ? Andrej - we pick rulefit and not CART, so this sentence is wrong`
+`FIXME: ? Andrej - we pick `Rulefit` and not CART, so this sentence is wrong`
 In our report, we pick one specific rule list model, i.e., greedy rule list (CART) model.
 The greedy rule list (CART) model consists of a list of rules, which makes it 
 simple to understand, interpret, and pick the important features.
-For both greedy rule list model and rulefit model, we use the same procedure to train and validate, and evaluate
+For both greedy rule list model and `Rulefit` model, we use the same procedure to train and validate, and evaluate
 the performance on the test data. The only difference is the hyperparameters we aim to tune in the cross-validation procudure.
 
 For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
-the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
-the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves subsampling in generating the rules, 
-the performance may vary even if we choose same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
+the maximum number of rules in the list (representing the complexity and the interpretability); for the `Rulefit` model, 
+the hyperparameter is the maximum length for each rule. In addition, since our `Rulefit` model involves subsampling in generating the rules, 
+the performance may vary even if we choose same hyperparameters. Therefore, for our `Rulefit` model, we also need to run the models 
 with different random states and pick the best one as the result, given the maximum length for each rule. Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
 
 The greedy rule list model performs quite poorly. For the two datasets excluding the subvariables, the largest mean scores 
@@ -814,11 +814,11 @@ in our CV folds are smaller than 3, which implies the sensitivity is smaller tha
 although the largest mean scores are over 4, the scores on the test data are much smaller. This means the greedy rule list model
 is very sensitive to the training data and will not behave well on the test data.
 
-```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "90%"}
+```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned Rulefit models on the test data for all five datasets.', out.width = "90%"}
 include_graphics('figs/all_ROC.png')
 ```
 
-The test-data performance of our rulefit model for the different datasets can be found in Figure \ref{fig:rule_result_on_test}. 
+The test-data performance of our `Rulefit` model for the different datasets can be found in Figure \ref{fig:rule_result_on_test}. 
 We find that the classifier on the age-invariant dataset with subvariables is quite good, as the sensitivity and specificity can simultaneously reach approximately
 100\% and 70\%, respectively.
 When classifying on verbal children, including the subvariables increases the model's performance relative to excluding them. For instance, for the two verbal children datasets, when the sensitivity 
@@ -988,7 +988,7 @@ to see if coding these observations as 'False' changes the results substantially
 
 We loop through every possible combination of the above 5 judgement calls and their
 perturbations and obtain a test dataset (32 test datasets in total). For each of those
-sets, we evaluate the sensitivity and specificity using our best rulefit model with the corresponding threshold.
+sets, we evaluate the sensitivity and specificity using our best `Rulefit` model with the corresponding threshold.
 A histogram of specificities and sensitivities are provided in Figure \ref{fig:perturb_res}
 
 ```{r perturb_res, echo=FALSE, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
