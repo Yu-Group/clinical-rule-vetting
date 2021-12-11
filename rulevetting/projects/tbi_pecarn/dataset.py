@@ -1048,11 +1048,12 @@ class Dataset(DatasetTemplate):
         extracted_features = cache(self.extract_features)(preprocessed_data, **kwargs)
         df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
 
+        # FIXME: ignore on exception
+        # NOTE: perturbations done by hand due to exception handling not being implemented in VFlow yet
         # elif run_perturbations:
         # data_path_arg = init_args([data_path], names=['data_path'])[0]
         # clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs_dict, cache_dir=CACHE_PATH)
         # cleaned_data = clean_set(data_path_arg)
-        # # FIXME: ignore on exception
         # preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs_dict,
         #                             cache_dir=CACHE_PATH)
         # preprocessed_data = preprocess_set(cleaned_data)

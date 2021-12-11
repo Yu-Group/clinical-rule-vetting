@@ -1,11 +1,11 @@
-import numpy as np
 import pandas as pd
 
 from rulevetting.templates.model import ModelTemplate
 
 
 class Baseline(ModelTemplate):
-    def __init__(self, agegroup: str):
+
+    def __init__(self, agegroup: str = "old"):
         # query for each rule + resulting predicted probability
         self.agegroup = agegroup
         # Kuppermann get two classifiers based on chilren age < 2 or >= 2
@@ -34,12 +34,11 @@ class Baseline(ModelTemplate):
                 ('GCSTotal >= 0', 0.05),
             ]
 
-
     def _traverse_rule(self, df_features: pd.DataFrame):
         str_print = f''
         predicted_probabilities = pd.Series(index=df_features.index, dtype=float)
         df = df_features.copy()
-        o = 'PosIntFinal'    # outcome variable name
+        o = 'outcome'  # outcome variable name
         str_print += f'{df[o].sum()} / {df.shape[0]} (positive class / total)\n\t\u2193 \n'
         for j, rule in enumerate(self.rules):
             query, prob = rule
@@ -51,7 +50,7 @@ class Baseline(ModelTemplate):
             df.drop(index=idxs_satisfying_rule, inplace=True)
             # compute the frequency in percent
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
-            query_print = query.replace(' == 1', '') # for print purpose
+            query_print = query.replace(' == 1', '')  # for print purpose
             if j < len(self.rules) - 1:
                 str_print += f'\033[96mIf {query_print:<35}\033[00m \u2192 {df_rhs[o].sum():>3} / {df_rhs.shape[0]:>4} ({computed_prob:0.1f}%)\n\t\u2193 \n   {df[o].sum():>3} / {df.shape[0]:>5}\t \n'
         # we have assigned all patients prob
@@ -77,6 +76,7 @@ class Baseline(ModelTemplate):
         self._traverse_rule(df_features)
         return self.str_print
 
+
 if __name__ == '__main__':
     import numpy as np
     import pandas as pd
@@ -88,10 +88,8 @@ if __name__ == '__main__':
 
     # data processing - same as Kuppermann
     tbi_df = tbi_df[tbi_df['GCSGroup'] == 2]
-    tbi_df.drop(tbi_df[tbi_df.PosIntFinal.isnull()].index,
-                        inplace=True)
-
-
+    tbi_df.drop(tbi_df[tbi_df.outcome.isnull()].index,
+                inplace=True)
 
     # divided by ages - same as Kuppermann
     tbi_df_young = tbi_df[tbi_df['AgeinYears'] < 2]
