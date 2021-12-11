@@ -1,5 +1,5 @@
 ---
-title: 'Predicting Low Risk of Clinically-Important TBI in Children: Vetting and Improving Existing Rules'
+title: 'Predicting Low Risk of Clinically-Important TBI in Children: Vetting and Improving Existing Classifiers'
 author: Jimmy Butler, Andrej Leban, Ian Shen, Xin Zhou
 output: pdf_document
 bibliography: references.bib
@@ -12,8 +12,8 @@ papersize: a4
 library(knitr)
 
 library(reticulate)
-reticulate::use_python("../../../rule-env/bin/python3", required = TRUE)
-reticulate::use_virtualenv("../../../rule-env/", required = TRUE)
+reticulate::use_python("../../../rule-env/bin/python3", required = FALSE)
+reticulate::use_virtualenv("../../../rule-env/", required = FALSE)
 knitr::knit_engines$set(python = reticulate::eng_python)
 knitr::opts_chunk$set(engine.path = list(python = "../../../rule-env/bin/python3"))
 ```
@@ -22,7 +22,7 @@ knitr::opts_chunk$set(engine.path = list(python = "../../../rule-env/bin/python3
 
 Among children ages 0-14, traumatic brain injuries (TBIs) are a leading cause of injury and death,
 accounting for over 2,100 deaths, 35,000 hospital admissions, and 470,000 emergency
-department visits annually (Faul, Xu, Wald, & Coronado, 2010). Accurately diagnosing TBIs is thus a crucial
+department visits annually @Faul2010. Accurately diagnosing TBIs is thus a crucial
 problem, especially since the earlier a TBI is identified, the sooner potentially life-saving
 treatment can be administered. 
 
@@ -36,10 +36,10 @@ radiation-induced complications from the CT scan will outweigh any potential ben
 of having CT scan results.
 
 Nathan Kuppermann and his colleagues explored this problem in their 2009 Lancet paper
-("Identification of children at very low risk of clinically-important traumatic brain injuries after
-head trauma: a prospective cohort study"), seeking to develop interpretable rules
+(*Identification of children at very low risk of clinically-important traumatic brain injuries after*
+*head trauma: a prospective cohort study*), seeking to develop interpretable rules
 that could be used to identify children, who, despite presenting to the emergency room
-for head trauma, are at low risk of having TBIs and thus can avoid CT scans. The purpose
+for head trauma, are at low risk of having TBIs and thus can avoid CT scans (@Kuppermann2009). The purpose
 of this present study is to build on their work, developing alternative classification
 schemes and rule sets to identify children for whom CT scans are unnecessary. With an
 alternative scheme with high predictive accuracy, one can compare with Kuppermann's to see
@@ -118,8 +118,8 @@ no TBI diagnoses were missed. In total, there are 125 covariates, including the 
 It seems that in this dataset, most of the variables we conjecture are important
 for predicting TBIs are present, but that there are many covariates whose information
 would not be known at the time our classifier would be implemented. Additionally,
-many covariates seem more objective than others ('Palpable skull fracture?' vs. 
-'Is the child acting normally?'). There are also many variables which are not invariant
+many covariates seem more objective than others (*Palpable skull fracture?* vs. 
+*Is the child acting normally?*). There are also many variables which are not invariant
 to age. For instance, the ability to say you have a headache is reserved for verbal
 children who must be above a certain age. These variables and decisions on what to do
 with them will be discussed at length in Cleaning and Preprocessing, as well as
@@ -139,6 +139,8 @@ as to whether they'll need a CT scan), and to deal with missing values. We prese
 our procedure below, along with relevant judgement calls and their perturbations
 where applicable. Many of these decisions were made using common sense, as well as
 consultation with Dr. Inglis.
+
+### Steps and Explanations
 
 * Remove columns irrelevant to predicting TBI at the time a child enters the emergency room
   + *EmplType*, *Certification*, *Ind...*, *CT...*, *Finding1*, ... *Finding23*, *EDDisposition*, *Observed*, *AgeTwoPlus*, *AgeInMonth*
@@ -504,7 +506,7 @@ applicable to one age-group but not the other. Figure \ref{fig:gcs_age} shows th
 distribution of the outcome variable for suboptimal versus optimal scores of each
 GCS category (row) for the different age groups (column).
 
-```{r gcs_age, fig.cap = 'Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).', out.width = '100%', echo = FALSE}
+```{r gcs_age, fig.cap = 'Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).', echo = FALSE, out.width = "80%"}
 include_graphics('figs/gsc_age_dep.png')
 ```
 
@@ -577,11 +579,11 @@ plots further show the dataset is suitable for making an age-invariant classifie
 among the age-invariant variables, the correlations with the outcome are almost
 identical across age groups.
 
-```{r younger_corr, fig.cap = 'Among children 2 and younger, relevant parent variables seem substantially correlated with the outcome.', out.width='100%', echo = FALSE}
+```{r younger_corr, fig.cap = 'Among children 2 and younger, relevant parent variables seem substantially correlated with the outcome.', out.width = "80%", echo = FALSE}
 include_graphics('figs/parent_younger.png')
 ```
 
-```{r older_corr, fig.cap = 'Among children older than 2, relevant parent variables seem substantially correlated with the outcome.', out.width='100%', echo = FALSE}
+```{r older_corr, fig.cap = 'Among children older than 2, relevant parent variables seem substantially correlated with the outcome.', out.width='80%', echo = FALSE}
 include_graphics('figs/parent_older.png')
 ```
 
@@ -636,8 +638,8 @@ The list below now gives the rules for Kuppermann's verbal (2 or older) classifi
 
 ### Procedure and Performance
 
-```{r baseline_res, echo = FALSE, fig.cap = 'Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.'}
-include_graphics('figs/baseline_res.png', dpi=200)
+```{r baseline_res, echo = FALSE, fig.cap = 'Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.',out.width="60%"}
+include_graphics('figs/baseline_res.png')
 ```
 
 The result of baseline model is shown in \ref{fig:baseline_res}. The yellow blocks are identified as positive 
@@ -714,7 +716,7 @@ Below are presented the top five rules for each in terms of their importance. Th
 latter is similar to the metric in the ensemble of trees, but calculated from the
 *LASSO* re-fitting [@molnar2019]:
 
-```{python basic_rules, engine.path = "../../../rule-env/bin/python3", include=FALSE}
+```{python basic_rules, engine.path = "../../../../rule-env/bin/python3", include=FALSE}
 # load the statistics from the basic
 
 import pickle as pk
@@ -754,6 +756,7 @@ specific tweaking to the models being performed at this stage!
 
 As shown in the next section, with some careful construction of the models and selection
 of judgement call, we can improve this performance considerably.
+of the judgment call, we can improve this performance considerably.
 
 ### Procedure and Performance
 
@@ -782,12 +785,23 @@ Therefore, we define our evaluation measure as follows.
 \right.
 \]
 
-`Note: how do the next two paragraphs fit into the previous discussion? I'm a bit confused..`
-
 For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
 the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
 the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves random forest methods to pick the rules, 
 the performance may vary even if we choose the same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
+To evaluate the performance, we also aim to train one model to get similar results to the baseline model, which 
+is a rule list model.
+`FIXME: ? Andrej - we pick rulefit and not CART, so this sentence is wrong`
+In our report, we pick one specific rule list model, i.e., greedy rule list (CART) model.
+The greedy rule list (CART) model consists of a list of rules, which makes it 
+simple to understand, interpret, and pick the important features.
+For both greedy rule list model and rulefit model, we use the same procedure to train and validate, and evaluate
+the performance on the test data. The only difference is the hyperparameters we aim to tune in the cross-validation procudure.
+
+For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
+the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
+the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves subsampling in generating the rules, 
+the performance may vary even if we choose same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
 with different random states and pick the best one as the result, given the maximum length for each rule. Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
 
 The greedy rule list model performs quite poorly. For the two datasets excluding the subvariables, the largest mean scores 
@@ -795,7 +809,7 @@ in our CV folds are smaller than 3, which implies the sensitivity is smaller tha
 although the largest mean scores are over 4, the scores on the test data are much smaller. This means the greedy rule list model
 is very sensitive to the training data and will not behave well on the test data.
 
-```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "100%"}
+```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "90%"}
 include_graphics('figs/all_ROC.png')
 ```
 
@@ -846,7 +860,7 @@ Additionally, the model itself is random. While the *LASSO* procedure in step 2 
 deterministic, it can only select rules from the initial bag given.
 
 The latter is generated via a tree generation procedure, which is most commonly *not deterministic* 
-(gradient boosting, for example, performs subsampling). The randomness in rule generation
+(gradient boosting, for example, performs subsampling). This randomness in rule generation
 is somewhat ameliorated by the large number of trees we are generating, 
 which should work towards obtaining the set of all feasible rules.
 
@@ -868,7 +882,7 @@ the stability of our classification results subject to data perturbations of the
 #### Feature Stability
 
 To address the former, we can first compare the isolated features with those of the
-classifier from Kupperman, whose results are presented in Baseline Model.
+classifier from Kuppermann, whose results are presented in Baseline Model.
 We cleaned our data differently, so this is a stability assessment of the rules
 subject to data perturbations. Additionally, we use different classifier methods,
 giving us a sense of stability subject to model perturbations. Note that there is
@@ -881,7 +895,7 @@ we see that the individual having altered mental status, a history of vomiting,
 hemotympanum (sign of basilar skull fracture), an injury rated 'severe', loss of consciousness
 for more than 5 seconds, and neurological deficits related to the cranial nerve,
 and a parietal or temporal scalp hematoma are of utmost importance in determining
-if someone has a clinically-important TBI. Comparing to the baseline classifier's variables in 
+if someone has a clinically-important TBI. Compared to the baseline classifier's variables in 
 Figure \ref{fig:baseline_res}, we see that all of these variables are included in
 their rules to some extent. In fact, sometimes our classifier isolates a more
 specific version of a parent variable. For instance, while the baseline classifier
@@ -913,10 +927,12 @@ from 5 to 11 and weight parameter evaluated at 1 and then every multiple of 100,
 these parameters, testing a total of 77 models for the ideal model that maximizes our aforementioned evaluation measure of 
 2(Sens) + Spec, Spec>0.5, and generated ROC curves for each max depth, which can be seen in `tbi_rf.pdf`. 
 
+`(Xin) i think we should not refer tbi_rf.pdf n our report. And for RF Importance features, we do not need it to be a plot I think. But I'm not sure how to do this..`
+
 ```{r RF importance, echo = FALSE, fig.cap = 'Top 6 most important predictors in final RF', out.width = '100%'}
 include_graphics('figs/RF Importance.PNG')
 ```
-Our final model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
+Our final random forest model ended up having depth 8 and weight 400, and when applied to the validation dataset, it demonstrated an 
 impressive sensitivity of 0.971 and specificity of 0.617- slightly worse than our best classifier, but better than Kuppermann's 
 classifier and overall good given our aforementioned preference for sensitivity over specificity. In terms of importance, 
 hemotympamnum was by far the most important predictor, which is entirely in keeping with its high prevalence in our rule-fitting 
@@ -953,7 +969,7 @@ perturbations and obtain a test dataset (32 test datasets in total). For each of
 sets, we evaluate the sensitivity and specificity using our best rulefit model with the corresponding threshold.
 A histogram of specificities and sensitivities are provided in Figure \ref{fig:perturb_res}
 
-```{r perturb_res, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
+```{r perturb_res, echo=FALSE, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
 include_graphics('figs/perturbation_results.png')
 ```
 
@@ -1025,4 +1041,4 @@ the best classifiers.
 # References
 
 Special thanks to Dr. Rob Inglis of UCSF for graciously offering his time and expertise
-to discuss our results!
+to discuss and interpret our findings!

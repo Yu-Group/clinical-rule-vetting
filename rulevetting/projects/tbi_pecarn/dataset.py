@@ -11,9 +11,7 @@ import numpy as np
 import pandas as pd
 from joblib import Memory
 from tqdm import tqdm
-from vflow import init_args, Vset, build_Vset
 
-# TODO: fix _init_.py so these are easily accessible
 import rulevetting
 import rulevetting.api.util
 import rulevetting.projects.tbi_pecarn.helper as hp
@@ -21,6 +19,9 @@ from rulevetting.templates.dataset import DatasetTemplate
 
 
 class AgeSplit(Enum):
+    """
+    Enumeration of the data splitting choices.
+    """
     NOSPLIT = 0
     YOUNG = 1
     OLD = 2
@@ -33,6 +34,9 @@ AgeSplit.old_features = ["Amnesia_verb", "HA_verb", "HASeverity", "HAStart"]
 
 
 class Dataset(DatasetTemplate):
+    """
+    Class representing our dataset
+    """
 
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
         """
@@ -205,7 +209,7 @@ class Dataset(DatasetTemplate):
         # UMBRELLA: AMSAgitated AMSSleep AMSSlow AMSRepeat AMSOth
 
         # Union
-        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        # no preferred sub-categories, policy 2 is the same as 1
         if judg_calls["step7_AMS"] == 1 or judg_calls["step7_AMS"] == 2:
 
             # fix so missings don't get counted as present
@@ -238,7 +242,7 @@ class Dataset(DatasetTemplate):
         # UMBRELLA: OSIExtremity OSICut OSICspine OSIFlank OSIAbdomen OSIPelvis OSIOth
 
         # Union
-        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        # no preferred sub-categories, policy 2 is the same as 1
         if judg_calls["step8_OSI"] == 1 or judg_calls["step8_OSI"] == 2:
             # fix so missings don't get counted as present
             tbi_df.loc[tbi_df[(tbi_df.OSIExtremity == 92) | (tbi_df.OSICut == 92) |
@@ -264,7 +268,6 @@ class Dataset(DatasetTemplate):
                         inplace=True)
         else:
             raise NotImplementedError("Desired OSI preprocess step not implemented!")
-            s
 
         tbi_df.drop(tbi_df.loc[tbi_df['OSI'].isnull()].index, inplace=True)
         ################################
@@ -353,7 +356,7 @@ class Dataset(DatasetTemplate):
         # UMBRELLA: SFxBasHem SFxBasOto SFxBasPer SFxBasRet SFxBasRhi
 
         # Union
-        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        # no preferred sub-categories, policy 2 is the same as 1
         if judg_calls["step11_SFxBas"] == 1 or judg_calls["step11_SFxBas"] == 2:
 
             # fix so missings don't get counted as present
@@ -386,7 +389,7 @@ class Dataset(DatasetTemplate):
         # UMBRELLA: ClavFace ClavNeck ClavFro ClavOcc ClavPar ClavTem
 
         # Union
-        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        # no preferred sub-categories, policy 2 is the same as 1
         if judg_calls["step12_Clav"] == 1 or judg_calls["step12_Clav"] == 2:
 
             # fix so missings don't get counted as present
@@ -421,7 +424,7 @@ class Dataset(DatasetTemplate):
         # UMBRELLA: NeuroDMotor NeuroDSensory NeuroDCranial NeuroDReflex NeuroDOth
 
         # Union
-        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        # no preferred sub-categories, policy 2 is the same as 1
         if judg_calls["step13_NeuroD"] == 1 or judg_calls["step13_NeuroD"] == 2:
 
             # fix so missings don't get counted as present
@@ -456,7 +459,7 @@ class Dataset(DatasetTemplate):
         # NOTE: Union is the default here
 
         # Union
-        # TODO: no preferred sub-categories, policy 2 is the same as 1?
+        # no preferred sub-categories, policy 2 is the same as 1
         if judg_calls["step14_Vomit"] == 1 or judg_calls["step14_Vomit"] == 2:
 
             # fix so missings don't get counted as present
@@ -477,7 +480,7 @@ class Dataset(DatasetTemplate):
 
             # Judgement call: drop the other vomit variables nonetheless
             if not judg_calls["step14a_Vomit"]:
-                tbi_df.drop(['VomitNbr', 'VomitStart', 'VomitLast'], axis = 1, inplace = True)
+                tbi_df.drop(['VomitNbr', 'VomitStart', 'VomitLast'], axis=1, inplace=True)
 
         else:
             raise NotImplementedError("Desired Vomit preprocess step not implemented!")
@@ -653,10 +656,10 @@ class Dataset(DatasetTemplate):
         return tbi_df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-
         """
-        Binarizes the categoricals
-        Flattens depending on the the judgmement calls provided
+        Extracts features from preprocessed data.
+        Binarizes the categoricals.
+        Flattens data depending on the the judgmement calls provided.
 
         Parameters
         ----------
@@ -854,12 +857,18 @@ class Dataset(DatasetTemplate):
         return df
 
     def get_outcome_name(self) -> str:
+        """Returns the name of the outcome we are predicting
+        """
         return 'outcome'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
+        """Returns the name of the dataset  - dataset_id (str)
+        """
         return 'tbi_pecarn'  # return the name of the dataset id
 
     def get_meta_keys(self) -> list:
+        """Returns a list of keys which are not used in fitting but are still useful for analysis.
+        """
         return ["Gender", "Race"]  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
@@ -879,7 +888,6 @@ class Dataset(DatasetTemplate):
         }
         """
 
-        # TODO: document in-place
         judg_calls = \
             {
                 'clean_data'      : {},
@@ -957,21 +965,17 @@ class Dataset(DatasetTemplate):
 
     def get_judgement_calls_dictionary_default(self) -> Dict:
         """
-         Returns the whole judgement calls dictionary with default values
+         Returns the whole judgment calls dictionary with default values
 
         Returns
         -------
         Dict[str, list]
-            Judgement calls dictionary.
-
+            Judgment calls dictionary.
         """
 
         # return the default
         return {fname: {k: v[0] for k, v in d.items()} for fname, d
                 in self.get_judgement_calls_dictionary().items()}
-
-    # NOTE: for quick reference - this is what's inherited and gets run:
-    # NOTE: can actually override it if extra judgement call functionality needed!
 
     def get_judgement_calls_current(self) -> Dict[str, list]:
         """
@@ -998,7 +1002,7 @@ class Dataset(DatasetTemplate):
                  split_age=AgeSplit.NOSPLIT,
                  **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
-        This method does not need to be overriden.
+           Override of the template function due to mutually exclusive judgment calls.
 
         Params
         ------
@@ -1012,6 +1016,7 @@ class Dataset(DatasetTemplate):
             Whether to run / save data pipeline for all combinations of judgement calls
         split_age
             Whether to split the resulting dataframe by age
+        **kwargs: used to pass the judgement calls dictionary to be used.
 
         Returns
         -------
@@ -1037,25 +1042,26 @@ class Dataset(DatasetTemplate):
                                for k in func_kwargs.keys()}
         print('kwargs', kwargs)
 
-        if not run_perturbations:
-            cleaned_data = cache(self.clean_data)(data_path=data_path, **kwargs)
-            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **kwargs)
-            extracted_features = cache(self.extract_features)(preprocessed_data, **kwargs)
-            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+        # if not run_perturbations:
+        cleaned_data = cache(self.clean_data)(data_path=data_path, **kwargs)
+        preprocessed_data = cache(self.preprocess_data)(cleaned_data, **kwargs)
+        extracted_features = cache(self.extract_features)(preprocessed_data, **kwargs)
+        df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
 
-        elif run_perturbations:
-            data_path_arg = init_args([data_path], names=['data_path'])[0]
-            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs_dict, cache_dir=CACHE_PATH)
-            cleaned_data = clean_set(data_path_arg)
-            # FIXME: ignore on exception
-            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs_dict,
-                                        cache_dir=CACHE_PATH)
-            preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs_dict,
-                                     cache_dir=CACHE_PATH)
-            extracted_features = extract_set(preprocessed_data)
-            split_data = Vset('split_data', modules=[self.split_data])
-            dfs = split_data(extracted_features)
+        # FIXME: ignore on exception
+        # NOTE: perturbations done by hand due to exception handling not being implemented in VFlow yet
+        # elif run_perturbations:
+        # data_path_arg = init_args([data_path], names=['data_path'])[0]
+        # clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs_dict, cache_dir=CACHE_PATH)
+        # cleaned_data = clean_set(data_path_arg)
+        # preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs_dict,
+        #                             cache_dir=CACHE_PATH)
+        # preprocessed_data = preprocess_set(cleaned_data)
+        # extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs_dict,
+        #                          cache_dir=CACHE_PATH)
+        # extracted_features = extract_set(preprocessed_data)
+        # split_data = Vset('split_data', modules=[self.split_data])
+        # dfs = split_data(extracted_features)
 
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
@@ -1108,25 +1114,6 @@ class Dataset(DatasetTemplate):
 
 
 if __name__ == '__main__':
-    # # NOTE: for development
-    # self = Dataset()
-    # raw_data_path = oj(rulevetting.DATA_PATH, self.get_dataset_id(), 'raw')
-    #
-    # # raw data file names to be loaded and searched over
-    # # for tbi, we only have one file
-    # fnames = sorted([
-    #     fname for fname in os.listdir(raw_data_path)
-    #     if 'csv' in fname])
-    #
-    # # read raw data
-    # cleaned_data = pd.DataFrame()
-    # for fname in tqdm(fnames):
-    #     cleaned_data = cleaned_data.append(pd.read_csv(oj(raw_data_path, fname)))
-    #
-    #
-    # prep_data = self.preprocess_data(cleaned_data, **judg_calls)
-    # final_data = self.extract_features(prep_data, **judg_calls)
-
     dset = Dataset()
     # NOTE: This is just an example!
     judg_calls = dset.get_judgement_calls_dictionary_default()
