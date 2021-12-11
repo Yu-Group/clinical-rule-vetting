@@ -282,7 +282,9 @@ def impute_missing_binary(df, n = 0.05):
     
     binary_covariates = [col_name for col_name in df.columns if ((len(pd.unique(df[col_name]))==2) |\
                                                                  (len(pd.unique(df[col_name]))==3))]
-    binary_covariates.remove('OutcomeStudySite_posthoc') # boolean but encoded as string
+    
+    if 'OutcomeStudySite_posthoc' in binary_covariates:
+        binary_covariates.remove('OutcomeStudySite_posthoc') # boolean but encoded as string
             
     # fill binary NaN by "0"
     # Mean imputation removes most of the correlations in this data
