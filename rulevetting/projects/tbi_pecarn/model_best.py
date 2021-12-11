@@ -14,12 +14,19 @@ class Model(ModelTemplate):
 
 
     def predict(self, df_features: pd.DataFrame):
-        predicted_probabilities = self.predict_proba(df_features)[:,1]
+        # Rulefit model need to specify X(features)
+        df = df_features.drop(columns=['AgeinYears', 'Race', 'Gender']) #metakeys removed
+        X = df.drop(columns="outcome")
+        # use the predict_prob function in rulefit model
+        predicted_probabilities = self.rulefit.predict_proba(X)[:,1]
         return (predicted_probabilities >  1.3e-05).astype(int)
 
     def predict_proba(self, df_features: pd.DataFrame):
+        # Rulefit model need to specify X(features)
+        df = df_features.drop(columns=['AgeinYears', 'Race', 'Gender']) #metakeys removed
+        X = df.drop(columns="outcome")
         # use the predict_prob function in rulefit model
-        return self.rulefit.predict_proba(df_features)
+        return self.rulefit.predict_proba(X)
 
     def print_model(self):
         # get rules with non-zero coefficients and print them in the order of importance
@@ -37,12 +44,8 @@ if __name__ == '__main__':
     # default judgment call
     df_train, df_tune, df_test = Dataset().get_data(split_age=AgeSplit.AGEINVARIANT,load_csvs=False)
     df_full = pd.concat((df_train, df_tune, df_test))
-
-    # Rulefit model need to specify X(features) and y(outcome)
-    df_full = df_full.drop(columns=['AgeinYears', 'Race', 'Gender']) #metakeys removed
-    X_full = df_full.drop(columns="outcome")
-    y_full = df_full["outcome"].values
-
+    
+    # run the model
     model = Model()
-    preds = model.predict(X_full)
+    preds = model.predict(df_full)
     print(model.print_model())

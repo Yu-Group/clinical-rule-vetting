@@ -506,7 +506,7 @@ applicable to one age-group but not the other. Figure \ref{fig:gcs_age} shows th
 distribution of the outcome variable for suboptimal versus optimal scores of each
 GCS category (row) for the different age groups (column).
 
-```{r gcs_age, fig.cap = 'Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).', out.width = '100%', echo = FALSE}
+```{r gcs_age, fig.cap = 'Distributions of outcome among different GCS scores (row) for different age groups (column). 1 indicates optimal score in a GCS category, 0 is one point suboptimal (to achieve total GCS of 14 instead of 15).', echo = FALSE, out.width = "80%"}
 include_graphics('figs/gsc_age_dep.png')
 ```
 
@@ -577,11 +577,11 @@ plots further show the dataset is suitable for making an age-invariant classifie
 among the age-invariant variables, the correlations with the outcome are almost
 identical across age groups.
 
-```{r younger_corr, fig.cap = 'Among children 2 and younger, relevant parent variables seem substantially correlated with the outcome.', out.width='100%', echo = FALSE}
+```{r younger_corr, fig.cap = 'Among children 2 and younger, relevant parent variables seem substantially correlated with the outcome.', out.width = "80%", echo = FALSE}
 include_graphics('figs/parent_younger.png')
 ```
 
-```{r older_corr, fig.cap = 'Among children older than 2, relevant parent variables seem substantially correlated with the outcome.', out.width='100%', echo = FALSE}
+```{r older_corr, fig.cap = 'Among children older than 2, relevant parent variables seem substantially correlated with the outcome.', out.width='80%', echo = FALSE}
 include_graphics('figs/parent_older.png')
 ```
 
@@ -637,8 +637,8 @@ The list below now gives the rules for Kuppermann's verbal (2 or older) classifi
 
 ### Procedure and Performance
 
-```{r baseline_res, echo = FALSE, fig.cap = 'Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.'}
-include_graphics('figs/baseline_res.png', dpi=200)
+```{r baseline_res, echo = FALSE, fig.cap = 'Decision rule lists for clinically-important traumatic brain injury in children younger than 2 years and in those aged 2 years and older.',out.width="60%"}
+include_graphics('figs/baseline_res.png')
 ```
 
 The result of baseline model is shown in \ref{fig:baseline_res}. The yellow blocks are identified as positive 
@@ -716,7 +716,7 @@ Below are presented the top five rules for each in terms of their importance. Th
 latter is similar to the metric in the ensemble of trees, but calculated from the
 *LASSO* re-fitting [@molnar2019]:
 
-```{python basic_rules, engine.path = "../../../rule-env/bin/python3", include=FALSE}
+```{python basic_rules, engine.path = "../../../../rule-env/bin/python3", include=FALSE}
 # load the statistics from the basic
 
 import pickle as pk
@@ -800,7 +800,7 @@ in our CV folds are smaller than 3, which implies the sensitivity is smaller tha
 although the largest mean scores are over 4, the scores on the test data are much smaller. This means the greedy rule list model
 is very sensitive to the training data and will not behave well on the test data.
 
-```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "100%"}
+```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "90%"}
 include_graphics('figs/all_ROC.png')
 ```
 
@@ -959,7 +959,7 @@ perturbations and obtain a test dataset (32 test datasets in total). For each of
 sets, we evaluate the sensitivity and specificity using our best rulefit model.
 A histogram of specificities and sensitivities are provided in Figure \ref{fig:perturb_res}
 
-```{r perturb_res, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
+```{r perturb_res, echo=FALSE, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
 include_graphics('figs/perturbation_results.png')
 ```
 
