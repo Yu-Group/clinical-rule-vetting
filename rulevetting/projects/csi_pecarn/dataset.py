@@ -14,6 +14,7 @@ import rulevetting.api.util
 from rulevetting.projects.csi_pecarn import helper
 from rulevetting.templates.dataset import DatasetTemplate
 
+from vflow import init_args, Vset, build_Vset
 
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
@@ -180,7 +181,7 @@ class Dataset(DatasetTemplate):
         # list of categorical columns to ignore
         categorical_covariates = ['Race_posthoc','PayorType_posthoc',\
                                   'OutcomeStudySite_posthoc','OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc']
-        df = cleaned_data
+        df = cleaned_data.copy()
         
         # add a binary outcome variable for CSI injury 
         df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
@@ -222,12 +223,13 @@ class Dataset(DatasetTemplate):
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
         
         df = helper.build_binary_covariates(df)
-        
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         # add engineered featuures
-        df = preprocessed_data     
+        
+        df = preprocessed_data.copy()
+
         df = helper.rename_values(df)
         df = helper.derived_feats(df,veryyoung_age_cutoff=kwargs['veryyoung_age_cutoff'],\
                                   nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
@@ -269,7 +271,7 @@ class Dataset(DatasetTemplate):
             highrisk_features.extend(['Clotheslining','axialloadtop'])
             df['HighriskMOI'] = df[highrisk_features].max(numeric_only = True,axis=1) 
             df.drop(highrisk_features,axis=1,inplace=True) 
-            
+        ###
         '''
         # bin useful continuous variables age
         binning_dict = {}
@@ -279,7 +281,7 @@ class Dataset(DatasetTemplate):
         return df
     
     def impute_data(self, preprocessed_data: pd.DataFrame, keep_na=False, **kwargs) -> pd.DataFrame:
-        df = preprocessed_data
+        df = preprocessed_data.copy()
         
         # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
         # and we make a judgement call to assume that all relavent abnormal information is recorded
@@ -305,7 +307,7 @@ class Dataset(DatasetTemplate):
             
             # we also tried likehlihood-based random imputation it removes correlations
             df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
-
+            df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
             if kwargs['impute_gcs']:
                 
                 # if AMS=0, AVPU < A never occur, therefore we feeled justified imputing with max
@@ -334,8 +336,7 @@ class Dataset(DatasetTemplate):
                 unique_values = pd.unique(char_column) # get unique entries
                 print(column,unique_values)
             '''
-        
-        df['GCS_na'] = pd.isna(df['TotalGCS'].copy()).replace([True,False],[1,0])
+        ##
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
         df['GCSbelowThreshold'] = (df['TotalGCS'] < kwargs['gcs_threshold']).replace([True,False],[1,0])
 
@@ -386,15 +387,17 @@ class Dataset(DatasetTemplate):
         
         for ss in study_site_list:
             for ct in selected_control_types:
-                split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'), drop_level=False) # subset to split
-                
-                # do the splitting below
-                split_data = np.split(split_subset.sample(frac=1, random_state=42),
-                                      [int(.6 * len(split_subset)), int(.8 * len(split_subset))])
-                df_train = pd.concat([df_train,split_data[0]])
-                df_tune = pd.concat([df_tune,split_data[1]])
-                df_test = pd.concat([df_test,split_data[2]])
-                
+                try:
+                    # subset to split
+                    split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'), drop_level=False)
+
+                    # do the splitting below
+                    split_data = np.split(split_subset.sample(frac=1, random_state=42),
+                                          [int(.6 * len(split_subset)), int(.8 * len(split_subset))])
+                    df_train = pd.concat([df_train,split_data[0]])
+                    df_tune = pd.concat([df_tune,split_data[1]])
+                    df_test = pd.concat([df_test,split_data[2]])
+                except: pass 
         return tuple([df_train,df_tune,df_test])
 
     def get_outcome_name(self) -> str:
@@ -411,15 +414,15 @@ class Dataset(DatasetTemplate):
             'clean_data': { 
                 'use_kappa':[False, True],
             },
-            'preprocess_data': {             
+            'preprocess_data': { 
             },'extract_features': { 
                 # age cutoffs choices based on rules shared by Dr. Devlin
-                'veryyoung_age_cutoff':[2,1,1.5],
+                'veryyoung_age_cutoff':[2.,1,1.5],
                 'nonverbal_age_cutoff':[5,4,6],
                 'young_adult_age_cutoff':[11,15],
                 'stairs_cutoff':[2,3],
                 'aggregate_medicalhistory_covariates':[False],
-                'aggregate_improved_covariates':[True,False],
+                'aggregate_improved_covariates':[True, False],
                 'aggregate_comppain_covariates':[False],
                 'aggregate_subinj_covariates':[False],
                 'aggregate_tenderness_covariates':[False],
@@ -442,7 +445,7 @@ class Dataset(DatasetTemplate):
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
                  run_perturbations: bool = False,
-                 control_types=['ran','moi','ems'],
+                 control_types=['ran'],
                  keep_na = False) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
@@ -466,7 +469,7 @@ class Dataset(DatasetTemplate):
         df_test
         """
         PROCESSED_PATH = oj(data_path, self.get_dataset_id(), 'processed')
-
+        pass
         if load_csvs:
             return tuple([pd.read_csv(oj(PROCESSED_PATH, s), index_col=0)
                           for s in ['train.csv', 'tune.csv', 'test.csv']])
@@ -490,16 +493,23 @@ class Dataset(DatasetTemplate):
             df_train, df_tune, df_test = cache(self.split_data)(imputed_data, **{'control_types': control_types})
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
-            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
+            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'])
             cleaned_data = clean_set(data_path_arg)
-            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
-                                        cache_dir=CACHE_PATH)
+            
+            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'])
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset('extract_features', self.extract_features, param_dict==kwargs['split_data'],
-                                     cache_dir=CACHE_PATH)
+            
+            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'])
             extracted_features = extract_set(preprocessed_data)
-            split_data = Vset('split_data', modules=[self.split_data])
-            dfs = split_data(extracted_features)
+            
+            impute_set = build_Vset('impute_data', self.impute_data, param_dict=kwargs['impute_data'])
+            imputed_data = impute_set(extracted_features)
+            
+            split_data = build_Vset('split_data',self.split_data, param_dict=kwargs['split_data'])
+            dfs = split_data(imputed_data)
+            
+            return dfs
+        
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
 
