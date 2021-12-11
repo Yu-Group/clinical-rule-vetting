@@ -132,8 +132,9 @@ def build_binary_covariates(df):
 
     for robust_av in robust_av_names:
         base_av = robust_av[:-8] # strip off 2_binary
-        df[base_av+'_improved'] = df[robust_av].copy()
-        df[base_av+'_improved'][df[base_av+'_binary']==1] = 0 # condition remains indicated at study site
+        base_av_improved = base_av + '_improved'
+        df[base_av_improved] = df[robust_av].copy()
+        df[base_av_improved][df[base_av+'_binary'].copy()==1] = 0 # condition remains indicated at study site
         # note we remove the `_binary` suffix, will do this for other variables later in this function
     df.drop(robust_av_names,axis=1,inplace=True)
   

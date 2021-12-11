@@ -226,7 +226,7 @@ class Dataset(DatasetTemplate):
                  
         # create one-hot encoding of AVPU data
         avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
-        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN)
+        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN).replace('Y',np.NaN)
 
         df[avpu_columns] = 'AVPU_' + df[avpu_columns].astype(str)
         avpu_one_hot = pd.get_dummies(df[avpu_columns])

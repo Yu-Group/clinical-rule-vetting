@@ -22,6 +22,20 @@ class Dataset(DatasetTemplate):
         
         # all the fnames to be loaded and searched over        
         fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
+        
+        # suffix to covariates for differentiation between source datasets
+        suffix_dictionary = {'analysisvariables.csv':'',
+                             'clinicalpresentationsite.csv':'',
+                             'clinicalpresentationoutside.csv':'_outside',
+                            'clinicalpresentationfield.csv':'_ems',
+                            'demographics.csv':'_posthoc',
+                            'injuryclassification.csv':'_posthoc',
+                            'injurymechanism.csv':'',
+                            'kappa.csv':'',
+                            'medicalhistory.csv':'',
+                            'radiologyoutside.csv':'_outside',
+                            'radiologyreview.csv':'_posthoc',
+                            'radiologysite.csv':'_posthoc'}
             
         # read through each fname and save into the r dictionary
         r = {}
@@ -36,11 +50,17 @@ class Dataset(DatasetTemplate):
             df.columns = [re.sub('SITE','site',x) for x in df.columns]
             df.columns = [re.sub('CaseID','case_id',x,flags=re.IGNORECASE) for x in df.columns]
             df.columns = [re.sub('ControlType','control_type',x,flags=re.IGNORECASE) for x in df.columns]
-            df.columns = [re.sub('CSpine','CervicalSpine',x) for x in df.columns]
-            df.columns = [re.sub('subinj_','SubInj_',x) for x in df.columns]
+            df.columns = [re.sub('^CSpine','CervicalSpine',x) for x in df.columns]
+            df.columns = [re.sub('^CS','CervicalSpine',x) for x in df.columns]
+            df.columns = [re.sub('^subinj_','SubInj_',x) for x in df.columns]
                             
             assert ('id' in df.keys())
             df = df.set_index(['id','case_id','site','control_type']) # use a multiIndex
+            
+            # add suffix to distinguish original datasets
+            covar_suffix = suffix_dictionary[fname]
+            df.columns = df.columns.astype(str) + covar_suffix
+
             r[fname] = df
 
         # Get filenames we consider in our covariate analysis
@@ -52,24 +72,10 @@ class Dataset(DatasetTemplate):
                         and not 'kappa' in fname]
         
         df = r['analysisvariables.csv']
-        
-        # suffix to covariates for differentiation between source datasets
-        suffix_dictionary = {'clinicalpresentationsite.csv':'',
-                             'clinicalpresentationoutside.csv':'_outside',
-                            'clinicalpresentationfield.csv':'_ems',
-                            'demographics.csv':'_posthoc',
-                            'injuryclassification.csv':'_posthoc',
-                            'injurymechanism.csv':'_posthoc',
-                            'medicalhistory.csv':'',
-                            'radiologyoutside.csv':'_outside',
-                            'radiologysite.csv':'_posthoc'}
-        
+                
         print('merging all of the dfs...')
         for i, fname in tqdm(enumerate(fnames_small)):
             df2 = r[fname].copy()
-            
-            covar_suffix = suffix_dictionary[fname]
-            df2.columns = df2.columns.astype(str) + covar_suffix
             df = pd.merge(df,df2,how="left",left_index=True,right_index=True)
         
         
@@ -77,17 +83,15 @@ class Dataset(DatasetTemplate):
         if kwargs['use_kappa']:
             kappa_data = r['kappa.csv']
             
-            rename_dict = {
-                'Assault':'Assault_posthoc', 'ChildAbuse':'ChildAbuse_posthoc',
-                'EDDocumentation':'EDDocumentation_outside', 'FallDownStairs':'FallDownStairs_posthoc',
-                'FallFromElevation':'FallFromElevation_posthoc', 'FieldDocumentation':'FieldDocumentation_ems',
-                'Helmet':'helmet_posthoc', 'InjuryPrimaryMechanism':'InjuryPrimaryMechanism_posthoc',
-                'PassRestraint':'PassRestraint_posthoc', 'PatientsPosition':'PatientsPosition_ems',
+            kappa_rename_dict = {
+                'EDDocumentation':'EDDocumentation_outside',
+                'FieldDocumentation':'FieldDocumentation_ems',
+                'PatientsPosition':'PatientsPosition_ems',
                 'PtAmbulatoryPriorEMSArrival':'PtAmbulatoryPriorEMSArrival_ems',
                 'ShakenBabySyndrome':'ShakenBabySyndrome_posthoc', 'clotheslining':'Clotheslining'
             }
 
-            kappa_data.rename(columns=rename_dict,inplace=True) # rename with proper suffix if possible
+            kappa_data.rename(columns=kappa_rename_dict,inplace=True) # rename with proper suffix if possible
             
             # drop kappa columns not in full dataset
             to_drop_kappa_cols = kappa_data.columns.difference(df.columns)
@@ -98,11 +102,22 @@ class Dataset(DatasetTemplate):
         
         # remove 35 text columns
         txt_columns = [col_name for col_name in df.columns.astype(str) if col_name.__contains__('txt')]
-
         df.drop(txt_columns,axis=1,inplace=True)
-        return df
+        
+        # remove duplicate from analysis variables
+        df.drop(['clotheslining'],axis=1,inplace=True)
+        
+        # change some names to match dataset.py
+        rename_dict = {"Race": "Race_posthoc", "PayorType": "PayorType_posthoc",\
+                       "Ligamentoptions_posthoc": "LigamentInjury_posthoc"}
+        df.rename(columns=rename_dict,inplace=True)
+        
+        # judgement call to remove any columns with date or time information
+        datatime_columns = [col_name for col_name in df.columns.astype(str) if (('date' in col_name.lower()) |\
+                                                                                ('time' in col_name.lower()))]
+        return (df, r)
 
-    def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+    def preprocess_data(self, cleaned_data: pd.DataFrame, datasets, **kwargs) -> pd.DataFrame:
         
         # list of categorical columns to ignore
         categorical_covariates = ['Race_posthoc','PayorType_posthoc',\
@@ -111,11 +126,10 @@ class Dataset(DatasetTemplate):
         oss_columns = [c for c in df.columns.astype(str) if "OutcomeStudySite" in c]
         df.columns = [c +'_posthoc' if c in oss_columns else c for c in df.columns]
         
-        df.rename(columns = {"AgeInYears_posthoc": "AgeInYears","FallDownStairs_posthoc": "FallDownStairs"}, 
+        df.rename(columns = {"AgeInYears_posthoc": "AgeInYears"}, 
           inplace = True)
         
         # add a binary outcome variable for CSI injury 
-
         df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
 
         # convert numeric columns encoded as strings
@@ -137,21 +151,52 @@ class Dataset(DatasetTemplate):
         df.loc[:,'Male'] = df.loc[:,'Gender_posthoc'].replace(['M','F','ND'],[True,False,False])
         df.drop(['Gender_posthoc'], axis=1, inplace=True)
         
+        # remove ic covariates that are aggregated by other covariates
+        injury_classifictation_covar = list(datasets['injuryclassification.csv'].columns.astype(str))
+        # take intersection to account for txt columns already removed
+        injury_classifictation_covar = list(set(injury_classifictation_covar).intersection(set(df.columns.astype(str))))
+        injury_classifictation_aggregates =['CervicalSpineFractures_posthoc','LigamentInjury_posthoc',\
+                                           'CervicalSpineSignalChange_posthoc']
+        injury_classifictation_removed = [covar_name for covar_name in injury_classifictation_covar\
+                                              if covar_name not in injury_classifictation_aggregates]
+        print("IC Removed:",len(injury_classifictation_removed))
+        df.drop(injury_classifictation_removed,axis=1,inplace=True)
+        
+        # remove radiology covariates that are aggregated by other covariates
+        radiology_covar = list(datasets['radiologysite.csv'].columns.astype(str)) +\
+            list(datasets['radiologyoutside.csv'].columns.astype(str))
+        radiology_aggregates = ['XRays_posthoc','CTPerformed_posthoc','MRIPerformed_posthoc',\
+                                'XRays_outside','CTPerformed_outside','MRIPerformed_outside']
+        radiology_removed = [covar_name for covar_name in radiology_covar\
+                                              if covar_name not in radiology_aggregates]
+        print("Radiology Removed:",len(radiology_removed))
+        df.drop(radiology_removed,axis=1,inplace=True)  
+        
+        # remove MOI information summarized by Leonard et al.
+        moi_covar_all = list(datasets['injurymechanism.csv'].columns.astype(str))
+        moi_covar_keep = ['PassRestraint','Assault','ChildAbuse','helmet','FallDownStairs']
+        moi_covar_names = list(set(moi_covar_all).intersection(set(df.columns.astype(str))))
+        moi_removed = [covar_name for covar_name in moi_covar_names\
+                                              if covar_name not in moi_covar_keep]
+        print("MOI Removed:",len(moi_removed))
+        df.drop(moi_removed,axis=1,inplace=True)
+        
         # drop uniformative columns which only contains a single value
         # should be 0
         no_information_columns = df.columns[df.nunique() <= 1]
         df.drop(no_information_columns, axis=1, inplace=True)
-
+        print("# no information:", len(no_information_columns))
+        
         # create one-hot encoding of AVPU data
         avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
-        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN)
+        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN).replace('Y',np.NaN)
         
         df[avpu_columns] = 'AVPU_' + df[avpu_columns].astype(str)
         avpu_one_hot = pd.get_dummies(df[avpu_columns])
         df = df.drop(avpu_columns,axis = 1)
           
         df = df.join(avpu_one_hot)
-        
+        #
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
         
         df = helper.build_binary_covariates(df)
@@ -381,9 +426,9 @@ class Dataset(DatasetTemplate):
             default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
         
-        data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
+        data_tuple = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
         if preprocess:
-            data = cache(self.preprocess_data)(data, **default_kwargs['preprocess_data'])
+            data = cache(self.preprocess_data)(data_tuple[0], data_tuple[1], **default_kwargs['preprocess_data'])
         if preprocess and extract_features:
             data = cache(self.extract_features)(data, **default_kwargs['extract_features'])
         if preprocess and extract_features and impute:
