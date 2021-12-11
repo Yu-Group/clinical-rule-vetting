@@ -385,15 +385,16 @@ class Dataset(DatasetTemplate):
         
         for ss in study_site_list:
             for ct in selected_control_types:
-                split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'), drop_level=False) # subset to split
-                
-                # do the splitting below
-                split_data = np.split(split_subset.sample(frac=1, random_state=42),
-                                      [int(.6 * len(split_subset)), int(.8 * len(split_subset))])
-                df_train = pd.concat([df_train,split_data[0]])
-                df_tune = pd.concat([df_tune,split_data[1]])
-                df_test = pd.concat([df_test,split_data[2]])
-                
+                try:
+                    split_subset = preprocessed_data.xs((ss, ct), level=('site','control_type'), drop_level=False) # subset to split
+
+                    # do the splitting below
+                    split_data = np.split(split_subset.sample(frac=1, random_state=42),
+                                          [int(.6 * len(split_subset)), int(.8 * len(split_subset))])
+                    df_train = pd.concat([df_train,split_data[0]])
+                    df_tune = pd.concat([df_tune,split_data[1]])
+                    df_test = pd.concat([df_test,split_data[2]])
+                except: pass
         return tuple([df_train,df_tune,df_test])
 
     def get_outcome_name(self) -> str:
