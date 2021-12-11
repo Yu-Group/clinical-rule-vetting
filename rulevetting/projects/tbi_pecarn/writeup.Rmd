@@ -8,8 +8,6 @@ urlcolor: red
 papersize: a4
 ---
 
-`GENERAL NOTE: should we refer to the notebooks in the repo that we used to make some of the plots?`
-
 ```{r setup, echo = FALSE}
 library(knitr)
 
@@ -23,7 +21,7 @@ knitr::opts_chunk$set(engine.path = list(python = "../../../rule-env/bin/python3
 # Introduction and Problem Motivation
 
 Among children ages 0-14, traumatic brain injuries (TBIs) are a leading cause of injury and death,
-accounting for over 2100 deaths, 35,000 hospital admissions, and 470,000 emergency
+accounting for over 2,100 deaths, 35,000 hospital admissions, and 470,000 emergency
 department visits annually (Faul, Xu, Wald, & Coronado, 2010). Accurately diagnosing TBIs is thus a crucial
 problem, especially since the earlier a TBI is identified, the sooner potentially life-saving
 treatment can be administered. 
@@ -56,12 +54,12 @@ is to offer some improvement on their classification strategy. Kuppermann and hi
 colleagues developed rule sets for children aged younger than two and children
 aged two or older, the reason being that younger children are pre-verbal and thus require
 a different set of standards to identify TBIs than older children who can verbalize
-their symptoms (citation). We seek to develop a single age-invariant
+their symptoms. We seek to develop a single age-invariant
 classifier using covariates common to both primary age groups. We hope that such
 a classifier will not only identify common predictors of TBI across all ages, but also
 simplify the decision-making process by obviating the need for a second classifier.
 Nonetheless, in developing new classifiers, priority will be placed on interpretability, 
-brevity and simplicity, and a low false negative rate. 
+brevity and simplicity, and a low false negative rate without having too high of a false positive rate. 
 
 # Data
 
@@ -74,9 +72,9 @@ an age-invariant classifier.
 
 Besides needing a dataset similar in nature
 to the dataset on which the original classifiers were based (comprised of children
-presenting to ER with head trauma, etc.), to vet the previous
+presenting to ER with head trauma, etc.), to vet Kupperman's
 classifiers, we need a dataset that will enable us to develop classifiers with
-high predictive accuracy and maximal generalizability so as to compare with previous classifiers. 
+high predictive accuracy and maximal generalizability. 
 For instance, we would need a dataset containing covariates that are both relevant to the presence
 of TBIs and can be measured at the time a child is ushered into the ER. From common
 sense, as well as consulting with Dr. Robert Inglis of UCSF, it seems important 
@@ -86,13 +84,13 @@ examination that may indicate neurological impact or skull injury. For both
 vetting the clinical decision rule and developing an age-invariant rule, it would
 be preferable to have covariates that are as objective as possible so as to avoid
 issues with interrater reliability and improve generalizability of the rules to 
-new, real-world settings. It would also be preferable to both have details on covariates 
+novel, real-world settings. It would also be preferable to both have details on covariates 
 invariant to gender, race, ethnicity, or any other such characteristic
 of the population of interest and a population with gender, age, and racial diversity,
 to reduce the potential of systematic misdiagnoses in these groups
 should the rule be applied in future settings. Finally, we wish to identify children
 who do not need CT scans among a population where there is already some doubt
-as to whether the CT scan will be worth the risk of radiation induced malignancy.
+as to whether the CT scan will be worth the risk of radiation-induced malignancy.
 So, the ideal dataset will consist of children who are not critically injured
 and who could conceivably be TBI-free.
 
@@ -131,24 +129,24 @@ Post-Processing EDA.
 
 ## Cleaning and Preprocessing
 
-`TODO: instead of referring to what happens in AMS all the time, write it above and refer to it generally`
-
 In order to achieve a suitable dataset for the predicting low risk of TBI
 in children according to the above parameters, we first implement a set of
-cleaning and preprocessing steps. The overarching goal of our cleaning
-and preprocessing steps is to keep only covariates relevant to predicting TBI
+cleaning and preprocessing steps. The overarching goal of these steps is to 
+keep only covariates relevant to predicting TBI
 at the time a child would present to the ER, keep only observations for whom
 this classification rule would be relevant (children for whom it's a toss-up
 as to whether they'll need a CT scan), and to deal with missing values. We present
-our procedure below, along with relevant judgment calls and their perturbations
-where applicable.
+our procedure below, along with relevant judgement calls and their perturbations
+where applicable. Many of these decisions were made using common sense, as well as
+consultation with Dr. Inglis.
 
 * Remove columns irrelevant to predicting TBI at the time a child enters the emergency room
   + *EmplType*, *Certification*, *Ind...*, *CT...*, *Finding1*, ... *Finding23*, *EDDisposition*, *Observed*, *AgeTwoPlus*, *AgeInMonth*
   + Judgment Call [`injMech`]: drop *InjuryMech* 
     + Perturbation: keep *InjuryMech* 
 
-This includes *EmplType* and *Certification*, any variable about the reasons why a CT scan was ordered, whether sedation would be needed when performing a CT scan, the traumatic findings from the CT scan, the reason why the child left the ER, or 
+The above-listed columns consist of the type of employee performing the exam as well as their certification, 
+the reasons why a CT scan was ordered, whether sedation would be needed when performing a CT scan, the traumatic findings from the CT scan, the reason why the child left the ER, or 
 whether the child was observed again to see if they needed a CT scan. 
 We remove the former two variables because domain knowledge
 says that we should not expect the qualifications of the physician to systematically
@@ -159,7 +157,7 @@ We also remove an indicator for the individuals being above age 2, as well as
 the age provided in months, opting to keep the age provided in years. Similarly,
 according to judgment call [`injMech`], we drop the injury mechanism, a 13-level categorical variable detailing how the
 injury occurred, opting to keep a severity variable, a 3-tiered categorical variable
-rating the severity of the injury mechanism as 'low', 'moderate', or 'high'.
+rating the severity of the injury mechanism as 'low', 'moderate', or 'high' (*High_impact_InjSev*).
 
 * Remove columns with high levels of missingness
   + *Dizzy*, *Ethnicity*
@@ -169,7 +167,7 @@ whether the individual was Hispanic, are both missing in approximately 35% of th
 observations. *Ethnicity* would be useful for posthoc analysis, but with such a large
 number of missing values, it may not be particularly informative. *Dizzy* could be
 a good indicator of TBI, but was deemed too subjective and prone to inter-rater reliability
-issues according to both Kupperman et al. and Dr. Inglis.
+issues according to both Kuppermann and Dr. Inglis.
 
 * Remove observations whose *GCS* scores are less than 14
 
@@ -189,8 +187,8 @@ We only keep individuals where the total GCS is 14 or 15.
   
 GCS score is likely an important predictor of TBI, so it is imperative this variable is as completely 
 filled-out as possible in this dataset. However, it should be noted that
-there are different standards for obtaining GCS scores for individuals younger than two
-and those two or older, since individuals younger than two cannot verbalize. We note this
+there are different standards for obtaining GCS scores for individuals two and younger
+and those older than two, since individuals two and younger cannot verbalize. We note this
 as a potential problem to developing an age-invariant classifier.
 
 * Remove observations who were pharmacologically paralyzed, sedated, or intubated at the time of evaluation, or for whom any of this information is missing
@@ -216,10 +214,16 @@ if any of the subcategories is affirmative, and 0 otherwise. However, it would
 be impossible to impute for missing values in the subcategories, so we drop
 these observations.
 
+Note that the above judgement call and its perturbation will be commonly used for other
+sets of variables where there is some parent quantity (like *AMS*) and children quantities
+that provide more detail on the parent quantity. We refer to the judgement call where
+we drop observations missing values in *any* subcategory as `Strong`, and the hudgement call
+where we impute missing values of the parent variable and drop the children as `Weak`. 
+
 * Drop and impute based on variables of other non-head substantial injuries
   + *OSI*, *OSIExtremity*, *OSICut*, *OSICspine*, *OSIFlank*, *OSIAbdomen*, *OSIPelvis*, *OSIOth*
-  + Judgment Call [`OSI`]: same procedure as above for *AMS* and its subvariables
-    + Perturbation: same procedure as above for *AMS* and its subvariables
+  + Judgment Call [`OSI`]: `Strong`
+    + Perturbation: `Weak`
     
 *OSI* is an indicator on whether the physician determined the child sustained 
 substantial non-head injuries. This could be an injury to the extremities like a fracture,
@@ -228,13 +232,13 @@ or a pelvis injury. Although not directly related to head trauma, we find this v
 might be an indicator of the injury severity. If another variable relevant to head trauma
 fails to indicate a TBI for a particular individual, including this variable offers
 another opportunity to diagnose the TBI, possibly suppressing the false negative rate.
-By judgment call `OSI`, we drop any observations missing any of these values or their
+By judgement call `OSI`, we drop any observations missing any of these values or their
 subvariables for the same reason as judgment call `AMS`. 
 
 * Drop and impute based on hematoma information
   + *Hema*, *HemaSize*, *HemaLoc*
-  + Judgment Call [`HEMA`]: same procedure as above for *AMS* and its subvariables
-    + Perturbation 1: same procedure as above for *AMS* and its subvariables
+  + Judgment Call [`HEMA`]: `Strong`
+    + Perturbation 1: `Weak`
     + Perturbation 2: Only drop missing *HemaLoc* and *Hema*, impute missing *Hema* from *HemaLoc* presence, drop remaining missing *Hema*
     
 *Hema* indicates the presence of a scalp hematoma, or swelling due to some head trauma,
@@ -248,12 +252,8 @@ since according to domain knowledge, the impact of head trauma to the brain is d
 * Drop and impute based on skull fracture variables
   + *SFxPalp*, *SFxPalpDepress*
   + Judgment Call [`SFx`]: recode an unclear *SFxPalp* observation as true, drop observations missing either *SFxPalp* or *SFxPalpDepress*
-    + Perturbation 1: same procedure as [`AMS`] perturbation
-<<<<<<< HEAD
+    + Perturbation 1: `Weak`
     + Perturbation 2: recode an unclear *SFxPalp* observation as false, drop observations missing either *SFxPalp* or *SFxPalpDepress*
-=======
-    + Perturbation 2: same procedure as [`AMS`] judgment call
->>>>>>> c840e49c7a7ef202671d228365747ab983030469
     
 *SFxPalp* is an indicator for a palpable skull fracture, which can also be marked as
 'unclear' if there is too much swelling to make a determination. *SFxPalpDepress*
@@ -273,23 +273,22 @@ variable does not have much predictive value for older children.
 
 * Drop and impute based on basilar skull fracture variables
   + *SFxBas*, *SFxBasHem*, *SFxBasOto*, *SFxBasPer*, *SFxBasRet*, *SFxBasRhi*
-  + Judgment Call [`SFxBas`]: same as [`AMS`] judgment call
-    + Perturbation: same as [`AMS`] perturbation
+  + Judgment Call [`SFxBas`]: `Strong`
+    + Perturbation: `Weak`
 
 *SFxBas* is an indicator if the physician has determined there is basilar skull fracture
 present, or a fracture at the base of the skull. The rest of the variables indicate
-common indicators of basilar skull fracture (hemotympanum, otorrhea, raccoon eyes, Battle's sign, rhinorrhea).
+common indicators of basilar skull fracture (hemotympanum, spinal fluid otorrhea, raccoon eyes, Battle's sign, spinal fluid rhinorrhea).
 More specifically, hemotympanum is when blood is found in the middle ear, otorrhea is when spinal fluid drains
 from the ear, raccoon eyes is when internal bleeding occurs below the eye, Battle's sign is a bruise at the 
 bottom of the skull, and rhinorrhea is when spinal fluid leaks out the nose.
 This is known to be quite an important predictor of
 TBI, so we wish to make these variables as complete as possible for an ideal dataset.
-To do so, we follow the same procedure for *AMS* and its subvariables, regarding missingness.
 
 * Drop and impute based on above-the-clavicle injury variables
   + *Clav*, *ClavNeck*, *ClavFro*, *ClavOcc*, *ClavPar*, *ClavTem*
-  + Judgment Call [`Clav`]: same as [`AMS`] judgment call
-    + Perturbation: same as [`AMS`] perturbation
+  + Judgment Call [`Clav`]: `Strong`
+    + Perturbation: `Weak`
 
 *Clav* is an indicator on whether there was a laceration, abrasion, or hematoma
 above the clavicles (neck). The subvariables indicate whether there was trauma on
@@ -299,8 +298,8 @@ could indicate a TBI if one of the head trauma variables fails to.
 
 * Drop and impute based on neurological deficit variables
   + *NeuroD*, *NeuroDMotor*, *NeuroDSensory*, *NeuroDCranial*, *NeuroDReflex*, *NeuroDOth*
-  + Judgment Call [`Neuro`]: same as [`AMS`] judgment call
-    + Perturbation: same as [`AMS`] perturbation
+  + Judgment Call [`Neuro`]: `Strong`
+    + Perturbation: `Weak`
     
 *NeuroD* is an indicator for whether or not there is some neurological deficit
 besides altered mental status, as determined by the physician. This includes
@@ -311,32 +310,32 @@ any observation missing any of these values.
 
 * Drop and impute based on vomiting variables
   + *Vomit*, *VomitNbr*, *VomitStart*, *VomitLast*
-  + Judgment Call [`Vomit`]: same as [`AMS`] perturbation
-    + Perturbation: same as [`AMS`] judgment call
+  + Judgment Call [`Vomit`]: `Weak`
+    + Perturbation: `Strong`
 
 *Vomit* is an indicator for whether the individual vomited (as reported by child
 or parents), *VomitNbr* is the number of times the child vomited post-injury (1, 2, > 2 times),
 *VomitStart* is how soon after the head injury the vomiting started (within 1 hour, 1 - 4 hours, > 4 hours after), and 
 *VomitLast* is how soon before the evaluation was the last
-episode (< 1 hour, 1 - 4 hours, > 4 hours before evaluation). As a judgment call,
+episode (< 1 hour, 1 - 4 hours, > 4 hours before evaluation). As a judgement call,
 we only keep *Vomit* and impute missing values from the subvariables, since according
-to domain knowledge, more details about vomiting is generall unhelpful. As a perturbation,
+to domain knowledge, more details about vomiting is generally unhelpful. As a perturbation,
 we keep these covariates.
 
 * Drop and impute based on headache variables
   + *HA_verb*, *HAStart*, *HASeverity*
   + Judgment Call [`HA`]: Drop missing *HASeverity*, impute missing *HA_verb* from *HASeverity*, and drop remaining missing *HA_verb*, ignore *HAStart* column 
-    + Perturbation 1: same as [`AMS`] perturbation
-    + Perturbation 2: same as [`AMS`] judgment call
+    + Perturbation 1: `Weak`
+    + Perturbation 2: `Strong`
     
-*HA_verb* is an indiactor on whether the child had a headache, and is marked differently
+*HA_verb* is an indicator on whether the child had a headache, and is marked differently
 if the child is too young to verbalize that they had a headache, or unable to speak.
 *HAStart* and *HASeverity* are both variables indicating when the headache began
 (before injury, within 1 hour after, 1-4 hours after, > 4 hours after) and the severity
 (mild, moderate, and severe). As a judgment call, we keep *HA_verb* and *HASeverity*
 since these are both more likely to predict TBI than *HAStart*. However, it should be
 noted that this is an age-dependent variable as discussed in the prior section, since
-being able to verbalize headache symptoms requires the child to be of a certain age.
+the ability to verbalize headache symptoms requires the child to be of a certain age.
 
 * Drop and impute based on seizure variables
   + *Seiz*, *SeizLen*, *SeizOccur*
@@ -352,15 +351,15 @@ keep *SeizLen* and *Seiz*, but drop *SeizOccur*, since this is not as important
 according to domain knowledge. 
 
 * Drop and impute based on loss of consciousness variables
-  + *LOCSeparate*, *LocLen*
+  + *LOCSeparate*, *LOCLen*
   + Judgement Call [`LOC`]: recode 'suspected' as 'yes' in *LOCSeparate*, and drop observations with missing *LOCSeparate* and *LOCLen*
-    + Perturbation 1: same as [`AMS`] judgement call
+    + Perturbation 1: `Strong`
     + Perturbation 2: recode 'suspected' as 'no' in *LOCSeparate*, drop missing *LOCSeparate* and *LOCLen*
     
 *LOCSeparate* is an indicator if the child lost consciousness at all after the injury,
-and *LocLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). 
+and *LOCLen* is how long the child lost consciousness (< 5 sec, 5 sec - 1 min, 1 - 5 min, > 5 min). 
 Loss of consciousness is generally a good predictor of head trauma, so we wish
-to include this to predict TBI. As a judgment call, we consider a suspected loss of
+to include this to predict TBI. As a judgement call, we consider a suspected loss of
 consciousness as affirmative, since if there is any doubt as to whether the child
 lost consciousness, this should be of concern to err on the side of caution.
 
@@ -373,16 +372,16 @@ is the rating of the injury mechanism severity, as mentioned above.
 
 * Impute missing values for *ActNorm*
   + Judgment Call [`ActNorm`]: recode null values as affirmative
-    + Perturbation: recode values as not affirmative
+    + Perturbation: recode null values as not affirmative
 
 *ActNorm* is a subjective assessment by the parent as to whether the parent
-thinks the child is acting normally. Although subjective, domain experts conclude
-that a parents assessement of their child's behavior is a good indicator of
+thinks the child is acting normally. Although subjective, Dr. Inglis concluded
+that a parents' assessment of their child's behavior is a good indicator of
 how severely the child may be injured. Because this is important, we wish to impute
-as many values as possible. As a judgment call, we consider a missing value
+as many values as possible. As a judgement call, we consider a missing value
 as being normal, since if the child was acting normally, it's possible this
 question could have simply been skipped over. As a perturbation, we reverse this
-judgment call.
+judgement call.
 
 * Make a pooled outcome variable
 
@@ -398,24 +397,23 @@ had a TBI.
 Once we have cleaned the data according to the above steps, we wish to extract
 binary features from the categorical variables, where applicable. For every subvariable/
 parent variable pairing mentioned above (for example, `NeuroDMotor` and `NeuroD`),
-if the parent variable is marked as false, the subvariable has a value indicating
+if the parent variable is marked as 'False', the subvariable has a value indicating
 it is missing. As a default, we maintain this missing category, and binarize the variables
-by one-hot encoding. Alternatively, we could impute false into the missing values
+by one-hot encoding. Alternatively, we could impute 'False' into the missing values
 and drop the parent variables, so now each subvariable indicates the presence of the
 subvariable AND the parent variable as opposed to the subvariable GIVEN the parent variable.
 
 After performing this one-hot encoding, we have 137 features in total. We split 
 the data into a training set (19947 observations), a validation set (6649 observations), 
-and a test set (6649 observations). For post-processing EDA, we only consider
-the training set, only using the test set to check model accuracy. We should note
+and a test set (6649 observations). For exploratory data analysis, we only consider
+the training set, saving the test set to check model accuracy. We should note
 that there may be cluster structure in the dataset by virtue of the data
 being collected from different hospitals, presenting a possible comparability issue.
 However, we are not provided with hospital information,
-so we perform a random train-validation-test split.
+so we simply take the first 60% of observations as training, and divide the remaining
+40% evenly into validation and test sets.
 
 ## Exploratory Data Analysis
-
-`TODO: change plot sizes`
 
 Data Collection detailed a list of characteristics of an ideal dataset to vet and
 improve upon the original decision rule, according to the goals outlined in Introduction
@@ -430,7 +428,7 @@ Of course, the dataset already meets some of these conditions by virtue of our c
 process: the cleaned dataset only includes individuals with GCS scores of 14 or 15,
 and individuals who were not so injured as to be intubated, pharmacologically paralyzed,
 or sedated at the time of evaluation. Additionally, since we are using the same original
-dataset as Kuppermann et al., where children presented to the ER with head trauma,
+dataset as Kuppermann, where children presented to the ER with head trauma,
 our results can be suitably compared to theirs. Furthermore, since our data was cleaned
 differently from theirs, we get an added stability assessment of their decision rule for
 free, a crucial element of vetting their work.
@@ -510,7 +508,7 @@ GCS category (row) for the different age groups (column).
 include_graphics('figs/gsc_age_dep.png')
 ```
 
-In this figure, we see that, for the GCS Eye scores and the GCS Verbal scores, the outcome conditional on suboptimal versus
+In this figure, we see that, for the GCS Eye scores and the GCS Verbal scores (first two rows), the outcome conditional on suboptimal versus
 optimal scores is distributed similarly across both age groups. This indicates that
 the relationship between GCS score in these categories and the outcome is age invariant.
 However, for the GCS Motor scores, we see that the distributions
@@ -519,7 +517,9 @@ of individuals that had a suboptimal GCS Motor score ended up having a TBI, wher
 among children two or younger, a much smaller proportion of those with a suboptimal GCS Motor
 score had a TBI. This tells us that there is likely some age dependence in how this
 variable is related to TBI. So, when building an age-invariant classifier we also
-wish to exclude the GCS scores.
+wish to exclude the GCS scores. However, if we were to build classifiers for different age groups
+and include these variables, we must split by older than two versus two or younger. Note that
+Kuppermann builds classifiers for two or older versus younger than two.
 
 Before moving on, we should also establish the age-invariant relationships of other
 variables of interest with the outcome variable. Figure \ref{fig:no_age_dep}
@@ -556,7 +556,7 @@ variables. If we were to exclude this subvariable information in lieu of only in
 an indicator for basilar skull fracture, it is possible that we could over-indicate
 TBIs. Imagine if a child came into the emergency room with CSF Rhinorrhea, 
 but our classifier only considers whether there is a sign of skull fracture.
-Skull fracture, as an umbrella variable, might be an important predictor, but only because hemotympanum is so correlated
+Skull fracture, as a parent variable, might be an important predictor, but only because hemotympanum is so correlated
 with the outcome. Thus, the child would probably be recommended to have a CT scan. However,
 the child may not have had a TBI in the first place because CSF Rhinorrhea is not
 very correlated with the outcome. Since we would be giving a child an unneeded CT scan,
@@ -587,27 +587,26 @@ include_graphics('figs/parent_older.png')
 
 # Models
 
-## Baseline Model
+## Baseline Classifier
 
-We choose the model proposed by Kuppermann and his colleagues as the baseline model
-with which to predict whether a child will have a clinically-important TBI.
-To evaluate their model, we also use the provided dataset cleaned similarly to theirs, 
-consisting of 42412 children presenting to the emergency room 
+We use the model proposed by Kuppermann and his colleagues as the baseline classifier.
+To evaluate their model, we use the provided dataset cleaned according to their specifications.
+In total, the dataset consists of 42412 children presenting to the emergency room 
 due to the head trauma with GCS scores 14 and above and with the final outcome non-missing.
 376 of these observations experienced clinically-important TBIs.
-In addition, we also use the same age splitting method as Kuppermann,
+In addition, we use the same age splitting strategy as Kuppermann,
 where we use their baseline classifier for preverbal children (< 2 years of age)
 to predict TBI in this subgroup, and the classifier for verbal children (2 years and older)
 to predict TBI in this subgroup.
 
 ### Description
 
-The age-based classifiers in Kuppermann et al. are rule-list models, or a models consisting of a list of rules, 
+The age-based classifiers in Kuppermann et al. are rule-list models, or models consisting of a list of rules 
 ordered by importance in indicating a TBI.
 A child is labelled as having a TBI if and only if this 
 child satisfies at least one of the rules, where the rules are checked in the aforementioned order of importance.
 Once we come across a rule that the child satisfies, we stop checking. 
-Therefore, based on the order, each rule is applied to different numbers of children.
+Therefore, based on the order, each rule is applicable to different numbers of children.
 The list below gives the rules for Kuppermann's pre-verbal (younger than 2) classifier.
 Refer to Data Collection for a more in-depth description of the variables mentioned in each rule.
 
@@ -643,13 +642,12 @@ include_graphics('figs/baseline_res.png', dpi=200)
 
 The result of baseline model is shown in \ref{fig:baseline_res}. The yellow blocks are identified as positive 
 while the green blocks are identified as negative. In each block, the first number represents the number of children
-experiencing clinically-important TBI, the second number is the number of children in this block, and
-the last one represents the proportion. And we use the whole cleaned dataset to evaluate the model, 
-while Kuppermann et al. splits the data into training set and validation set. The performance of the baseline classifiers
-is similar to the result in Kuppermann et al. The baseline classifiers do identify almost all of the cases since 
-the sensitivity is 98.9\% and 96.8\% for preverbal children and verbal children, respectively. However, the specificity only achieves
-48.3\% and 57.7\%. In the following section, we propose a model with similar sensitivity and higher specificity. The detailed
-evaluation metrics based on sensitivity and specificity is discussed in the following part.
+experiencing clinically-important TBI, the second number is the number of children in this block for whom the next rule will apply, and
+the last one represents the proportion. We use the whole cleaned dataset to evaluate the model performance, 
+while Kuppermann splits the data into a training set and validation set. The performance of the baseline classifiers
+is similar to the result in Kuppermann et al. The baseline classifiers do identify almost all of the cases as 
+the sensitivity is 98.9\% and 96.8\% for preverbal children and verbal children, respectively. However, the corresponding specificities are more disappointing:
+48.3\% and 57.7\%. In the following section, we propose a model that, run on our preprocessed data, achieves a similar sensitivity and higher specificity.
 
 \newpage
 
@@ -695,22 +693,22 @@ gradient-boosting sequence, which are most often overlapping.
 The *LASSO* thus performs regression on the *space of rules* and outputs a parsimonious
 set with potentially added linear terms.
 
-As a concrete illustration of `rulefit` in conjunction with our preprocessing and
-judgment call procedure, we present two models:
+As a concrete illustration of `rulefit` using our preprocessing and
+judgment call procedure, we first present the following two models. Note that these are
+solely illustrative: our best model presentation comes later.
 
   * **"basic":**
-    The judgment calls are selected as to be maximally restrictive, combining
+    The judgement calls are selected as to be maximally restrictive, combining
     all sub-variables into their parent variable and throwing away as many of the rest as possible, 
-    as well selecting the call of removing observations whenever possible. The number of
+    as well as opting to remove observations whenever possible. The number of
     rules is restricted to 10.
 
   * **"full":**
     The inverse of the above, including as many variables and throwing away as
     few observations as possible. The number of rules is allowed to go to 20.
 
-These two classifiers should, therefore, illustrate the effects of our judgment calls on the 
+These two classifiers should, therefore, illustrate the effects of our judgement calls on the 
 structure of the model.
-
 
 Below are presented the top five rules for each in terms of their importance. The
 latter is similar to the metric in the ensemble of trees, but calculated from the
@@ -755,28 +753,23 @@ full model we are approaching that sensitivity and exceeding it in specificity, 
 specific tweaking to the models being performed at this stage!
 
 As shown in the next section, with some careful construction of the models and selection
-of the judgment call, we can improve this performance considerably.
-
-`TODO: check this text if it still fits:`
-
-(Xin) I think Andrej will describe rulefit model. Q8 I can only answer this in Logistic regression assumption. Can this be better?
-
-The greedy rule list (CART) model consists of a list of rules, which is similar to the baseline model. 
-Therefore, it is simple to understand, interpret, and pick the important features.
-Since it is also a greedy method, it does not require distributional assumptions and is computationally efficient.
-However, it is non-robust when we perturb the data and the greedy method does not guarantee a good result.
+of judgement call, we can improve this performance considerably.
 
 ### Procedure and Performance
 
-We train and evaluate the models on our cleaned data based on different age-splitting methods and different judgment calls.
-There are three possible splitting methods in age groups: preverbal children, verbal children, and all children.
-We also include two different judgment calls: whether to include or exclude all subvariables.
-Although there are six possible datasets, the dataset of preverbal children excluding subvariables contain too few
-TBI children so we cannot get a reasonable result. Therefore, we will train and evaluate for the other five datasets.
+As discussed in Exploratory Data Analysis, there are arguments for-and-against making
+an age-invariant classifier vs. classifiers for different age groups, and making a classifier including and excluding subvariable information.
+Taking the cartesian product of these decisions, there are 6 possible datasets on which to develop classifiers
+(children <= 2 with/without subvariables, children > 2 with/without subvariables, all children with/without subvariables).
+Note that the age-grouped datasets include their relevant age-specific variables, and the
+dataset with all children exludes these age-dependent variables, as discussed in EDA.
+To find a best classifier, we first determine on which of these datasets does our `Rulefit` model perform the best.
+It should be noted the dataset of children <= 2 without subvariables contains too few
+TBIs, so we cannot get a reasonable result. Therefore, we will train and evaluate for the other five datasets.
 
 For each possible dataset, we split 20\% of the data into the test data, which will only be used in the model evaluation,
-while we use the remaining 80\% to fine-tune the hyperparameters and fit the model. Then we split four cross-validation 
-folds to tune the hyperparameters for each model. Since this is an unbalanced dataset, raw classification accuracy will be
+while we use the remaining 80\% to fine-tune the hyperparameters and fit the model. Then, perform a four-fold cross-validation 
+to tune the hyperparameters for each model. Since this is an unbalanced dataset, raw classification accuracy will be
 a poor means of evaluating the model, as a model that simply predicts that no children have a TBI would be more than 99% accurate. 
 The best classifier should identify almost all of TBI cases, as well as identify most of children not experiencing TBI as no TBI. 
 Therefore, we define our evaluation measure as follows.
@@ -789,13 +782,15 @@ Therefore, we define our evaluation measure as follows.
 \right.
 \]
 
+`Note: how do the next two paragraphs fit into the previous discussion? I'm a bit confused..`
+
 For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
 the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
 the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves random forest methods to pick the rules, 
-the performance may vary even if we choose same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
+the performance may vary even if we choose the same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
 with different random states and pick the best one as the result, given the maximum length for each rule. Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
 
-The greedy rule list model performs quite poorly. For two datasets excluding the subvariables, the largest mean scores 
+The greedy rule list model performs quite poorly. For the two datasets excluding the subvariables, the largest mean scores 
 in our CV folds are smaller than 3, which implies the sensitivity is smaller than 60\%. For the datasets including subvariables,
 although the largest mean scores are over 4, the scores on the test data are much smaller. This means the greedy rule list model
 is very sensitive to the training data and will not behave well on the test data.
@@ -804,25 +799,26 @@ is very sensitive to the training data and will not behave well on the test data
 include_graphics('figs/all_ROC.png')
 ```
 
-The performance of our rulefit model on test data can be found in Figure \ref{fig:rule_result_on_test}. 
-We can find that the age-invariant group performs quite well. As the sensitivity achieves almost 100\%, the specificity is larger than 70\%. 
-And including subvariables increases the model's performance when classifying verbal children. Among the two verbal children datasets, when sensitivity 
+The test-data performance of our rulefit model for the different datasets can be found in Figure \ref{fig:rule_result_on_test}. 
+We find that the classifier on the age-invariant dataset with subvariables is quite good, as the sensitivity and specificity can simultaneously reach approximately
+100\% and 70\%, respectively.
+When classifying on verbal children, including the subvariables increases the model's performance relative to excluding them. For instance, for the two verbal children datasets, when the sensitivity 
 is larger than 95\%, the specificity is about 70\% when we include subvariables, while it drops to 55\% if we exclude them. Finally, for 
-preverbal children,the specificity is around 60\% when the sensitivity is about 95\%. These results imply that we should develop an age-invariant
-classifier as opposed to splitting the data as Kuppermann et al. did. In addition, when we perform the classification, we also need to pick 
-a probability threshold to determine the predicted labels. For the age-invariant classifier, based on our discussion of sensitivity and stability, 
-the threshold is set to $1.3 \times 10^{-5}$, which persform well not only on training and validation data, but also on test data.
-For test data classification, the sensitivity is 97.9\% and the specificity is 70.4\%.
+preverbal children, the specificity is around 60\% when the sensitivity is about 95\%. These results suggest we develop an age-invariant
+classifier with subvariables as opposed to developing separate classifiers based on age group. For this classifier, 
+based on our discussion of sensitivity and stability, 
+the threshold is set to $1.3 \times 10^{-5}$, which performs well not only on training and validation data, but also on test data.
+For test data classification with this threshold, we achieve a sensitivity of 97.9\% and a specificity of 70.4\%.
 
 ```{r rulefit_interpretation, echo = FALSE, fig.cap = 'The important rules for the age-invariant classifier', out.width = "100%"}
 include_graphics('figs/rulefit_interpretation.png')
 ```
 
-In Figure \ref{fig:rule_result_on_test}, we lists the important rules for the age-invariant classifier.
+In Figure \ref{fig:rule_result_on_test}, we list the important rules for the age-invariant classifier.
 We find that other signs of altered mental status is the most important linear factor. Other important linear factors include
-loss of consciousness length and history of vomiting. In addition to our linear predictors, we have numerous
+how long there was loss of consciousness, as well as any history of vomiting. In addition to our linear predictors, we have numerous
 binary rules that appear in our classifier, the most important of which are history of vomiting and basilar skull fracture (hemotympanum).
-Other important rules involve the severity of injury, loss of consciousness length, depression in a palpable skull fracture, and 
+Other important rules involve the severity of injury, loss of consciousness length, a depression in a palpable skull fracture, and 
 neurological deficit in the cranial nerve.
 
 ### Randomness Assessment
@@ -860,19 +856,19 @@ without a domain-based reason.
 
 However, we can argue that physicians themselves follow an analogous heuristic when evaluating
 alternative hypotheses for a diagnosis: since the realm of possible causes is usually exceedingly large,
-they restrict themselves to a set of plausible causes using a "gut-feel" that could be likened
+they restrict themselves to a set of plausible causes using a "gut-feeling" that could be likened
 to the $L_1$ shrinkage employed by the *LASSO*.
 
 ### Stability Analysis
 
 In our stability analysis, we focus our efforts on checking both the stability of the
-derived rules and feature importance subject to data and model perturbations, as well as
+isolated features subject to data and model perturbations, as well as
 the stability of our classification results subject to data perturbations of the test set.
 
 #### Feature Stability
 
 To address the former, we can first compare the isolated features with those of the
-classifier from Kupperman et al., whose results are presented in Baseline Model.
+classifier from Kupperman, whose results are presented in Baseline Model.
 We cleaned our data differently, so this is a stability assessment of the rules
 subject to data perturbations. Additionally, we use different classifier methods,
 giving us a sense of stability subject to model perturbations. Note that there is
@@ -893,10 +889,10 @@ isolates general signs of basilar skull fracture, we isolate a particular sign (
 and while the baseline simply checks for parietal, temporal, or occipital scalp hematoma,
 we find that only parietal and temporal hematomas are of most use.
 
-The next models to which we will compare our best classifier is an age-invariant random
+The next model to which we will compare our best classifier is an age-invariant random
 forest classifier.
 For our random forest, the judgement calls used to obtain the dataset were those that flattened the data, 
-removing the umbrella variables and giving the variables below them a binary classification. 
+removing the parent variables and giving their children variables a binary classification. 
 We also removed age-variant predictors such as GCS. To create our cross-validation structure, we withheld 
 a random sample of 4739 observations for validation, stratified on outcome level. From there, the remaining 
 30,000 observations were randomly split into three equal folds, likewise stratified, and used to run a 
@@ -949,12 +945,12 @@ for a dictionary of the judgement calls and their perturbations.
 This set of judgement calls effectively covers perturbations due to the inclusion or
 exclusion of missing values, imputation of missing values, as well as recoding
 observations. For instance, [`SFx`] and [`LOC`] are both judgement calls where
-a result marked 'unclear' was coded as 'true'. An interesting perturbation would be
-to see if coding these observations as 'false' changes the results substantially.
+a result marked 'unclear' was coded as 'True'. An interesting perturbation would be
+to see if coding these observations as 'False' changes the results substantially.
 
 We loop through every possible combination of the above 5 judgement calls and their
 perturbations and obtain a test dataset (32 test datasets in total). For each of those
-sets, we evaluate the sensitivity and specificity using our best rulefit model.
+sets, we evaluate the sensitivity and specificity using our best rulefit model with the corresponding threshold.
 A histogram of specificities and sensitivities are provided in Figure \ref{fig:perturb_res}
 
 ```{r perturb_res, fig.cap = 'The sensitivity and specificity are fairly stable, with specificity being slightly more so than sensitivity.', out.width = "100%"}
@@ -971,16 +967,13 @@ drops any observation for which any of the subvariables or parent variables are 
 the reason being that if any of the criteria is missing, any provided results
 cannot be trusted. However, a counterargument would be that the physician could have
 been tired and possibly skipped through some of the subcategories, or felt that
-marking a the main vomit category after having marked a subcategory was redundant.
+marking the main vomit category after having marked a subcategory was redundant.
 So, while our results are slightly impacted by this perturbation, we should take this
 with a grain of salt.
 
-# Discussion
+#### Post-Hoc Discussion
 
-*Discuss the performance, the results, the stability subject to perturbations,*
-*how well it compared to the baseline, etc.*
-
-Additionally, on the testing set, our best classifier only had one false negative:
+On the testing set, our best classifier only had one false negative:
 patient number 5295, a four year-old Black male. Upon examining his covariates, it seems the only abnormal
 responses were the presence of a large frontal hematoma, an above-the-clavicle injury on the frontal part of the scalp, 
 an injury mechanism of moderate severity. Every other covariate was listed as normal.
@@ -990,50 +983,46 @@ decided not to pursue a CT scan, the classifier we wish to improve upon would ha
 also missed this diagnosis. This may indicate the need for new features to observe
 when collecting data to ensure no TBIs are missed in the future.
 
+# Discussion
+
 By checking the top rules in Figure \ref{fig:rulefit_interpretation}, our best classifier shows
-altered mental status, the history of vomiting, basilar skull fracture(hemotympanum), severity of injury,
-loss of consciousness for more than 5 seconds, and neurological deficit(cranial nerve) are of vital importance when
-classifying the clinically-important TBI. As we mentioned in stability section, the results of the baseline classifier
-supports our result. Moreover, our classifier can also identify one particular important subvariable of a parent variable.
+altered mental status, the history of vomiting, hematympanum, severity of injury,
+loss of consciousness for more than 5 seconds, and neurological deficit related to the cranial nerve are of vital importance when
+classifying the clinically-important TBI. As mentioned in stability section, the results of the baseline classifier
+supports this result. Moreover, our classifier can also identify one particular important subvariable of a parent variable.
 While our classifier keeps almost 100\% sensitivity, the specificity also improves to about 70\%, 
-which is higher than that of the baseline classifier. Moveover, based on results of our data processing and modeling,
-we show that splliting children by age is not a good idea. The dataset is unbalanced, and the the number of preverbal children experiencing
+which is higher than that of the baseline classifier. Moreover, based on results of our data processing and modeling,
+we show that splitting children by age is not necessarily a good idea. The dataset is unbalanced, and the the number of preverbal children experiencing
 TBI is quite small, which will influence the performance of fitted models.
 
-Moreover, the important features identified by our classifier are not only match the baseline model results, but also
+Additionally, the important features identified by our classifier not only match the baseline model results, but also
 random forests model and rulefit model fitted by exluding all subvariables. Therefore, the important features are very stable.
-And when we apply different combinations of judgement calls and perturbations of the data, the sensitivities and specificities
+And when we apply different combinations of perturbations of the data, the sensitivities and specificities
 are also quite stable at most of the circumstances. 
 
-
-*Discuss future directions on what we can do (other models, other perturbations,*
-*things we missed that we would have done with more time, etc.)*
-
 In the future, we would fit more interpretable models. Our best classifier is based on rulefit model, which in general provides
-less interpretability than the rule list model in the baseline classifier. Although we takes the rule list model into account
+less interpretability than the rule list model in the baseline classifier. Although we take the rule list model into account
 when picking the best classifiers, the greedy (CART) rule list model does not perform well. It has lower sensitivity and is not stable
-to the data perturbation. We would have tried other types rule list models to see whether we can get a stable model with 
-high sensitivity and specificity, as well as more interpretability. And we may apply other judgement calls to fit the models, to check
-for each parent variable, whether we should keep the parent variable or use its one specific subvariable in the data.
+to the data perturbation. We would have tried other type of rule list models to see whether we could get a stable model with 
+high sensitivity and specificity, as well as more interpretability. And we may apply other judgement calls to fit the models, such as checking
+the importance of including and excluding individual subvariable groups for a particular parent variable.
 
 # Conclusion
 
-In this paper, we utilize the same data as Kuppermann to develop interpretable rules to identify whether the children 
+In this paper, we utilize the same data as Kuppermann to develop classifiers to identify whether the children 
 presenting to the emergency room for head trauma are at high or low risk of having TBIs. Those at low risk can avoid CT scans,
 and we also want to ensure children who avoiding CT scans indeed have very low risk of experiencing TBIs. We clean and preprocess the data
-and deal with the umbrella variable structure as judgment calls. Then we performs EDA and modeling to pick our best classifier, which
-is built on age-invariant data and including the subvariables. It's sensitivity and specificity outperforms the baseline models derived by
+and deal with the parent variable structure as judgement calls. Then we perform EDA and modeling to pick our best classifier, which
+is built on age-invariant data and including the subvariables. Its sensitivity and specificity outperforms the baseline models derived by
 Kuppermann and his colleagues. The corresponding important features selected by our model are altered mental status, 
-the history of vomiting, basilar skull fracture(hemotympanum), severity of injury,
-loss of consciousness for more than 5 seconds, and neurological deficit(cranial nerve),
+the history of vomiting, hemotympanum as an indicator of basilar skull fracture, severity of injury,
+loss of consciousness for more than 5 seconds, and cranial nerve neurological deficits,
 which matches the baseline models and other models we fit to some extent. The sensitivity and the specificity is also quite stable
-when we perform the data perturbation. And our model can be generalized to the future data based on our assessment to the randomness 
+when we perform data perturbations. And our model can be generalized to the future data based on our assessment to the randomness 
 of the data and the model, the domain knowledge of the covariates and theirs relationships to TBI in EDA, and the stability discussion of
 the best classifiers.
-
 
 # References
 
 Special thanks to Dr. Rob Inglis of UCSF for graciously offering his time and expertise
 to discuss our results!
-
