@@ -18,12 +18,14 @@ class Dataset(DatasetTemplate):
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         fnames = sorted(glob.glob(f'{raw_data_path}/*'))
         dfs = [pd.read_csv(fname, encoding="ISO-8859-1") for fname in fnames]
+        print(fnames)
 
         clean_key_col_names = lambda df: df.rename(columns={'site': 'SITE',
                                                             'caseid': 'CaseID',
                                                             'studysubjectid': 'StudySubjectID'})
         # Build on AnalysisVariable
         result_df = dfs[0].copy()
+
         key_df = dfs[0][['SITE', 'CaseID', 'StudySubjectID']]
         # Read clinical presentation
         field_df = key_df.merge(clean_key_col_names(dfs[1]), how='left',
@@ -283,7 +285,7 @@ class Dataset(DatasetTemplate):
                 # for unclear features whether to impute conservatively or liberally
                 'unclear_feat_default': [0, 1], 
                 # Whether to use only data from the study site or also include field and outside hospital data
-                'only_site_data': [False, True],
+                'only_site_data': [False,True],
                 # Whether to use augmented features or original AnalysisVariables
                 'augmented_features': [True, False],
                 # Use with control group
