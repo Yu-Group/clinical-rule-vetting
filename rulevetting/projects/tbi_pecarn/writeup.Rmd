@@ -781,7 +781,9 @@ Therefore, we define our evaluation measure as follows.
 \]
 
 To evaluate the performance, we also aim to train one model to get similar results to the baseline model, which 
-is a rule list model. In our report, we pick one specific rule list model, i.e., greedy rule list (CART) model.
+is a rule list model.
+`FIXME: ? Andrej - we pick rulefit and not CART, so this sentence is wrong`
+In our report, we pick one specific rule list model, i.e., greedy rule list (CART) model.
 The greedy rule list (CART) model consists of a list of rules, which makes it 
 simple to understand, interpret, and pick the important features.
 For both greedy rule list model and rulefit model, we use the same procedure to train and validate, and evaluate
@@ -789,7 +791,7 @@ the performance on the test data. The only difference is the hyperparameters we 
 
 For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
 the maximum number of rules in the list (representing the complexity and the interpretability); for the rulefit model, 
-the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves random forest methods to pick the rules, 
+the hyperparameter is the maximum length for each rule. In addition, since our rulefit model involves subsampling in generating the rules, 
 the performance may vary even if we choose same hyperparameters. Therefore, for our rulefit model, we also need to run the models 
 with different random states and pick the best one as the result, given the maximum length for each rule. Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
 
@@ -848,7 +850,7 @@ Additionally, the model itself is random. While the *LASSO* procedure in step 2 
 deterministic, it can only select rules from the initial bag given.
 
 The latter is generated via a tree generation procedure, which is most commonly *not deterministic* 
-(gradient boosting, for example, performs subsampling). The randomness in rule generation
+(gradient boosting, for example, performs subsampling). This randomness in rule generation
 is somewhat ameliorated by the large number of trees we are generating, 
 which should work towards obtaining the set of all feasible rules.
 
