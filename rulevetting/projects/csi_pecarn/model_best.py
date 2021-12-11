@@ -10,12 +10,13 @@ class SpecialTree:
 
         # >12
         ['FocalNeuroFindings', 'HighriskDiving', 'GCSbelowThreshold','PainNeck',
-        'SubInj_Head', 'axialloadtop', 'HEENT', 'TenderNeck'], 
+        'SubInj_Head', 'axialloadtop', 'TenderNeck', #'HEENT'
+        'HighriskMVC'], 
 
         # 5-12
-        ['FocalNeuroFindings', 'GCSbelowThreshold', 'Torticollis', 'HighriskDiving',
-        'PainNeck', 'Predisposed', 'Clotheslining', 'SubInj_TorsoTrunk', 'HighriskFall',
-        'AxialLoadAnyDoc', 'HighriskHitByCar','HEENT'], 
+        ['FocalNeuroFindings', 'GCSbelowThreshold', 'Torticollis', #'HighriskDiving','HighriskHitByCar'
+        'PainNeck', 'Predisposed', 'Clotheslining', 'SubInj_TorsoTrunk', 
+        'AxialLoadAnyDoc','HighriskFall','HEENT'], 
 
         # 2-5
         ['AlteredMentalStatus', 'FocalNeuroFindings', 'Torticollis', 'Predisposed',

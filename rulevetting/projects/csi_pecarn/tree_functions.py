@@ -247,7 +247,7 @@ def simple_tree(data_list, tree_method, select_method):
     TPR = [0]*l
     FPR = [0]*l
     for i in ind:
-        r = evaluate_vlist(data_list[0],variable_rank[0:i], tree_method)
+        r = evaluate_vlist(data_list[0],variable_rank[0:(i+1)], tree_method)
         TPR[i] = r[0]
         FPR[i] = 1- r[1]
     d = {'num': ind, 'TPR': TPR, 'FPR': FPR}
@@ -258,7 +258,7 @@ def simple_tree(data_list, tree_method, select_method):
     TPR = [0]*l
     FPR = [0]*l
     for i in ind:
-        r = evaluate_vlist(data_list[1],variable_rank[0:i], tree_method)
+        r = evaluate_vlist(data_list[1],variable_rank[0:(i+1)], tree_method)
         TPR[i] = r[0]
         FPR[i] = 1- r[1]
     d = {'num': ind, 'TPR': TPR, 'FPR': FPR}
