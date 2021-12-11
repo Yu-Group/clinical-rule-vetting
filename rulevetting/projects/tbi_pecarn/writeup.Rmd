@@ -742,14 +742,10 @@ We can immediately sense the increase in complexity for the *full* model.
 Also note that the *LASSO*-introduced linear terms become important in the complex model,
 perhaps substituting some of the effect of simpler rules.
 
-To see how these relatively basic models perform, we examine their *sensitivity - specificity* curve:
-
-```{r basic_ROC, echo = FALSE, fig.width=6, fig.height=4, fig.cap="Sensitivity-specificity curve for two basic rulefit models with maximal and minimal judgment calls."}
-include_graphics('figs/basic_ROC.png', dpi=500)
-```
-
+To see how these relatively basic models perform, we examine their *sensitivity - specificity* curve in Figure \ref{fig:rule_result_on_test} 
+with labeling 'Intro Minimal' and 'Intro Full'.
 The minimal model is able to achieve 80%+ in both sensitivity and specificity for one
-threshold value. However, since we care much more about false negatives than positives, we consequently value
+threshold value; since we care much more about false negatives than positives, we consequently value
 sensitivity far above specificity. Therefore in this case, the fuller model with sensitivities
 above 90% would be preferred.
 
@@ -804,8 +800,8 @@ in our CV folds are smaller than 3, which implies the sensitivity is smaller tha
 although the largest mean scores are over 4, the scores on the test data are much smaller. This means the greedy rule list model
 is very sensitive to the training data and will not behave well on the test data.
 
-```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "60%"}
-include_graphics('figs/rule_result_on_test.png')
+```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned rulefit models on the test data for all five datasets.', out.width = "100%"}
+include_graphics('figs/all_ROC.png')
 ```
 
 The performance of our rulefit model on test data can be found in Figure \ref{fig:rule_result_on_test}. 
@@ -994,12 +990,47 @@ decided not to pursue a CT scan, the classifier we wish to improve upon would ha
 also missed this diagnosis. This may indicate the need for new features to observe
 when collecting data to ensure no TBIs are missed in the future.
 
+By checking the top rules in Figure \ref{fig:rulefit_interpretation}, our best classifier shows
+altered mental status, the history of vomiting, basilar skull fracture(hemotympanum), severity of injury,
+loss of consciousness for more than 5 seconds, and neurological deficit(cranial nerve) are of vital importance when
+classifying the clinically-important TBI. As we mentioned in stability section, the results of the baseline classifier
+supports our result. Moreover, our classifier can also identify one particular important subvariable of a parent variable.
+While our classifier keeps almost 100\% sensitivity, the specificity also improves to about 70\%, 
+which is higher than that of the baseline classifier. Moveover, based on results of our data processing and modeling,
+we show that splliting children by age is not a good idea. The dataset is unbalanced, and the the number of preverbal children experiencing
+TBI is quite small, which will influence the performance of fitted models.
+
+Moreover, the important features identified by our classifier are not only match the baseline model results, but also
+random forests model and rulefit model fitted by exluding all subvariables. Therefore, the important features are very stable.
+And when we apply different combinations of judgement calls and perturbations of the data, the sensitivities and specificities
+are also quite stable at most of the circumstances. 
+
+
 *Discuss future directions on what we can do (other models, other perturbations,*
 *things we missed that we would have done with more time, etc.)*
 
+In the future, we would fit more interpretable models. Our best classifier is based on rulefit model, which in general provides
+less interpretability than the rule list model in the baseline classifier. Although we takes the rule list model into account
+when picking the best classifiers, the greedy (CART) rule list model does not perform well. It has lower sensitivity and is not stable
+to the data perturbation. We would have tried other types rule list models to see whether we can get a stable model with 
+high sensitivity and specificity, as well as more interpretability. And we may apply other judgement calls to fit the models, to check
+for each parent variable, whether we should keep the parent variable or use its one specific subvariable in the data.
+
 # Conclusion
 
-Just wrap it up
+In this paper, we utilize the same data as Kuppermann to develop interpretable rules to identify whether the children 
+presenting to the emergency room for head trauma are at high or low risk of having TBIs. Those at low risk can avoid CT scans,
+and we also want to ensure children who avoiding CT scans indeed have very low risk of experiencing TBIs. We clean and preprocess the data
+and deal with the umbrella variable structure as judgment calls. Then we performs EDA and modeling to pick our best classifier, which
+is built on age-invariant data and including the subvariables. It's sensitivity and specificity outperforms the baseline models derived by
+Kuppermann and his colleagues. The corresponding important features selected by our model are altered mental status, 
+the history of vomiting, basilar skull fracture(hemotympanum), severity of injury,
+loss of consciousness for more than 5 seconds, and neurological deficit(cranial nerve),
+which matches the baseline models and other models we fit to some extent. The sensitivity and the specificity is also quite stable
+when we perform the data perturbation. And our model can be generalized to the future data based on our assessment to the randomness 
+of the data and the model, the domain knowledge of the covariates and theirs relationships to TBI in EDA, and the stability discussion of
+the best classifiers.
+
 
 # References
 
