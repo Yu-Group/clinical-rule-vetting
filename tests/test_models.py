@@ -17,7 +17,7 @@ def test_models(project):
         project_ids = [project]
     else:
         project_ids = rulevetting.api.util.get_project_ids()
-    
+
     for project_id in project_ids:
         # get data
         project_dset_module_name = f'rulevetting.projects.{project_id}.dataset'

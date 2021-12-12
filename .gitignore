@@ -1,7 +1,7 @@
 **.ipynb_checkpoints
-**.pkl
+# **.pkl
 **cache*
-**.pdf
+# **.pdf
 **.zip
 **.npy
 **AutogluonModels*
@@ -29,7 +29,6 @@ venv
 
 build
 .gitmodules
-build
 dist
 
 **.gslides
@@ -39,3 +38,18 @@ dist
 experiments/data/
 !experiments/data/get_datasets.ipynb
 .hypothesis
+
+# directories
+/rule-env/
+/data/tbi_pecarn/
+/docs/projects/tbi_pecarn/~$glis Meeting Notes.docx
+/docs/projects/tbi_pecarn/.~lock.Inglis Meeting Notes.docx\#
+/activate.sh
+/rulevetting/projects/tbi_pecarn/.Rhistory
+!/rulevetting/projects/tbi_pecarn/notebooks/models
+/models/decision_tree.pkl
+
+/rulevetting/projects/tbi_pecarn/notebooks/models/decision_tree.pkl
+/rulevetting/projects/tbi_pecarn/notebooks/models/grl.pkl
+/rulevetting/projects/tbi_pecarn/notebooks/models/rulefit.pkl
+*.RData
