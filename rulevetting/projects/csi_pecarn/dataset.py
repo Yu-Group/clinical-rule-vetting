@@ -208,7 +208,7 @@ class Dataset(DatasetTemplate):
          #    df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
 
         # remove (site), case ID, subject ID, control type
-        feats = df.keys()[4:]
+        feats = df.keys()[1:]
         feats = feats.append(pd.Index(['SITE']))
 
         return df[feats]
@@ -218,13 +218,11 @@ class Dataset(DatasetTemplate):
         Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
         Ensure that there are positive points in all splits.
-
         Parameters
         ----------
         preprocessed_data
         kwargs: dict
             Dictionary of hyperparameters specifying judgement calls
-
         Returns
         -------
         df_train
