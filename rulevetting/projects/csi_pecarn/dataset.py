@@ -16,20 +16,33 @@ from rulevetting.templates.dataset import DatasetTemplate
 
 from vflow import init_args, Vset, build_Vset
 
+# This file contains the production code to generate our models
+
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
+        '''
+        This function loads the 11 dataset .csv files and merges the relevant columns into a single pandas df.
+        Inputs:
+        
+        Outputs:
+        df (pandas DataFrame): Combined but unprocessed data
+        
+        Judgement Calls:
+        - Use re-abstracted Kappa data for 365 units (in entire dataset)
+        '''
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
         
         # all the fnames to be loaded and searched over        
         fnames = sorted([fname for fname in os.listdir(raw_data_path) if 'csv' in fname])
+        
         # read through each fname and save into the r dictionary
         r = {}
         print('read all the csvs...\n', fnames)
         if len(fnames) == 0:
             print('no csvs found in path', raw_data_path)
         
-        # replace studysubjectid cases with id
+        # standardize the spelling of covariates across files and create a multiIndex to join on
         for fname in tqdm(fnames):
             df = pd.read_csv(oj(raw_data_path, fname), encoding="ISO-8859-1")
             df.columns = [re.sub('StudySubjectID','id',x,flags=re.IGNORECASE) for x in df.columns]
@@ -40,26 +53,26 @@ class Dataset(DatasetTemplate):
             df.columns = [re.sub('subinj_','SubInj_',x) for x in df.columns]
                             
             assert ('id' in df.keys())
-            df = df.set_index(['id','case_id','site','control_type']) # use a multiIndex
+            df = df.set_index(['id','case_id','site','control_type']) # these four covariates are the index
             r[fname] = df
         
-        # Get filenames we consider in our covariate analysis
         # We do not consider radiology review data
 
-        df_features = r['analysisvariables.csv'] # build from Leonard et al.'s covariates
+        df_features = r['analysisvariables.csv'] # build up from Leonard et al.'s covariates
         
         # New Data Source
         # the second most useful predictive covariates are those collected at the study site
         ss_data = r['clinicalpresentationsite.csv']
             
         # first we hand-select features after conversations with Dr. Devlin about how a patient arrives to the ED
-        # note we do not include `DxCspineInjury` at Dr. Devlin's suggestion despite its strong predictive power
+        # note we do not include `DxCspineInjury`, indicator of a suspected c-spine diagnosis before arrival,
+        # at Dr. Devlin's suggestion despite its strong predictive power
         ss_arrival_features = ['ModeArrival','ReceivedInTransfer','PtAmbulatoryPriorArrival','CervicalSpineImmobilization',\
                            'ArrPtIntub']
         ss_arrival_data = ss_data[ss_arrival_features]
         df_features = pd.merge(df_features,ss_arrival_data,how="left",left_index=True,right_index=True)
         
-        # next get AVPU and GCS test results
+        # we use AVPU and GCS test results from the study site only
         ss_eval_results = ['GCSEye','MotorGCS','VerbalGCS','TotalGCS','AVPUDetails']
         ss_eval_data = ss_data[ss_eval_results]
         df_features = pd.merge(df_features,ss_eval_data,how="left",left_index=True,right_index=True)
@@ -88,27 +101,29 @@ class Dataset(DatasetTemplate):
         
         # New Data Source
         # as the outside and field datasets contain the same covariates collected before arrival at the study site
-        # we only use this data as a robustness check. This decision was approved by Dr. Devlin
-        # we do not include medsgiven and a prior hospital or EMS, nor do we include the GCS or AVPU score outside the study site
-        # TODO: justify in report
+        # we use this data to derive patients' change in condition.
+        # we do not include medication given at a prior hospital or EMS,
+        # nor do we include the GCS or AVPU score outside the study site
             
         all_auxiliary_features = ss_arrival_features + ss_pain_features
         outside_data = r['clinicalpresentationoutside.csv']
         ems_data = r['clinicalpresentationfield.csv']
        
-        outside_covariates = [col for col in outside_data if col in all_auxiliary_features]
-        ems_covariates = [col for col in ems_data if col in all_auxiliary_features]
-        
+        # merge in outside hospital data with a suffix
+        outside_covariates = [col for col in outside_data if col in all_auxiliary_features]        
         outside_included_data = outside_data[outside_covariates]
         outside_included_data.columns = outside_included_data.columns.astype(str) + '_outside'
+        df_features = pd.merge(df_features,outside_included_data,how="left",left_index=True,right_index=True)
+
+        # merge in EMS data with a suffix
+        ems_covariates = [col for col in ems_data if col in all_auxiliary_features]
         ems_included_data = ems_data[ems_covariates]
         ems_included_data.columns = ems_included_data.columns.astype(str)  + '_ems'
-        df_features = pd.merge(df_features,outside_included_data,how="left",left_index=True,right_index=True)
         df_features = pd.merge(df_features,ems_included_data,how="left",left_index=True,right_index=True)
         
         
         # New Data Source
-        # the only demographic features we consider are AgeInYear and Gender
+        # the only demographic features we consider for prediction are AgeInYear and Gender
         # we include Race and PayorType as meaningful posthoc_covariates to evaluate fairness
         demographic_data = r['demographics.csv']
         demographic_features = ['AgeInYears','Gender','Race','PayorType']
@@ -127,9 +142,9 @@ class Dataset(DatasetTemplate):
         df_features = pd.merge(df_features,ic_summary_data,how="left",left_index=True,right_index=True)
         
         # New Data Source
-        # The injry mechanism is well-summarized by analysis variables, which indidate high risk isntance.
-        # We include some covariates from this dataset hich add nunace to the injury
-        # such as wheter the patient was wearing a helmet
+        # The injury mechanism is well-summarized by analysis variables, which indidate high risk MOIs.
+        # We include some covariates from this dataset which add nunace to the injury descriptions,
+        # such as whether the patient was wearing a helmet
         injurymechanism_data = r['injurymechanism.csv']
         im_features = ['PassRestraint','Assault','ChildAbuse','helmet','FallDownStairs']
         im_included_data = injurymechanism_data[im_features]
@@ -165,6 +180,7 @@ class Dataset(DatasetTemplate):
         # New Data Source
         # judgement call to use re-abstracted kappa infromation for appropriate units and features
         if kwargs['use_kappa']:
+            # none of the kappa variables need to be renamed
             kappa_data = r['kappa.csv']
             # drop kappa columns not in full dataset
             to_drop_kappa_cols = kappa_data.columns.difference(df_features.columns)
@@ -177,8 +193,18 @@ class Dataset(DatasetTemplate):
         return df_features
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        '''
+        This function standardizes our data format that binary 1 indicates an abnormal condition. Binary 
+        variables encoded as strings, eg Y/N or INTUB/N, are converted when possible. 
         
-        # list of categorical columns to ignore
+        Inputs:
+        cleaned_data (pandas DataFrame): Combined and cleaned datasets
+        
+        Outputs:
+        df (pandas DataFrame): Dataset with many categorical variables converted to binary and renamed covariates
+        '''
+        # list of categorical columns to ignore when binarizing
+        # TODO: refactor with the version found in eda_dataset.py which computes these
         categorical_covariates = ['Race_posthoc','PayorType_posthoc',\
                                   'OutcomeStudySite_posthoc','OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc']
         df = cleaned_data.copy()
@@ -213,20 +239,38 @@ class Dataset(DatasetTemplate):
                  
         # create one-hot encoding of AVPU data
         avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
-        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN)
+        df[avpu_columns] = df[avpu_columns].replace('N',np.NaN) # unclear encoding
 
         df[avpu_columns] = 'AVPU_' + df[avpu_columns].astype(str)
         avpu_one_hot = pd.get_dummies(df[avpu_columns])
         df = df.drop(avpu_columns,axis = 1)
         df = df.join(avpu_one_hot)
                 
+        # function which converts binary variables encoded as categorical
         df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
         
+        # function to create condition improved covariates
         df = helper.build_binary_covariates(df)
+        
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        # add engineered featuures
+        '''
+        This function creates our engineered covariates. This includes binarizing age and GCS scores.
+        Various covariate aggregations are created, inspired by Leonard et al., and their inclusion is a 
+        judgement call.
+        
+        Inputs:
+        preprocessed_data (pandas DataFrame): Mostly binary covariates with 1 indicating abnormal
+        
+        Outputs:
+        df (pandas DataFrame): Dataset with engineer covariates added 
+        
+        Judgement Calls:
+        - Age cutoffs for extracting binary variables
+        - Stairs cutoff for definiton of high risk
+        - Various possible covariate aggregations to reduce dimensionality
+        '''
         
         df = preprocessed_data.copy()
 
@@ -236,52 +280,71 @@ class Dataset(DatasetTemplate):
                                  young_adult_age_cutoff=kwargs['young_adult_age_cutoff'],
                                  stairs_cutoff=kwargs['stairs_cutoff'])
         
-        # manually remove some features
+        # manually remove some features highly correlated with c-spine injury transfer from other hospital
         features_to_remove = ['ReceivedInTransfer','CervicalSpineImmobilization']
         df.drop(features_to_remove,axis=1,inplace=True)
         
+        # possible aggreagtion groups; aggregated covariates is 1 if any of the group members are, else 0
+        # drop the group covariates after creation
+        
+        # prior medical history
         if kwargs['aggregate_medicalhistory_covariates']:
             mh_features = ['HEENT','Cardiovascular','Respiratory','Gastrointestinal',\
                            'Musculoskeletal','Neurological','Medications','Predisposed']
             df['AbnormalMedicalHistory'] = df[mh_features].max(numeric_only = True,axis=1) 
             df.drop(mh_features,axis=1,inplace=True)
         
+        # any condition improved from EMS or outside evaluation to study site admit
         if kwargs['aggregate_improved_covariates']:
             improved_features = [col_name for col_name in df.columns.astype(str) if '_improved' in col_name]
-            # df['ConditionNotImproved'] = df[improved_features].max(numeric_only = True,axis=1).replace([0,1],[1,0])
+            df['ConditionNotImproved'] = df[improved_features].max(numeric_only = True,axis=1).replace([0,1],[1,0])
             df.drop(improved_features,axis=1,inplace=True)
         
+        # patient complains of pain
         if kwargs['aggregate_comppain_covariates']:
             pt_comp_other = ['PtCompPainChest','PtCompPainFace','PtCompPainHead']
             df['PtCompPainOther'] = df[pt_comp_other].max(numeric_only = True,axis=1) 
             df.drop(pt_comp_other,axis=1,inplace=True)
-            
+        
+        # substantial injury
         if kwargs['aggregate_subinj_covariates']:
             subinj_features = ['SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk']
             df['SubInj'] = df[subinj_features].max(numeric_only = True,axis=1) 
             df.drop(subinj_features,axis=1,inplace=True)  
-            
+        
+        # doctor observes tenderness in neck region
         if kwargs['aggregate_tenderness_covariates']:
             tender_features = ['PtTenderNeck', 'PtTenderFace', 'PtTenderHead', 'PosMidNeckTenderness', 'TenderNeck']
             df['TendernessAgg'] = df[tender_features].max(numeric_only = True,axis=1) 
             df.drop(tender_features,axis=1,inplace=True) 
-            
+        
+        # high risk mechanisms of injury
         if kwargs['aggregate_highriskmoi_covariates']:
             highrisk_features = [col_name for col_name in df.columns.astype(str) if 'Highrisk' in col_name]
             highrisk_features.extend(['Clotheslining','axialloadtop'])
             df['HighriskMOI'] = df[highrisk_features].max(numeric_only = True,axis=1) 
             df.drop(highrisk_features,axis=1,inplace=True) 
-        ###
-        '''
-        # bin useful continuous variables age
-        binning_dict = {}
-        binning_dict['AgeInYears'] = (2,6,12)        
-        df = helper.bin_continuous_data(df, binning_dict)
-        ''' 
+        
         return df
     
-    def impute_data(self, preprocessed_data: pd.DataFrame, keep_na=False, **kwargs) -> pd.DataFrame:
-        df = preprocessed_data.copy()
+    def impute_data(self, featurized_data: pd.DataFrame, keep_na=False, **kwargs) -> pd.DataFrame:
+        '''
+        This function imputes the NA variables in our data. Zero imputation is used for binary variables,
+        while GCS has a more complex imputation strategy.
+        
+        Inputs:
+        featurized_data (pandas DataFrame): Dataset with all covariates constructed and some NA values
+        keep_na (Boolean): leave NA values unchanged (for use in EDA)
+        
+        Outputs:
+        df (pandas DataFrame): Dataset with NA values imputed
+        
+        Judgement Calls:
+        - Impute missing long term outcomes with healthy
+        - Impute GCS with mean or median
+        '''
+            
+        df = featurized_data.copy()
         
         # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
         # and we make a judgement call to assume that all relavent abnormal information is recorded
@@ -341,7 +404,7 @@ class Dataset(DatasetTemplate):
                 unique_values = pd.unique(char_column) # get unique entries
                 print(column,unique_values)
             '''
-        ##
+        
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
         df['GCSbelowThreshold'] = (df['TotalGCS'] < kwargs['gcs_threshold']).replace([True,False],[1,0])
 
@@ -361,8 +424,6 @@ class Dataset(DatasetTemplate):
     def split_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing.
         Do not modify (to ensure consistent test set).
-        Keep in mind any natural splits (e.g. hospitals).
-        Ensure that there are positive points in all splits.
 
         Parameters
         ----------
@@ -468,6 +529,8 @@ class Dataset(DatasetTemplate):
             Whether to run / save data pipeline for all combinations of judgement calls
         control_types: list of str, optional
             Which control types (Random, Mechanism of Injury, EMS) to include
+        keep_na: bool, optional
+            Indicator of whether to impute NA values (not implemented for perturbations, only EDA)
         Returns
         -------
         df_train

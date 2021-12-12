@@ -20,9 +20,9 @@ def assign_binary_outcome(s):
 
 def extract_numeric_data(input_df,categorical_covariates):
     '''
-    This function returns a dataframe with all character columns dropped.
+    This function returns a dataframe with all unparsable character columns dropped.
     Character variables which can be converted to binary such as 'Y'/'N' are mutated and kept
-    Column names in categorical_covariates are unchachanged by this method
+    Column names in categorical_covariates are not altered or removed by this method
     '''
     categorical_data = input_df[categorical_covariates]
     noncat_data = input_df.drop(categorical_covariates,axis=1)
@@ -73,6 +73,7 @@ def bin_continuous_data(input_df, binning_dict):
     '''
     This function bins and then one-hot encodes continuous covariates
     It returns a df with the cont. columns dropped and the new binary ones included
+    This function is not used in our final dataset.py function
     
     Inputs
     ------
@@ -186,10 +187,8 @@ def get_outcomes():
 
 
 def rename_values(df):
-    '''Map values to meanings
-    Rename some features
-    Compute a couple new features
-    set types of
+    '''
+    Map categorical values to meanings
     '''
 
     # map categorical vars values
@@ -232,7 +231,9 @@ def rename_values(df):
 
 
 def derived_feats(df,veryyoung_age_cutoff=2,nonverbal_age_cutoff=5,young_adult_age_cutoff=12,stairs_cutoff=2):
-    '''Add derived features
+    '''
+    Add derived features
+    A number of cutoffs for cont/cat variables are judgement call
     '''
     df['VeryYoung'] = (df['AgeInYears'] < veryyoung_age_cutoff)
     df['NonVerbal'] = (df['AgeInYears'] < nonverbal_age_cutoff)
@@ -245,16 +246,13 @@ def derived_feats(df,veryyoung_age_cutoff=2,nonverbal_age_cutoff=5,young_adult_a
 
     # young children have difficulty localizing pain when asked
     # if a child is NonVerbal, this feature casts a wider net for neck pain complaints by including face and head
-    # TODO: consider other regions
     pd.options.mode.chained_assignment = None
-    df['PtCompPainNeck_robust']= df['PtCompPainNeck'].copy()
     
+    df['PtCompPainNeck_robust']= df['PtCompPainNeck'].copy()
     df['PtCompPainNeck_robust'][(df['NonVerbal']==1.) & (df['VeryYoung'] == 0.) & 
                          ((df['PtCompPainNeck']==1.) | (df['PtCompPainHead']==1.) | (df['PtCompPainFace']==1.) |
                           (df['PtCompPainChest']==1.))
                          ] = 1
-    
-    # TODO: Make into a JC
     df.drop(['PtCompPainNeck'],axis=1,inplace=True)
     df = df.rename(columns={"PtCompPainNeck_robust": "PtCompPainNeck"})
         
@@ -289,7 +287,7 @@ def impute_missing_binary(df, n = 0.05):
         binary_covariates.remove('OutcomeStudySite_posthoc') # boolean but encoded as string
             
     # fill binary NaN by "0"
-    # Mean imputation removes most of the correlations in this data
+    # Likelihood-based random imputation was tried but removes most of the correlations in this data
     df[binary_covariates] = df[binary_covariates].fillna(0)
         
     return df
