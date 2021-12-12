@@ -220,13 +220,11 @@ class Dataset(DatasetTemplate):
         Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
         Ensure that there are positive points in all splits.
-
         Parameters
         ----------
         preprocessed_data
         kwargs: dict
             Dictionary of hyperparameters specifying judgement calls
-
         Returns
         -------
         df_train
