@@ -564,7 +564,7 @@ the child may not have had a TBI in the first place because CSF Rhinorrhea is no
 very correlated with the outcome. Since we would be giving a child an unneeded CT scan,
 it could be important to include this subvariable information in an ideal dataset.
 
-```{r subvariable_arg, fig.cap='Subvariables of AMS (altered mental status) and basilar skull fracture are correlated differently with the outcome.', out.width='100%', echo = FALSE}
+```{r subvariable_arg, fig.cap='Subvariables of AMS (altered mental status) and basilar skull fracture are correlated differently with the outcome.', out.width='80%', echo = FALSE}
 include_graphics('figs/subvariable_arg.png')
 ```
 
@@ -735,7 +735,11 @@ kable(py$brules, caption = "Top 5 basic model rules in order of importance")
 ```
 
 ```{r, echo=FALSE}
-kable(py$mrules, caption = "Top 5 full model rules in order of importance")
+# change names to abbreviations
+res <- py$mrules
+names(res)[4] <- "sup"
+names(res)[5] <- "imp"
+kable(res, caption = "Top 5 full model rules in order of importance")
 ```
 
 We can immediately sense the increase in complexity for the *full* model.
