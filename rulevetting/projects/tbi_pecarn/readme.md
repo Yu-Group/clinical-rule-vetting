@@ -46,6 +46,20 @@ Ian Shen (UC Berkeley Department of Statistics)
 
 Xin Zhou (UC Berkeley Department of Biostatistics)
 
+**Repository Directory**
 
-
-
++ baseline.py: Python script to implement and run baseline classifier
++ contributions.md: a list of contributions made by each group member
++ data_dictionary.md: a dictionary containing information about the final dataset and its variables
++ dataset.py: Python script to perform cleaning, preprocessing, and feature extraction
++ figs: folder of figures used in the writeup
++ helper.py: Python script containing helper functions for dataset.py
++ model_best.pkl: relevant stats for our best model (saved)
++ model_best.py: Python script to run the best model
++ notebooks: folder containing jupyter notebooks with analyses used in our writeup (see folder for readme of which notebooks were used in which part of the writeup analysis)
++ readme.md: this file
++ references.bib: references file for the writeup
++ tbi_df.rmd: documented analysis of random forests used in report
++ tbi_df.pdf: documented analysis of random forests used in report
++ writeup.rmd: writeup
++ writeup.pdf: writeup
