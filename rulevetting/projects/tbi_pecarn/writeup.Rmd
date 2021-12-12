@@ -716,7 +716,7 @@ Below are presented the top five rules for each in terms of their importance. Th
 latter is similar to the metric in the ensemble of trees, but calculated from the
 *LASSO* re-fitting [@molnar2019]:
 
-```{python basic_rules, engine.path = "../../../../rule-env/bin/python3", include=FALSE}
+```{python basic_rules, include=FALSE}
 # load the statistics from the basic
 
 import pickle as pk
@@ -1038,7 +1038,7 @@ In this paper, we utilize the same data as @kuppermann2009 (subject to cleaning 
 presenting to the emergency room for head trauma. We train and evaluate `Rulefit` models both for the age-split data as well as data that contains
 and excludes subvariable information, finding that a `Rulefit` model on the age-pooled data (excluding age-dependent covariates) with subvariable
 information performs the best in terms of sensitivity and specificity, even outperforming each of the age-specific classifiers in @kuppermann2009.
-In comparing our results to those in @kupperman2009 as well as the results of random forests,
+In comparing our results to those in @kuppermann2009 as well as the results of random forests,
 we find the corresponding important features selected by our model (altered mental status, 
 the history of vomiting, hemotympanum as an indicator of basilar skull fracture, severity of injury,
 loss of consciousness for more than 5 seconds, and cranial nerve neurological deficits, etc.)
