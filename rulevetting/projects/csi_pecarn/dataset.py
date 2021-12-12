@@ -195,7 +195,7 @@ class Dataset(DatasetTemplate):
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         '''
         This function standardizes our data format that binary 1 indicates an abnormal condition. Binary 
-        variables encoded as strings, eg Y/N or INTUB/N, are converted when possible. 
+        variables encoded as strings, eg Y/N or INTUB/NOTUB, are converted when possible. 
         
         Inputs:
         cleaned_data (pandas DataFrame): Combined and cleaned datasets
