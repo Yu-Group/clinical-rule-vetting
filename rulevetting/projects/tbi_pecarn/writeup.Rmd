@@ -532,7 +532,7 @@ verbal ability or any other factor directly associated with age.
 Since the relationship of these indicators with the outcome are invariant to age,
 we should certainly include variables like these in an age-invariant classifier.
 
-```{r no_age_dep, fig.cap = 'Distributions of outcome conditional on neurological deficit and basilar skull fracture, across both age groups (1 indicates the presence of neurological deficit/basilar skull fracture).', out.width = "100%", echo = FALSE}
+```{r no_age_dep, fig.cap = 'Distributions of outcome conditional on neurological deficit and basilar skull fracture, across both age groups (1 indicates the presence of neurological deficit/basilar skull fracture).', out.width = "80%", echo = FALSE}
 include_graphics('figs/no_age_dep.png')
 ```
 
@@ -788,31 +788,11 @@ According to these specifications, we define our evaluation measure as follows.
 \right.
 \]
 
-`@Xin: I thought we were just going to talk about the `Rulefit` model, which is what I said above, but then we immediately start talking about greedy CART, and we don't provide any figures on it, maybe just reduce the greedy CART down to just a sentence? -Jimmy`
-
-For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
-the maximum number of rules in the list (representing the complexity and the interpretability); for the `Rulefit` model, 
-the hyperparameter is the maximum length for each rule. In addition, since our  model involves random forest methods to pick the rules, 
-the performance may vary even if we choose the same hyperparameters. Therefore, for our `Rulefit` model, we also need to run the models 
-To evaluate the performance, we also aim to train one model to get similar results to the baseline model, which 
-is a rule list model.
-`FIXME: ? Andrej - we pick `Rulefit` and not CART, so this sentence is wrong`
-In our report, we pick one specific rule list model, i.e., greedy rule list (CART) model.
-The greedy rule list (CART) model consists of a list of rules, which makes it 
-simple to understand, interpret, and pick the important features.
-For both greedy rule list model and `Rulefit` model, we use the same procedure to train and validate, and evaluate
-the performance on the test data. The only difference is the hyperparameters we aim to tune in the cross-validation procudure.
-
-For the greedy rule list model, the hyperparameters are class weights (representing the importance of children experiencing TBI) and 
-the maximum number of rules in the list (representing the complexity and the interpretability); for the `Rulefit` model, 
+For the `Rulefit` model, 
 the hyperparameter is the maximum length for each rule. In addition, since our `Rulefit` model involves subsampling in generating the rules, 
 the performance may vary even if we choose same hyperparameters. Therefore, for our `Rulefit` model, we also need to run the models 
-with different random states and pick the best one as the result, given the maximum length for each rule. Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
-
-The greedy rule list model performs quite poorly. For the two datasets excluding the subvariables, the largest mean scores 
-in our CV folds are smaller than 3, which implies the sensitivity is smaller than 60\%. For the datasets including subvariables,
-although the largest mean scores are over 4, the scores on the test data are much smaller. This means the greedy rule list model
-is very sensitive to the training data and will not behave well on the test data.
+with different random states and pick the best one as the result, given the maximum length for each rule.
+Based on the cross-validation results, we pick the best hyperparameters and evaluate the performance on our test data.
 
 ```{r rule_result_on_test, echo = FALSE, fig.cap = 'ROC curves of fine-tuned Rulefit models on the test data for all five datasets.', out.width = "90%"}
 include_graphics('figs/all_ROC.png')
@@ -847,7 +827,9 @@ Other important rules involve the severity of injury, loss of consciousness leng
 neurological deficit in the cranial nerve. Note that the above coefficients are all negative, meaning that if a criterion is satisfied,
 then this is an indication that the individual may not have a TBI.
 
-`@Xin maybe put a few sentences down here about how we tried other classifiers like the greedy rulelist model, but it performed badly`
+In addition, we also tried another candidate classifier, that is, the greedy rule list model, whose structure
+is similar to the baseline model and consists of a list of rules. We performed same cross-validation procedure to tune its 
+hyperparameters and test on the withheld data. But it performed much worse than our `Rulefit` model.
 
 ### Randomness Assessment
 
@@ -1041,8 +1023,7 @@ idea that including more detailed information about the parent variables could l
 accurate diagnoses.
 
 For future work, we could fit more interpretable models. Our best classifier is a `Rulefit` model, which generally provides
-less interpretability than the rule list models in @kuppermann2009. Although we take the rule list model into account
-when picking best classifiers, the greedy (CART) rule list model does not perform well. It had lower a sensitivity and was not stable
+less interpretability than the rule list models in @kuppermann2009. Although we choose one kind of rule list model, that is, the greedy rule list model,as a candidate classifier, it does not perform well. It had lower a sensitivity and was not stable
 to data perturbations. In the future, we can try other types of rule list models to see whether we could obtain a stable model with 
 high sensitivity and specificity, as well as more interpretability. Additionally, we may apply other combinations of judgement calls to fit the models, 
 such as checking the importance of including and excluding individual subvariable groups for a particular parent variable.
