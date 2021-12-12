@@ -40,6 +40,3 @@ def test_models(project):
 
         s = baseline.print_model(df_tune)
         assert isinstance(s, str)
-
-if __name__ == "__main__":
-    test_models("tbi_pecarn")
