@@ -18,7 +18,7 @@ class Dataset(DatasetTemplate):
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         fnames = sorted(glob.glob(f'{raw_data_path}/*'))
         dfs = [pd.read_csv(fname, encoding="ISO-8859-1") for fname in fnames]
-        print(fnames)
+        #print(fnames)
 
         clean_key_col_names = lambda df: df.rename(columns={'site': 'SITE',
                                                             'caseid': 'CaseID',
@@ -161,9 +161,13 @@ class Dataset(DatasetTemplate):
         feats2 = ['AlteredMentalStatus2', 'FocalNeuroFindings2', 'Torticollis2', 'PainNeck2', 'TenderNeck2', 'PosMidNeckTenderness2', 'PtCompPainHead2', 'PtCompPainFace2', 'PtCompPainExt2', 'PtCompPainTorsoTrunk2', 'PtTenderHead2', 'PtTenderFace2', 'PtTenderExt2', 'PtTenderTorsoTrunk2', 'subinj_Head2', 'subinj_Face2', 'subinj_Ext2', 'subinj_TorsoTrunk2', 'Immobilization2', 'MedsRecd2', 'ArrPtIntub2']
         feats1 = list(set(feats1) & set(df.columns))
         feats2 = list(set(feats2) & set(df.columns))
-        if kwargs['only_site_data'] == True:
+#         if kwargs['only_site_data'] == True:
+#             df = df.drop(columns = feats2)
+#         elif kwargs['only_site_data'] == False:
+#             df = df.drop(columns = feats1)
+        if kwargs['only_site_data'] == 1:
             df = df.drop(columns = feats2)
-        elif kwargs['only_site_data'] == False:
+        elif kwargs['only_site_data'] == 2:
             df = df.drop(columns = feats1)
 
         # Only analysisVariable
@@ -208,10 +212,8 @@ class Dataset(DatasetTemplate):
          #    df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
 
         # remove (site), case ID, subject ID, control type
-        feats = df.keys()[4:]
-        feats = feats.append(pd.Index(['SITE']))
 
-        return df[feats]
+        return df
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing.
@@ -273,7 +275,7 @@ class Dataset(DatasetTemplate):
 
     def get_meta_keys(self) -> list:
         site_keys = ['EDDisposition', 'IntervForCervicalStab', 'IntervForCervicalStabSCollar', 'IntervForCervicalStabRCollar', 'IntervForCervicalStabBrace', 'IntervForCervicalStabTraction', 'IntervForCervicalStabSurgical', 'IntervForCervicalStabHalo', 'IntervForCervicalStabIntFix', 'IntervForCervicalStabIntFixtxt', 'IntervForCervicalStabOther', 'IntervForCervicalStabOthertxt', 'LongTermRehab', 'OutcomeStudySiteNeuro', 'OutcomeStudySiteMobility', 'OutcomeStudySiteMobility1', 'OutcomeStudySiteMobility2', 'OutcomeStudySiteBowel', 'OutcomeStudySiteUrine']
-        return site_keys + ['SITE', 'StudySubjectID']  # keys which are useful but not used for prediction
+        return site_keys + ['SITE', 'StudySubjectID', 'ControlType', 'CaseID']  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
@@ -285,11 +287,13 @@ class Dataset(DatasetTemplate):
                 # for unclear features whether to impute conservatively or liberally
                 'unclear_feat_default': [0, 1], 
                 # Whether to use only data from the study site or also include field and outside hospital data
-                'only_site_data': [False,True],
+#                 'only_site_data': [0, 1, 2],
+                'only_site_data': [2, 1],
                 # Whether to use augmented features or original AnalysisVariables
                 'augmented_features': [True, False],
                 # Use with control group
-                'use_control_type': ['all', 'ran', 'moi', 'ems']
+#                 'use_control_type': ['all', 'ran', 'moi', 'ems']
+                'use_control_type': ['all']
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
