@@ -1,0 +1,12 @@
+imodels
+imblearn
+matplotlib
+numpy
+pandas
+pytest
+scikit-learn>=1.0.0
+seaborn
+tqdm
+vflow
+jupyter
+jupyterlab

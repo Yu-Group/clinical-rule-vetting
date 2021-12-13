@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)http://localhost:1948/_slides_rulevetting.md#/ -->
+<html lang="en" class=" js no-mobile desktop no-ie chrome chrome96 root-section gradient rgba opacity textshadow multiplebgs boxshadow borderimage borderradius cssreflections csstransforms csstransitions no-touch no-retina fontface domloaded w-2240 gt-240 gt-320 gt-480 gt-640 gt-768 gt-800 gt-1024 gt-1280 gt-1440 gt-1680 gt-1920 no-portrait landscape" id="_slides_rulevetting-page"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>cdr vetting intro</title>
+        <link rel="stylesheet" href="./assets_files/reveal.css">
+        <link rel="stylesheet" href="./assets_files/cs_black.css" id="theme">
+        <link rel="stylesheet" href="./assets_files/atom-one-dark.css">
+        <link rel="stylesheet" href="./assets_files/paper.css" type="text/css" media="print">
+
+		<script>
+		  document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
+		  ':35729/livereload.js?snipver=1"></' + 'script>')
+		</script><script src="./assets_files/livereload.js"></script><script type="text/javascript" src="./assets_files/marked.js"></script><script type="text/javascript" src="./assets_files/markdown.js"></script><script type="text/javascript" src="./assets_files/highlight.js"></script><script type="text/javascript" src="./assets_files/zoom.js"></script><script type="text/javascript" src="./assets_files/notes.js"></script><script type="text/javascript" src="./assets_files/math.js"></script>
+
+    <script type="text/javascript" src="./assets_files/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 5px 0px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px; -khtml-border-radius: 5px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 1px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: .7em}
+.MathJax_MenuRadioCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuLabel {padding: 1px 2em 3px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #DDDDDD; margin: 4px 3px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: #606872; color: white}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style><style type="text/css">.MathJax_Display {text-align: center; margin: 1em 0em; position: relative; display: block!important; text-indent: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; width: 100%}
+.MathJax .merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MathJax .MJX-monospace {font-family: monospace}
+.MathJax .MJX-sans-serif {font-family: sans-serif}
+#MathJax_Tooltip {background-color: InfoBackground; color: InfoText; border: 1px solid black; box-shadow: 2px 2px 5px #AAAAAA; -webkit-box-shadow: 2px 2px 5px #AAAAAA; -moz-box-shadow: 2px 2px 5px #AAAAAA; -khtml-box-shadow: 2px 2px 5px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true'); padding: 3px 4px; z-index: 401; position: absolute; left: 0; top: 0; width: auto; height: auto; display: none}
+.MathJax {display: inline; font-style: normal; font-weight: normal; line-height: normal; font-size: 100%; font-size-adjust: none; text-indent: 0; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0; min-height: 0; border: 0; padding: 0; margin: 0}
+.MathJax:focus, body :focus .MathJax {display: inline-table}
+.MathJax.MathJax_FullWidth {text-align: center; display: table-cell!important; width: 10000em!important}
+.MathJax img, .MathJax nobr, .MathJax a {border: 0; padding: 0; margin: 0; max-width: none; max-height: none; min-width: 0; min-height: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+img.MathJax_strut {border: 0!important; padding: 0!important; margin: 0!important; vertical-align: 0!important}
+.MathJax span {display: inline; position: static; border: 0; padding: 0; margin: 0; vertical-align: 0; line-height: normal; text-decoration: none}
+.MathJax nobr {white-space: nowrap!important}
+.MathJax img {display: inline!important; float: none!important}
+.MathJax * {transition: none; -webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none}
+.MathJax_Processing {visibility: hidden; position: fixed; width: 0; height: 0; overflow: hidden}
+.MathJax_Processed {display: none!important}
+.MathJax_ExBox {display: block!important; overflow: hidden; width: 1px; height: 60ex; min-height: 0; max-height: none}
+.MathJax .MathJax_EmBox {display: block!important; overflow: hidden; width: 1px; height: 60em; min-height: 0; max-height: none}
+.MathJax_LineBox {display: table!important}
+.MathJax_LineBox span {display: table-cell!important; width: 10000em!important; min-width: 0; max-width: none; padding: 0; border: 0; margin: 0}
+.MathJax .MathJax_HitBox {cursor: text; background: white; opacity: 0; filter: alpha(opacity=0)}
+.MathJax .MathJax_HitBox * {filter: none; opacity: 1; background: transparent}
+#MathJax_Tooltip * {filter: none; opacity: 1; background: transparent}
+@font-face {font-family: MathJax_Blank; src: url('about:blank')}
+.MathJax .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style></head>
+    <body style="transition: -webkit-transform 0.8s ease 0s;"><div style="visibility: hidden; overflow: hidden; position: absolute; top: 0px; height: 1px; width: auto; padding: 0px; border: 0px; margin: 0px; text-align: left; text-indent: 0px; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal;"><div id="MathJax_Hidden"></div></div><div id="MathJax_Message" style="display: none;"></div>
+
+        <div class="reveal slide center has-vertical-slides has-horizontal-slides ready" role="application" data-transition-speed="default" data-background-transition="fade">
+            <div class="slides" style="width: 960px; height: 700px; zoom: 1.21646;"><section class="stack present" style="top: 0px; display: block;"><section data-markdown="" data-markdown-parsed="true" class="present" style="top: 117.5px; display: block;"><h1> CDR vetting </h1>
+
+<p><em>press esc to navigate slides</em></p>
+<p><strong>stat 215 final project</strong></p>
+<p><a href="https://github.com/Yu-Group/rule-vetting"><img src="./assets_files/GitHub-Mark-64px.png" alt=""></a></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" hidden="" style="top: 143.5px; display: block;"><h2 id="logistics">logistics</h2>
+<ul>
+<li>deadline: dec 12 - don't wait!!</li>
+<li>meeting with clinician: once week of 11/15, once week of 11/29</li>
+<li>optional group presentations after the deadline</li>
+<li>will we write a paper?</li>
+</ul>
+</section></section><section hidden="" aria-hidden="true" class="stack future" style="top: 0px; display: block;"><section data-markdown="" data-markdown-parsed="true" style="top: 175px; display: block;"><h1 id="project-overview">project overview</h1>
+<ol>
+<li><a href="https://github.com/Yu-Group/rule-vetting#contributing-checklist">project checklist</a></li>
+<li><a href="https://github.com/Yu-Group/rule-vetting/blob/master/docs/lab_writeup.md">lab writeup details</a></li>
+<li><a href="https://github.com/Yu-Group/rule-vetting/blob/master/docs/collaborating_for_data_scientists.md">clinical collaboration details</a></li>
+</ol>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 197.5px; display: block;"><h2 id="understanding-the-problem">understanding the problem</h2>
+<ul>
+<li>outcome/data are already selected for you</li>
+<li>what is important to capture in a CDR for this problem?</li>
+</ul>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="understanding-the-data">understanding the data</h2>
+<p>what features are reliable/useful/predictive?</p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="modeling">modeling</h2>
+<p><img src="./assets_files/rule_list.png" alt="rule_list"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="writeup">writeup</h2>
+<ul>
+<li>checking stability and judgement-calls</li>
+<li>comparison with baseline model</li>
+</ul>
+</section></section><section hidden="" aria-hidden="true" class="stack future" style="top: 0px; display: block;"><section data-markdown="" data-markdown-parsed="true" style="top: 257px; display: block;"><h1 id="basic-setup">basic setup</h1>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="fork-the-repo">fork the repo</h2>
+<p>make fork private + include your teammates</p>
+<p><img src="./assets_files/Screen Shot 2021-11-11 at 12.32.58 PM.png" alt="Screen Shot 2021-11-11 at 12.32.58 PM"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="why-are-we-using-python-">why are we using python 🐍?</h2>
+<p>python is better</p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-r-to-python-https-towardsdatascience-com-essential-guide-to-translating-between-python-and-r-7cb18b786e5d-"><a href="https://towardsdatascience.com/essential-guide-to-translating-between-python-and-r-7cb18b786e5d">R to python</a></h2>
+<p>indentation matters!</p>
+<table>
+<thead>
+<tr>
+<th>python</th>
+<th>R</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a=5</code></td>
+<td><code>a &lt;- 5</code></td>
+</tr>
+<tr>
+<td><code>pip install packagename</code></td>
+<td><code>install.packages(packagename)</code></td>
+</tr>
+<tr>
+<td><code>import packagename</code></td>
+<td><code>library(packagename)</code></td>
+</tr>
+<tr>
+<td><code>listname[0]</code></td>
+<td><code>listname[1]</code></td>
+</tr>
+</tbody>
+</table>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="setting-up-python">setting up python</h2>
+<ul>
+<li><p><code>python --version</code> should give 3.6 or higher (might need to type <code>python3</code>)</p>
+</li>
+<li><p>easier if you install things by making a <a href="https://docs.python.org/3/tutorial/venv.html">venv</a></p>
+</li>
+</ul>
+<pre><code class="lang-C hljs">python3 -m venv rule-env  <span class="hljs-comment">// create the env</span>
+source rule-env/bin/activate  <span class="hljs-comment">// activate the env</span>
+</code></pre>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="installation">installation</h2>
+<pre><code class="lang-bash hljs">git <span class="hljs-built_in">clone</span> https://github.com/Yu-Group/rule-vetting  // <span class="hljs-built_in">clone</span> the repo
+<span class="hljs-built_in">cd</span> rule-vetting
+pip install <span class="hljs-_">-e</span> .
+</code></pre>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="editing-in-python">editing in python</h2>
+<p>you can use any editor, maybe <a href="https://jupyterlab.readthedocs.io/en/stable/">jupyterlab</a> or <a href="https://www.jetbrains.com/pycharm/">pycharm</a></p>
+<p><img src="./assets_files/Screen Shot 2021-11-11 at 4.11.24 PM.png" alt="Screen Shot 2021-11-11 at 4.11.24 PM"></p>
+</section></section><section hidden="" aria-hidden="true" class="stack future" style="top: 350px; display: none;"><section data-markdown="" data-markdown-parsed="true" style="top: 350px; display: none;"><h1 id="core-data-science-packages-in-python">core data-science packages in python</h1>
+<p>pandas, numpy, sklearn, seaborn/matplotlib</p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-pandas-https-pandas-pydata-org-"><a href="https://pandas.pydata.org/">pandas</a></h2>
+<p><img src="./assets_files/pandas.png" alt="pandas"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-numpy-https-numpy-org-"><a href="https://numpy.org/">numpy</a></h2>
+<p><img src="./assets_files/Screen Shot 2021-11-10 at 11.58.54 AM.png" alt="Screen Shot 2021-11-10 at 11.58.54 AM"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-seaborn-https-seaborn-pydata-org-matplotlib-https-matplotlib-org-"><a href="https://seaborn.pydata.org/">seaborn</a> / <a href="https://matplotlib.org/">matplotlib</a></h2>
+<pre><code class="lang-python hljs">sns.lmplot(x=<span class="hljs-string">"x"</span>, y=<span class="hljs-string">"y"</span>, col=<span class="hljs-string">"dataset"</span>, hue=<span class="hljs-string">"dataset"</span>, data=df,
+           col_wrap=<span class="hljs-number">2</span>, ci=<span class="hljs-keyword">None</span>, palette=<span class="hljs-string">"muted"</span>, height=<span class="hljs-number">4</span>,
+           scatter_kws={<span class="hljs-string">"s"</span>: <span class="hljs-number">50</span>, <span class="hljs-string">"alpha"</span>: <span class="hljs-number">1</span>})
+</code></pre>
+<p><img src="./assets_files/Screen Shot 2021-11-10 at 12.01.27 PM.png" alt="Screen Shot 2021-11-10 at 12.01.27 PM"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-scikit-learn-https-scikit-learn-org-stable-index-html-"><a href="https://scikit-learn.org/stable/index.html">scikit-learn</a></h2>
+<p><img src="./assets_files/ml_map.png" alt=""></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="scikit-learn-example">scikit-learn example</h2>
+<pre><code class="lang-python hljs"><span class="hljs-keyword">from</span> sklearn <span class="hljs-keyword">import</span> tree
+X = [[<span class="hljs-number">0</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>]]
+Y = [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]
+clf = tree.DecisionTreeClassifier()
+clf = clf.fit(X, Y)
+clf.predict([[<span class="hljs-number">2.</span>, <span class="hljs-number">2.</span>]])
+</code></pre>
+</section></section><section hidden="" aria-hidden="true" class="stack future" style="top: 350px; display: none;"><section data-markdown="" data-markdown-parsed="true" style="top: 350px; display: none;"><h1 id="custom-cdr-packages">custom CDR packages</h1>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-imodels-https-github-com-csinva-imodels-">🔎 <a href="https://github.com/csinva/imodels">imodels</a></h2>
+<p><img src="./assets_files/Screen Shot 2021-11-03 at 11.29.24 AM.png" alt="Screen Shot 2021-11-03 at 11.29.24 AM"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="imodels-usage">imodels usage</h2>
+<pre><code class="lang-python hljs"><span class="hljs-keyword">from</span> imodels <span class="hljs-keyword">import</span> RuleFitClassifier
+model = RuleFitClassifier()
+model.fit(X_train, y_train)
+preds = model.predict(X_test)
+preds_proba = model.predict_proba(X_test)
+print(model)
+</code></pre>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-https-camo-githubusercontent-com-877680cfefd1fb7cb3c240b9aca3f4cade12972550236807b2d103ba281cb3eb-68747470733a2f2f79752d67726f75702e6769746875622e696f2f76657269646963616c2d666c6f772f6c6f676f5f76666c6f775f73747261696768742e6a7067-"><img src="./assets_files/68747470733a2f2f79752d67726f75702e6769746875622e696f2f76657269646963616c2d666c6f772f6c6f676f5f76666c6f775f73747261696768742e6a7067" alt=""></h2>
+<p>package for facilitating PCS analysis, especially stability</p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="vflow-usage">vflow usage</h2>
+<ul>
+<li>implemented in the dataset template - will help speed things up for you</li>
+</ul>
+</section></section><section hidden="" aria-hidden="true" class="stack future" style="top: 350px; display: none;"><section data-markdown="" data-markdown-parsed="true" style="top: 350px; display: none;"><h1 id="project-specifics">project specifics</h1>
+<p><a href="https://github.com/Yu-Group/rule-vetting#contributing-checklist">project checklist</a></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="quick-start">quick start</h2>
+<ul>
+<li>look at the example project (<a href="https://github.com/Yu-Group/rule-vetting/tree/master/rulevetting/projects/iai_pecarn">iai_pecarn</a>)</li>
+<li>look at the template files</li>
+<li>probably just start with some notebooks and then implement template functions</li>
+</ul>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="understanding-the-template">understanding the template</h2>
+<p><img src="./assets_files/Screen Shot 2021-11-11 at 11.23.43 AM.png" alt="Screen Shot 2021-11-11 at 11.23.43 AM"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="specifying-judgement-calls">specifying judgement calls</h2>
+<p><img src="./assets_files/Screen Shot 2021-11-11 at 1.44.27 PM.png" alt="Screen Shot 2021-11-11 at 1.44.27 PM"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="ex-function-with-a-judgement-call">ex function with a judgement call</h2>
+<p><img src="./assets_files/Screen Shot 2021-11-11 at 11.25.27 AM.png" alt="Screen Shot 2021-11-11 at 11.25.27 AM"></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="tests">tests</h2>
+<p><code>pytest --project &lt;your_project_name&gt;</code></p>
+<p>e.g. <code>pytest --project iai_pecarn</code></p>
+</section><section data-markdown="" data-markdown-parsed="true" class="future" aria-hidden="true" style="top: 350px; display: none;"><h2 id="-ex-notebooks-https-github-com-yu-group-rule-vetting-tree-master-rulevetting-projects-iai_pecarn-notebooks-"><a href="https://github.com/Yu-Group/rule-vetting/tree/master/rulevetting/projects/iai_pecarn/notebooks">ex notebooks</a></h2>
+</section></section></div>
+        <div class="backgrounds"><div class="slide-background stack present" data-loaded="true" style="display: block;"><div class="slide-background present" data-loaded="true" style="display: block;"></div><div class="slide-background future" data-loaded="true" style="display: block;"></div></div><div class="slide-background stack future" data-loaded="true" style="display: block;"><div class="slide-background present" data-loaded="true" style="display: block;"></div><div class="slide-background future" data-loaded="true" style="display: block;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div></div><div class="slide-background stack future" data-loaded="true" style="display: block;"><div class="slide-background present" data-loaded="true" style="display: block;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div></div><div class="slide-background stack future" style="display: none;"><div class="slide-background present" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div></div><div class="slide-background stack future" style="display: none;"><div class="slide-background present" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div></div><div class="slide-background stack future" style="display: none;"><div class="slide-background present" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div><div class="slide-background future" style="display: none;"></div></div></div><div class="progress" style="display: block;"><span style="width: 0px;"></span></div><aside class="controls" data-controls-layout="bottom-right" data-controls-back-arrows="faded" style="display: block;"><button class="navigate-left" aria-label="previous slide" disabled="disabled"><div class="controls-arrow"></div></button><button class="navigate-right enabled" aria-label="next slide"><div class="controls-arrow"></div></button><button class="navigate-up" aria-label="above slide" disabled="disabled"><div class="controls-arrow"></div></button><button class="navigate-down enabled highlight" aria-label="below slide"><div class="controls-arrow"></div></button></aside><div class="slide-number" style="display: none;"></div><div class="speaker-notes" data-prevent-swipe="" tabindex="0"></div><div class="pause-overlay"></div><div id="aria-status-div" aria-live="polite" aria-atomic="true" style="position: absolute; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px);"> CDR vetting 
+
+press esc to navigate slides
+stat 215 final project
+
+</div></div>
+
+        <script src="./assets_files/head.min.js"></script>
+        <script src="./assets_files/reveal.js"></script>
+
+        <script>
+            function extend() {
+              var target = {};
+              for (var i = 0; i < arguments.length; i++) {
+                var source = arguments[i];
+                for (var key in source) {
+                  if (source.hasOwnProperty(key)) {
+                    target[key] = source[key];
+                  }
+                }
+              }
+              return target;
+            }
+
+            // Optional libraries used to extend on reveal.js
+            var deps = [
+              { src: '/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+              { src: '/plugin/markdown/marked.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+              { src: '/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+              { src: '/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+              { src: '/plugin/zoom-js/zoom.js', async: true },
+              { src: '/plugin/notes/notes.js', async: true },
+              { src: '/plugin/math/math.js', async: true }
+            ];
+
+            // default options to init reveal.js
+            var defaultOptions = {
+              controls: true,
+              progress: true,
+              history: true,
+              center: true,
+              transition: 'default', // none/fade/slide/convex/concave/zoom
+              dependencies: deps
+            };
+
+            // options from URL query string
+            var queryOptions = Reveal.getQueryHash() || {};
+
+            var options = {"transition":"slide"};
+            options = extend(defaultOptions, options, queryOptions);
+        </script>
+
+
+        <script>
+            Reveal.initialize(options);
+        </script>
+    
+
+<div style="position: absolute; width: 0px; height: 0px; overflow: hidden; padding: 0px; border: 0px; margin: 0px;"><div id="MathJax_Font_Test" style="position: absolute; visibility: hidden; top: 0px; left: 0px; width: auto; padding: 0px; border: 0px; margin: 0px; white-space: nowrap; text-align: left; text-indent: 0px; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; font-size: 40px; font-weight: normal; font-style: normal; font-family: STIXSizeOneSym, sans-serif;"></div></div></body></html>
