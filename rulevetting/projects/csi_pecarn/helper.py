@@ -277,7 +277,7 @@ def impute_missing_binary(df, n = 0.05):
     robust_an_names = [covar_name for covar_name in an_names if covar_name in df.columns]
     
     df.loc[:,'missing_rate'] = df[robust_an_names].isna().sum(axis = 1)/len(robust_an_names) # calculate missing fraction
-    df = df[df.loc[:,'missing_rate'] < n] # drop observations with missing rate higer than n-fraction
+    df = df[df.loc[:,'missing_rate'] < (n + 0.01)] # drop observations with missing rate higer than n-fraction
     df.drop('missing_rate', axis=1, inplace=True)
     pd.options.mode.chained_assignment = 'warn'
     

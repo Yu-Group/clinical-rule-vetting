@@ -347,10 +347,10 @@ class Dataset(DatasetTemplate):
         
         # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
         # and we make a judgement call to assume that all relavent abnormal information is recorded
-                      
-        pd.options.mode.chained_assignment = None
-        
+                              
         if not keep_na:
+            pd.options.mode.chained_assignment = None
+
             gcs_columns = [col for col in df.columns if 'gcs' in col.lower()]
             # GCS imputation by AlteredMentalStatus is very well justified by EDA, so we don't make it a automated JC
             # This is approved by Dr. Devlin and Dr. Kornblith
@@ -394,19 +394,13 @@ class Dataset(DatasetTemplate):
                                 .fillna(np.nanmean(df[col][(df['AlteredMentalStatus']==1)]))
                         
                 df['TotalGCS'] = df['GCSEye'] + df['MotorGCS'] + df['VerbalGCS'] 
+                pd.options.mode.chained_assignment = 'warn'
                 
             else: df = df.dropna(subset=['TotalGCS']) # drop any units with GCS missing, note all GCS are jointly missing
 
-            '''
-            for column in df.columns:
-                char_column = df[column] # select column
-                unique_values = pd.unique(char_column) # get unique entries
-                print(column,unique_values)
-            '''
-        
+        pd.options.mode.chained_assignment = None
         df['GCSnot15'] = (df['TotalGCS'] != 15).replace([True,False],[1,0])
         df['GCSbelowThreshold'] = (df['TotalGCS'] < kwargs['gcs_threshold']).replace([True,False],[1,0])
-
         pd.options.mode.chained_assignment = 'warn'
 
         numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
@@ -495,7 +489,7 @@ class Dataset(DatasetTemplate):
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
-                'frac_missing_allowed': [0.05, 0.1],
+                'frac_missing_allowed': [0, 0.05, 0.1],
                 'impute_gcs':[True],
                 'impute_gcs_method':['median','mean'],
                 'gcs_threshold':[8,11],
