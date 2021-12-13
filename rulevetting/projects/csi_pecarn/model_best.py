@@ -57,16 +57,27 @@ class SpecialTree:
                 pred.append(0)
 
         return pred
+    
+    def predict_proba(self, data):
+
+        pred_binary = self.predict(data)
+        
+        # refactored from
+        # https://stackoverflow.com/questions/29831489/convert-array-of-indices-to-1-hot-encoded-numpy-array
+        prob_result = np.zeros((pred_binary.size, 2))
+        prob_result[np.arange(pred_binary.size),pred_binary] = 1
+        
+        return prob_result
 
     def print_model(self, data):
 
         pred = self.predict(data)
 
-        n1 = pred.count(1)
-        n0 = pred.count(0)
+        n1 = sum(pred)
+        n0 = len(pred) - n1
 
-        print('Classification summary: '+str(n1) +' patients labeled 1 and ' +str(n0) + ' patients labeled 0.')
+        s = 'Classification summary: '+str(n1) +' patients labeled 1 and ' +str(n0) + ' patients labeled 0.'
 
-        return
-
+        return s
+ 
 
