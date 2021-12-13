@@ -478,17 +478,17 @@ class Dataset(DatasetTemplate):
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
             'clean_data': { 
-                'use_kappa':[False],# True],
+                'use_kappa':[False, True],
             },
             'preprocess_data': { 
             },'extract_features': { 
                 # age cutoffs choices based on rules shared by Dr. Devlin
-                'veryyoung_age_cutoff':[2, 1],
+                'veryyoung_age_cutoff':[2],# 1],
                 'nonverbal_age_cutoff':[5],#4],
-                'young_adult_age_cutoff':[12,10],
+                'young_adult_age_cutoff':[12],#10],
                 'stairs_cutoff':[2],
                 'aggregate_medicalhistory_covariates':[False],
-                'aggregate_improved_covariates':[True, False],
+                'aggregate_improved_covariates':[True],# False],
                 'aggregate_comppain_covariates':[False],
                 'aggregate_subinj_covariates':[False],
                 'aggregate_tenderness_covariates':[False],
@@ -496,10 +496,10 @@ class Dataset(DatasetTemplate):
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
-                'frac_missing_allowed': [0.05, 0.1],
+                'frac_missing_allowed': [0.05],# 0.1],
                 'impute_gcs':[True],
-                'impute_gcs_method':['median','mean'],
-                'gcs_threshold':[8,11],
+                'impute_gcs_method':['median'],#'mean'],
+                'gcs_threshold':[8],#11],
                 'impute_outcomes':[True],
             },
             'split_data': {
