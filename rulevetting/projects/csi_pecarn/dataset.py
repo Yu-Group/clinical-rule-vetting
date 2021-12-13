@@ -279,7 +279,8 @@ class Dataset(DatasetTemplate):
         return {
             'clean_data': {
                 # Include features about clinical intervention received before arrival
-                'include_intervention': [True, False],
+                #'include_intervention': [True, False],
+                'include_intervention': [False, True] # after stability analysis new jcall
             },
             'preprocess_data': {
                 # for unclear features whether to impute conservatively or liberally
@@ -288,7 +289,8 @@ class Dataset(DatasetTemplate):
 #                 'only_site_data': [0, 1, 2],
                 'only_site_data': [2, 1],
                 # Whether to use augmented features or original AnalysisVariables
-                'augmented_features': [True, False],
+                #'augmented_features': [True, False],
+                'augmented_features': [False, True], # after stability analysis new jcall
                 # Use with control group
 #                 'use_control_type': ['all', 'ran', 'moi', 'ems']
                 'use_control_type': ['all']
