@@ -16,8 +16,8 @@ class Baseline(ModelTemplate):
             ('PainNeck2>0', 13.3),
             ('subinj_TorsoTrunk2>0', 7.2),
             ('HighriskMVC>0', 6.1),
-
             # final condition is just something that is always true
+            ('HighriskMVC==HighriskMVC', 1.6),
         ]
 
     def _traverse_rule(self, df_features: pd.DataFrame):
@@ -31,11 +31,10 @@ class Baseline(ModelTemplate):
             df_rhs = df.query(query)
             idxs_satisfying_rule = df_rhs.index
             predicted_probabilities.loc[idxs_satisfying_rule] = prob
-
             df.drop(index=idxs_satisfying_rule, inplace=True)
             computed_prob = 100 * df_rhs[o].sum() / df_rhs.shape[0]
             query_print = query.replace(' == 1', '')
-            if j < len(self.rules):
+            if j < len(self.rules)-1:
                 str_print += f'\033[96mIf {query_print:<35}\033[00m \u2192 {df_rhs[o].sum():>3} / {df_rhs.shape[0]:>4} ({computed_prob:0.1f}%)\n\t\u2193 \n   {df[o].sum():>3} / {df.shape[0]:>5}\t \n'
         predicted_probabilities = predicted_probabilities.values
         self.str_print = str_print
@@ -61,6 +60,5 @@ if __name__ == '__main__':
     model = Baseline()
     preds_proba = model.predict_proba(df_full)
     print(model.print_model(df_full))
-    # preds = baseline.predict(df_train)
-    # print('preds_proba', preds_proba.shape, preds_proba[:5])
-    # print('preds', preds.shape, preds[:5])
+    # for i in preds_proba:
+    #     print(i)
