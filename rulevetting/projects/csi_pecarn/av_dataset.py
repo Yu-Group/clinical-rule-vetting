@@ -14,6 +14,9 @@ import rulevetting.api.util
 from rulevetting.projects.csi_pecarn import helper
 from rulevetting.templates.dataset import DatasetTemplate
 
+'''
+This is a deprecated version of the dataset function which only loads analysis variables
+'''
 
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:

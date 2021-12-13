@@ -12,11 +12,25 @@ from joblib import Memory
 import rulevetting
 import rulevetting.api.util
 from rulevetting.projects.csi_pecarn import helper
+from rulevetting.projects.csi_pecarn import eda_helper
 from rulevetting.templates.dataset import DatasetTemplate
 
+# This file contains an altered version of `dataset.py` that allows for generation of EDA plots
+# The main difference between the files is that the entire set of covariates is initially imported
 
 class Dataset(DatasetTemplate):
     def clean_data(self, data_path: str = rulevetting.DATA_PATH, **kwargs) -> pd.DataFrame:
+        '''
+        This function loads the 11 dataset .csv files and merges the relevant columns into a single pandas df.
+        Inputs:
+        
+        Outputs:
+        df (pandas DataFrame): Combined but unprocessed data
+        
+        Judgement Calls:
+        - Use re-abstracted Kappa data for 365 units (in entire dataset)
+        '''
+        
         raw_data_path = oj(data_path, self.get_dataset_id(), 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
         
@@ -101,7 +115,8 @@ class Dataset(DatasetTemplate):
             df.loc[kappa_data.index,kappa_data.columns] = kappa_data
         
         # remove 35 text columns
-        txt_columns = [col_name for col_name in df.columns.astype(str) if col_name.__contains__('txt')]
+        txt_columns = [col_name for col_name in df.columns.astype(str) if col_name.lower().__contains__('txt')]
+        txt_columns.extend([col_name for col_name in df.columns.astype(str) if col_name.lower().__contains__('desc')])
         df.drop(txt_columns,axis=1,inplace=True)
         
         # remove duplicate from analysis variables
@@ -119,9 +134,17 @@ class Dataset(DatasetTemplate):
         return (df, r)
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, datasets, **kwargs) -> pd.DataFrame:
-        # list of categorical columns to ignore
-        categorical_covariates = ['Race_posthoc','PayorType_posthoc','Ethnicity_posthoc',\
-                                  'OutcomeStudySite_posthoc','OutcomeStudySiteMobility_posthoc','OutcomeStudySiteNeuro_posthoc']
+        '''
+        This function standardizes our data format that binary 1 indicates an abnormal condition. Binary 
+        variables encoded as strings, eg Y/N or INTUB/NOTUB, are converted when possible. 
+        
+        Inputs:
+        cleaned_data (pandas DataFrame): Combined and cleaned datasets
+        
+        Outputs:
+        df (pandas DataFrame): Dataset with many categorical variables converted to binary and renamed covariates
+        '''
+        
         df = cleaned_data
         oss_columns = [c for c in df.columns.astype(str) if "OutcomeStudySite" in c]
         df.columns = [c +'_posthoc' if c in oss_columns else c for c in df.columns]
@@ -180,13 +203,7 @@ class Dataset(DatasetTemplate):
                                               if covar_name not in moi_covar_keep]
         print("MOI Removed:",len(moi_removed))
         df.drop(moi_removed,axis=1,inplace=True)
-        
-        # drop uniformative columns which only contains a single value
-        # should be 0
-        no_information_columns = df.columns[df.nunique() <= 1]
-        df.drop(no_information_columns, axis=1, inplace=True)
-        print("# no information:", len(no_information_columns))
-        
+                
         # create one-hot encoding of AVPU data
         avpu_columns = [col for col in df.columns if 'avpu' in col.lower()]
         df[avpu_columns] = df[avpu_columns].replace('N',np.NaN).replace('Y',np.NaN)
@@ -196,29 +213,74 @@ class Dataset(DatasetTemplate):
         df = df.drop(avpu_columns,axis = 1)
           
         df = df.join(avpu_one_hot)
-        df = helper.extract_numeric_data(df,categorical_covariates=categorical_covariates)
+        
+        df = eda_helper.extract_numeric_data(df)
+        
         df = helper.build_binary_covariates(df)
         
+        # drop uniformative columns which only contains a single value
+        to_remove = []
+        for column in df.columns:
+            char_column = df[column] # select column
+            if (len(pd.unique(char_column)) == 1) | (len(pd.unique(char_column.dropna())) == 1): to_remove.append(column)
+        df.drop(to_remove,axis=1,inplace=True)
+        
+        print("# no information:", len(to_remove))
+        
+        # remove unnecessary categorical columns including outside and EMS GCS
+        df_numeric = df.select_dtypes([np.number])
+        cont_columns = df_numeric.columns[df_numeric.nunique()!=2]
+        keep_cont_columns = ['GCSEye', 'VerbalGCS', 'MotorGCS', 'TotalGCS', 'AgeInYears', 'FallDownStairs']
+        drop_cont_columns = [col for col in cont_columns if col not in keep_cont_columns]
+        df.drop(drop_cont_columns,axis=1,inplace=True)
+        print(drop_cont_columns)
         return df
 
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        # add engineered featuures
+        '''
+        This function creates our engineered covariates. This includes binarizing age and GCS scores.
+        Various covariate aggregations are created, inspired by Leonard et al., and their inclusion is a 
+        judgement call.
+        
+        Inputs:
+        preprocessed_data (pandas DataFrame): Mostly binary covariates with 1 indicating abnormal
+        
+        Outputs:
+        df (pandas DataFrame): Dataset with engineer covariates added 
+        
+        Judgement Calls:
+        - Age cutoffs for extracting binary variables
+        - Stairs cutoff for definiton of high risk
+        - Various possible covariate aggregations to reduce dimensionality
+        '''
+            
         df = preprocessed_data     
         df = helper.rename_values(df)
         df = helper.derived_feats(df,veryyoung_age_cutoff=kwargs['veryyoung_age_cutoff'],\
                                   nonverbal_age_cutoff=kwargs['nonverbal_age_cutoff'],\
                                  young_adult_age_cutoff=kwargs['young_adult_age_cutoff'])
         
-        '''
-        # bin useful continuous variables age
-        binning_dict = {}
-        binning_dict['AgeInYears'] = (2,6,12)        
-        df = helper.bin_continuous_data(df, binning_dict)
-        ''' 
         
         return df
     
     def impute_data(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+        '''
+        This function imputes the NA variables in our data. Zero imputation is used for binary variables,
+        while GCS has a more complex imputation strategy.
+        
+        Inputs:
+        featurized_data (pandas DataFrame): Dataset with all covariates constructed and some NA values
+        keep_na (Boolean): leave NA values unchanged (for use in EDA)
+        
+        Outputs:
+        df (pandas DataFrame): Dataset with NA values imputed
+        
+        Judgement Calls:
+        - Impute missing long term outcomes with healthy
+        - Impute GCS with mean or median
+        '''
+        # this is a depracated version of the imputation function...
+        
         df = preprocessed_data
 
         # impute missing binary variables with 0; this is justified because abnormal responses are encoded as 1
@@ -277,20 +339,18 @@ class Dataset(DatasetTemplate):
         df['GCS_NA_eye'] = pd.isna(df['GCSEye']).replace([True,False],[1,0])
         df['GCS_NA_motor'] = pd.isna(df['MotorGCS']).replace([True,False],[1,0])
         df['GCS_NA_verbal'] = pd.isna(df['VerbalGCS']).replace([True,False],[1,0])
-        '''
+        
         
         for column in df.columns:
             char_column = df[column] # select column
             unique_values = pd.unique(char_column) # get unique entries
-        
+        '''
         # as a judgement call check, we can impute missing booleans with zero or with 
         # a bernoulli draw of their observed probability        
         
         df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) 
         
-        numeric_data = df.select_dtypes([np.number]) # separate data that is already numeric
-        numeric_data = numeric_data.astype(float) # cast numeric data as float
-        char_data = df.select_dtypes([np.object]) # gets columns encoded as strings
+        df = df.apply(pd.to_numeric, errors='ignore')
         
         df = pd.merge(numeric_data,char_data,how="left",left_index=True,right_index=True)
         
@@ -314,6 +374,13 @@ class Dataset(DatasetTemplate):
         df_tune
         df_test
         """
+        # remove any columns with no information
+        to_remove = []
+        for column in preprocessed_data.columns:
+            char_column = preprocessed_data[column] # select column
+            if (len(pd.unique(char_column)) == 1) | (len(pd.unique(char_column.dropna())) == 1): to_remove.append(column)
+        preprocessed_data.drop(to_remove,axis=1,inplace=True)
+        
         print('split_data kwargs', kwargs)
         if 'none' in kwargs['control_types']: return tuple([preprocessed_data,None,None])
         
@@ -366,7 +433,7 @@ class Dataset(DatasetTemplate):
                 # age cutoffs choices based on rules shared by Dr. Devlin
                 'veryyoung_age_cutoff':[2,1,1.5],
                 'nonverbal_age_cutoff':[5,4,6],
-                'young_adult_age_cutoff':[11,15],
+                'young_adult_age_cutoff':[12,15],
             },
             'impute_data': { 
                 # drop units with missing this percent of analysis variables or more
