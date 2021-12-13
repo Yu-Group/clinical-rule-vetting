@@ -153,7 +153,7 @@ class Dataset(DatasetTemplate):
           inplace = True)
         
         # add a binary outcome variable for CSI injury 
-        df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
+        df.loc[:,'outcome'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
 
         # convert numeric columns encoded as strings
         numeric_as_str_cols = ['TotalGCS', 'ModeArrival']
@@ -410,7 +410,7 @@ class Dataset(DatasetTemplate):
         return tuple([df_train,df_tune,df_test])
 
     def get_outcome_name(self) -> str:
-        return 'csi_injury'  # return the name of the outcome we are predicting
+        return 'outcome'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
         return 'csi_pecarn'  # return the name of the dataset id

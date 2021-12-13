@@ -12,6 +12,8 @@ from joblib import Memory
 import rulevetting
 import rulevetting.api.util
 from rulevetting.projects.csi_pecarn import helper
+from rulevetting.projects.csi_pecarn import eda_helper
+
 from rulevetting.templates.dataset import DatasetTemplate
 
 '''
@@ -72,15 +74,15 @@ class Dataset(DatasetTemplate):
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         print('preprocess_data kwargs', kwargs)
-        df = helper.extract_numeric_data(cleaned_data)
+        df = eda_helper.extract_numeric_data(cleaned_data)
                 
         # impute missing values
-        df = helper.impute_missing(df, n=kwargs['frac_missing_allowed']) # drop some observations and impute other missing values 
+        df = helper.impute_missing_binary(df, n=kwargs['frac_missing_allowed']) # drop some observations and impute other missing values 
         # drop cols with vals missing this percent of the time
         #df = df.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
 
         # add a binary outcome variable for CSI injury 
-        df.loc[:,'csi_injury'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
+        df.loc[:,'outcome'] = df.index.get_level_values('control_type').map(helper.assign_binary_outcome)
         
         # drop uniformative columns which only contains a single value
         no_information_columns = df.columns[df.nunique() <= 1]
@@ -134,7 +136,7 @@ class Dataset(DatasetTemplate):
         return tuple([df_train,df_tune,df_test])
 
     def get_outcome_name(self) -> str:
-        return 'csi_injury'  # return the name of the outcome we are predicting
+        return 'outcome'  # return the name of the outcome we are predicting
 
     def get_dataset_id(self) -> str:
         return 'csi_pecarn'  # return the name of the dataset id

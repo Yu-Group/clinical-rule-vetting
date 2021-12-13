@@ -37,15 +37,15 @@ def find_best(data, v_list, method = "gini"):
         if nv == 0:
             score[i] = 2
         else:
-            v1c1 = data[(data[variable] == 1) & (data['csi_injury'] == 1)].shape[0]
-            v1c0 = data[(data[variable] == 1) & (data['csi_injury'] == 0)].shape[0]
+            v1c1 = data[(data[variable] == 1) & (data['outcome'] == 1)].shape[0]
+            v1c0 = data[(data[variable] == 1) & (data['outcome'] == 0)].shape[0]
             if (v1c1+v1c0) == 0:
                 p1 = 0
             else:
                 p1 = v1c1/(v1c1+v1c0)
             
-            v0c1 = data[(data[variable] == 0) & (data['csi_injury'] == 1)].shape[0]
-            v0c0 = data[(data[variable] == 0) & (data['csi_injury'] == 0)].shape[0]
+            v0c1 = data[(data[variable] == 0) & (data['outcome'] == 1)].shape[0]
+            v0c0 = data[(data[variable] == 0) & (data['outcome'] == 0)].shape[0]
             if (v0c1+v0c0) == 0:
                 p2 = 0
             else:
@@ -82,14 +82,14 @@ def find_best_two(data, v_list, method = "gini"):
     score = [1]*v
     for i in range(v):
         variable = v_list[i]
-        v1c1 = data[(data[variable] == 1) & (data['csi_injury'] == 1)].shape[0]
-        v1c0 = data[(data[variable] == 1) & (data['csi_injury'] == 0)].shape[0]
+        v1c1 = data[(data[variable] == 1) & (data['outcome'] == 1)].shape[0]
+        v1c0 = data[(data[variable] == 1) & (data['outcome'] == 0)].shape[0]
         if (v1c1+v1c0) == 0:
             p1 = 1/2
         else:
             p1 = v1c1/(v1c1+v1c0)
-        v0c1 = data[(data[variable] == 0) & (data['csi_injury'] == 1)].shape[0]
-        v0c0 = data[(data[variable] == 0) & (data['csi_injury'] == 0)].shape[0]
+        v0c1 = data[(data[variable] == 0) & (data['outcome'] == 1)].shape[0]
+        v0c0 = data[(data[variable] == 0) & (data['outcome'] == 0)].shape[0]
         if (v0c1+v0c0) == 0:
             p2 = 1/2
         else:
@@ -113,21 +113,21 @@ def find_best_two(data, v_list, method = "gini"):
         variable_best_two = [variable_best, "no observations"]
         return [variable_best_two, v_list, data_update]
     
-    p0 = data_selected[data_selected['csi_injury'] == 1].shape[0]/n0
+    p0 = data_selected[data_selected['outcome'] == 1].shape[0]/n0
     score0 = p0*(1-p0)
     
     score = [1]*(v-1)
     for i in range(v-1):
         variable = v_list[i]
         
-        v1c1 = data_selected[(data_selected[variable] == 1) & (data_selected['csi_injury'] == 1)].shape[0]
-        v1c0 = data_selected[(data_selected[variable] == 1) & (data_selected['csi_injury'] == 0)].shape[0]
+        v1c1 = data_selected[(data_selected[variable] == 1) & (data_selected['outcome'] == 1)].shape[0]
+        v1c0 = data_selected[(data_selected[variable] == 1) & (data_selected['outcome'] == 0)].shape[0]
         if (v1c1+v1c0) == 0:
             p1 = 1/2
         else:
             p1 = v1c1/(v1c1+v1c0)
-        v0c1 = data_selected[(data_selected[variable] == 0) & (data_selected['csi_injury'] == 1)].shape[0]
-        v0c0 = data_selected[(data_selected[variable] == 0) & (data_selected['csi_injury'] == 0)].shape[0]
+        v0c1 = data_selected[(data_selected[variable] == 0) & (data_selected['outcome'] == 1)].shape[0]
+        v0c0 = data_selected[(data_selected[variable] == 0) & (data_selected['outcome'] == 0)].shape[0]
         if (v0c1+v0c0) == 0:
             p2 = 1/2
         else:
@@ -192,7 +192,7 @@ def evaluate_vlist(data, v_list, method = 'one'):
     generate the sensitity and sepecifity for v_list on data
     '''
     
-    data0 = pd.DataFrame({'csi_injury': data['csi_injury']})
+    data0 = pd.DataFrame({'outcome': data['outcome']})
     
     if method == "one":
         indicator = data[v_list].sum(axis = 1)
@@ -200,10 +200,10 @@ def evaluate_vlist(data, v_list, method = 'one'):
     if method == "two":
         data0['pred'] = make_decision_data(data, v_list)
 
-    TN = data0[ (data0['pred'] == 0) & (data0['csi_injury'] == 0)].shape[0]
-    TP = data0[ (data0['pred'] == 1) & (data0['csi_injury'] == 1)].shape[0]
-    FN = data0[ (data0['pred'] == 0) & (data0['csi_injury'] == 1)].shape[0]
-    FP = data0[ (data0['pred'] == 1) & (data0['csi_injury'] == 0)].shape[0]
+    TN = data0[ (data0['pred'] == 0) & (data0['outcome'] == 0)].shape[0]
+    TP = data0[ (data0['pred'] == 1) & (data0['outcome'] == 1)].shape[0]
+    FN = data0[ (data0['pred'] == 0) & (data0['outcome'] == 1)].shape[0]
+    FP = data0[ (data0['pred'] == 1) & (data0['outcome'] == 0)].shape[0]
     
     sensitivity = TP/(FN+TP)
     specificity = TN/(FP+TN)
@@ -225,7 +225,7 @@ def simple_tree(data_list, tree_method, select_method):
     
     data = data_list[0].copy()
     v_list = list(data.columns)
-    v_list.remove('csi_injury')
+    v_list.remove('outcome')
     variable_rank = []
     if tree_method == 'one':
         while len(v_list) > 0:
