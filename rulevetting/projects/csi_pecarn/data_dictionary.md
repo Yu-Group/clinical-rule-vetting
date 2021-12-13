@@ -1,7 +1,7 @@
 **Original features**
 
-| Variable name         | Variable description           											| Notes               	 |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Variable name         | Variable description           											| Notes              	 |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------|------------------------|
 | AlteredMentalStatus   | Altered level of consciousness | based on physical examinations                                               	| two versions*	 	 |
 | LOC  			| History of loss of consciousness post-injury | based on history-taking                         			| two versions		 |	 
 | Ambulatory       	| Child >2 years reported as able to ambulate post-injury        					 		|           		 |        
@@ -24,6 +24,7 @@
 | AxialLoadAnyDoc	| MOI: The impact was noted in history to be head first, any region of the head						|			 |
 | AxialLoadTop 		| MOI: The impact was noted in history to be head first, region noted to be top of head					|			 |
 | Clotheslining 	| MOI: Injury the result of a rope, cable, or similar item exerting traction on the neck while the child is in motion	|			 |
+
 *: one version is only based on results from the study site, the other version also uses results from outside hospital and field record.
 
 **Augmented features**
