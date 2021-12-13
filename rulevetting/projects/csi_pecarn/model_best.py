@@ -56,4 +56,23 @@ class SpecialTree:
             else:
                 pred.append(0)
 
-        return pred
+        return np.array(pred)
+    
+    def print_model(self, df_features: pd.DataFrame):
+        '''
+        Return string of the model, which includes the number of patients falling into each subgroup.
+        Note this should be the same as the hardcoded values used in the predict function.
+        If the model is the baseline used in a paper, it should match it as closely as possible.
+
+        Params
+        ------
+        df_features: pd.DataFrame
+            Path to all data files
+
+        Returns
+        -------
+        s: str
+        Printed version of the existing rule (with number of patients falling into each subgroup).
+        '''
+        
+        return ""
