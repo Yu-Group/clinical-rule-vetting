@@ -1,0 +1,611 @@
+---
+title: "Lab 4 - Cloud Data, Stat 215A, Fall 2021"
+author: "Yaxuan Huang, Ishaan Srivastava, and William Torous"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+header-includes:
+   - \usepackage{float}
+   - \usepackage{wrapfig}
+
+output:
+  pdf_document:
+    number_sections: true
+    fig_caption: yes
+    
+    
+bibliography: lab4.bib
+
+---
+
+```{r setup, echo = FALSE, message=FALSE, warning=FALSE}
+
+rm(list = ls())
+# load in useful packages
+library(MASS)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(glmnet)
+library(superheat)
+library(png)
+library(tidyverse)
+library(GGally) # ggpairs
+#library(rgl) # 3d plot
+library(greybox) # partial correlation
+library(patchwork) # combine plot
+library(RColorBrewer) # colorbrewer
+library(rpart) # cart
+library(rpart.plot) # cart plot
+library(rattle) # cart plot
+library(randomForest)
+library(e1071) #svm
+
+
+# set default knitr chunks
+knitr::opts_chunk$set(
+  echo = FALSE,  # don't print the code chunk
+  warning = FALSE,  # don't print warnings
+  message = FALSE,  # don't print messages
+  fig.width = 6,  # set default width of figures
+  fig.height = 4,  # set default height of figures
+  fig.align = "center",  # always align figure in center
+  fig.pos = "H",  # always plot figure at the exact location of the code chunk
+  cache = TRUE)  # cache results
+
+set.seed(215)
+source("R/load.R")
+source("R/en_functions.R")
+```
+
+In this lab report, we explore and model cloud detection in the polar regions based on radiances recorded automatically by the Multiangle Imaging SpectroRadiometer (MISR) sensor aboard the NASA satellite Terra. In particular, we attempt to build a prediction model to distinguish cloud from non-cloud using the available signals, using provided "expert labels" to train our models with the end goal of successfully distinguishing between clouds and non-clouds on images where the aforementioned "expert labels" do not exist. It should be noted that while we conduct our own data exploration, analysis, and modeling, our work does not take place in isolation; we closely engage with and follow the work done in @yu2008arctic. In particular, we explore the use of their physical features created using both domain knowledge and statistical methodology and compare their models to our own. Even though we use their features instead of creating our own or calculating them ourselves, the secondary goal of this lab report is to serve as a stability and reproducibility check for @yu2008arctic, wherein we evaluate their assumptions and results and make our own judegement calls in our analysis.
+
+Before discussing the data, we elaborate on the importance and relevance of the task at hand. Here we liberally reference @yu2008arctic in order to place their work, and by extension our own, in the domain context. In particular, we note the interest in understanding how sensitive Earth's climate is to the amount of carbon dioxode in the atmosphere, and how the former might be affected as the latter increases. Most climate models currently predict that the strongest dependence of surface air temperatures on increasing atmospheric carbon dioxide levels will occur in the Arctic (Giorgi and Bi 2005), with global surface air temperatures increasing by 1.5–3.5 K as the atmospheric carbon dioxide levels double over the course of the twenty-first century. As the Arctic warms, changes in the properties and distribution of ice- and snow-covered surfaces, atmospheric water vapor, and clouds can potentially lead to further warming, making the region even more sensitive to increases in atmospheric carbon dioxide. In order to investigate these dependences more thoroughly, it is essential to study the Arctic climate. Since clouds play an important role in moderating how sensitive the Arctic is to increasing surface air temperatures (e.g., Kato et al. 2006), it is particularly important to study them in the context of Arctic climate analysis. However, studying and classifying the properties of clouds in the Arctic is a challenging problem both scientifically and statistically. On the scientific front, the amount of visible and infrared electromagnetic radiation emanating from clouds and snow- and ice-covered surfaces is often similar because liquid- and ice-water cloud particles and particles that compose ice- and snow-covered surfaces tend to have similar scattering properties. This in turn causes problems in the detection of clouds over these surface types, which is relevant because without cloud detection, we cannot assess the impact of clouds on the Arctic on the transmission of solar and terrestrial electromagnetic radiation through the Arctic atmosphere, meaning we cannot ascertain whether they are changing in ways that exacerbate or temper future warming in the Arctic. In terms of statistical difficulty regarding cloud detection in the Arctic, standard classification frameworks are not readily applicable, because it is impossible to get expert labels operationally, considering the size of the data and resource time constraints. As is noted in @yu2008arctic, even in an offline setting, a state-of-the-art classifier, such as Gaussian kernel support vector machines (Vapnik 1995), trained on offline expert labels does not deliver satisfactory accuracy when applied to MISR radiance measurements
+
+In @yu2008arctic, the authors propose two new operational Arctic cloud detection algorithms using MISR imagery. The key idea is to identify cloud-free surface pixels in the imagery instead of cloudy pixels as in the existing MISR operational algorithms. Through extensive exploratory data analysis and using domain knowledge, three physically useful features to differentiate surface pixels from cloudy pixels have been identified. The first algorithm, enhanced linear correlation matching (ELCM), thresholds the features with either fixed or data-adaptive cutoff values. Probability labels are obtained by using ELCM labels as training data for Fisher’s quadratic discriminant analysis (QDA), leading to the second (ELCM–QDA) algorithm. The ELCM–QDA probability prediction is also consistent with the expert labels and is more informative. In conclusion, ELCM and ELCM–QDA provide the best performance to date among all available operational algorithms using MISR data.
+
+```{r load data}
+data1_raw <- loadTxtData("1")
+data2_raw <- loadTxtData("2")
+
+# image 1
+data1 <- data1_raw %>%
+  select(-y_loc, -x_loc) %>%
+  mutate(log_sd = log(sd)) %>% 
+  filter(label != 0)
+
+# image 2
+data2 <- data2_raw %>%
+  select(-y_loc, -x_loc) %>%
+  mutate(log_sd = log(sd)) %>% 
+  filter(label != 0)
+
+data3_raw <- loadTxtData("3")
+
+# combined data
+data_c <- rbind(data1 %>% mutate(image=as.factor(1)), 
+                data2 %>% mutate(image=as.factor(2)))
+```
+
+# Data
+
+We work with three images collected by the MISR. These images are of unknown locations in the Arctic and were provided without metadata by the STAT 215A course staff. The images were originally taken in the Summer of 2002, a season which exposes a variety of underlying terrain types, and were chosen in @yu2008arctic. To mimic the real-world deployment of our classification algorithms on unseen and unlabeled data, we select images 1 and 2 as a training and validation set, and we withhold image 3 as a final test set. This section was written by Will. 
+
+## Measured and Constructed Features
+
+The MISR instrument measures the intensity of electromagnetic radiation hitting the satellite after being reflected off clouds and terrain on Earth. Measurements are collected at four different bands and at 9 longitudinal angles. Because of the sensors' placement along the satellite's direction of motion, measurements for the same physical location are not taken at exactly the same time. We are only provided with measurements in the red spectrum of visible light and from the nadir and forward sensors, so the original data has 36 channels but our three images have only 5. A pixel of the image is 1.1 km-square, but red spectrum data was actually collected at a 275 m-square resolution. Each pixel is referenced by a unique `x_loc` and `y_loc` location pair within the overall image. We infer from the paper's feature construction that the 64 measurements are aggregated into a pixel by their mean, but could not find this explicitly in @yu2008arctic. Each image captures 422 km of latitude (384 pixels) and 563 km of longitude (512 pixels). We note the provided images have been cropped to roughly 418 km of longitude (380 pixels).
+
+In addition to the location identifiers and 5 measurements of radiation intensity at each pixel, we are provided three hand-crafted "physical features" from the paper @yu2008arctic. The justification for these features will be provided after defining them. The first feature, `corr`, gives the average linear correlation between two angles measuring the same physical pixel. The correlation between the nadir sensor and the $26.1^{\circ}$ sensor is averaged with the correlation between the nadir and $45.6^{\circ}$ one. The average between two correlations is taken to avoid high correlation in moving clouds and is justified by the authors' domain knowledge. A second feature, `SD`, reports the standard deviation within a pixel's 64 nadir red spectrum measurements. Finally, normalized difference angular index, `ndai`, measures how dissimilar the intensity of the nadir measurement and the $70.5^{\circ}$ measurement are. The diffraction from Arctic terrain is more isotropic, with low `ndai`, than smooth low-level clouds.
+
+Under clear skies, the scattered radiation measured by MISR is not interfered with by clouds. For extremely smooth Arctic terrain covered with ice or snow, the `SD` feature will be low. In this setting, the correlations between view angles are driven by measurement noise. `corr` becomes an informative feature for more contoured terrain. Because clear terrain has more isotropic diffraction than cloudy terrain, high `corr` and low `ndai` indicate that condition. These covariate trends do not generally hold for clouds, which have non-isotropic diffraction when they are not smooth and high `ndai` when they are.
+
+Each of our three images has also been hand classified by a domain expert. Each pixel is associated with a classification `cloud`, `not cloud`, or `unlabeled.` As the domain experts classified contiguous regions of the image, not individual pixels, there is almost surely some misclassification at the spatial boundaries between classes.
+
+## Data Cleaning and EDA
+
+Our initial analysis step is to evaluate the prevalence of missing and inconsistent data. We verify in the training images that no two pixels share the same location. A small fraction (roughly 0.5 %) of pixels expected in the cross of `x` and `y`'s support do not have data, indicating no significant spatial regions of missing data. Summary statistics for both images demonstrate the physical features are already well-cleaned. The `corr` variable has a valid range bounded by -1 and 1, and it is notable that a majority of pixels in both images have positive correlation. The nadir SD is strictly positive, as expected. The NDAI equation has its sign controlled by the difference of means in the numerator. This could possibly be negative, and our data reflects this. We conclude no observational units need to be removed because of these three physical features. Raw sensor measurements fall generally in the range of $[30, 300]$ units and none are negative, which indicates these measurements are consistent as well although we do not know the original scale. 
+
+```{r}
+ggplot(data = rbind(data1_raw, data2_raw), aes(x = x_loc, y = y_loc)) + geom_point(aes(colour = factor(label)))
+ggplot(data = rbind(data1_raw, data2_raw), aes(x = x_loc, y = y_loc)) + stat_density_2d(color = "red") + facet_wrap(vars(label)) + theme_grey()
+```
+
+[INSERT] Discuss plots
+
+We make a judgement call to remove the `x_loc` and `y_loc` variables for training our classifiers. For a large set of images, these variables likely contain useful information because prevailing winds travel from West to East and temperature has a decreasing gradient from South to North (in the Northern Hemisphere). Because each point in location space is only sampled twice in our training set, we do not believe location-based inferences can extrapolate to unseen data. In the following EDA section, we justify the introduction of a log-transformed `SD` feature `log_sd`. After cleaning, the first image contains 115,229 pixels each associated with 9 radiation-based features and 1 expert label; the second image contains 115,110 pixels and the same information. 
+
+The methods presented in @yu2008arctic are evaluated only on pixels which were labeled by a domain expert. This methodology means we can train models which output a binary classification, such as SVM, and those which out put a predicted probability, such as logistic regression, on the same dataset. Training models with a probabilistic output on a different set of data which includes unlabeled data would likely introduce bias during our model selection process. Removing unlabeled pixels leaves the first image with 70,917 observational units and the second with 82,148. Between 30 and 40\% of the observational units are removed in each image, making this a very significant judgement call. We choose to use the combined image data in this section because it increases the extrapolation power of our conclusions. 
+
+ggpair plots of radiances in different angel:  
+
+ - high correlation between these radiances;
+
+ - higer correlation in "clear" pixels;
+
+(Scatter plots make the file too slow to load and they don't provide effective information, so I leave the lower part blank. But it looks like a big waste of space, really want to think about another way to visualize these correlations)
+
+
+```{r correlation_radiance, fig.cap="correlation radiance", echo=FALSE, fig.height = 4, fig.width = 6, out.width = '100%'}
+rbind(data1_raw, data2_raw) %>%
+  mutate(label = factor(label,levels = c(-1, 0, 1),labels = c("clear", "unlabeled", "cloud"))) %>%
+  ggpairs(columns = 7:11,
+        aes(color = label, alpha = 0.08),
+        lower = list(continuous = "blank"))+
+  theme_bw()
+```
+
+```{r calculate_correlations, echo = FALSE, message=FALSE, warning=FALSE}
+
+# calculate correlation and partial correlation -----------
+
+# # image 1
+# data1 <- data1_raw %>%
+#   dplyr::select(-y_loc, -x_loc) %>% 
+#   filter(label != "0") 
+cor1 <- cor(data1)[1, 2:9] # correlation
+pcor1 <- pcor(data1)[[1]][1, 2:9] # partial correlation
+# 
+# # image 2
+# data2 <- data2_raw %>%
+#   dplyr::select(-y_loc, -x_loc) %>% 
+#   filter(label != "0")
+cor2 <- cor(data2)[1, 2:9]
+pcor2 <- pcor(data2)[[1]][1, 2:9]
+
+# combined data
+data_c <- rbind(data1, data2) %>%
+  filter(label != "0")
+cor_c <- cor(data_c)[1, 2:9]
+pcor_c <- pcor(data_c)[[1]][1, 2:9]
+
+
+# combine correlation data in one data frame ---------------------
+cor_plot <- data.frame(cor1, pcor1, cor2, pcor2, cor_c, pcor_c) %>%
+  rownames_to_column(var = "Variable") %>%
+  gather(-Variable, key = "Cor", value = "value") %>%
+  mutate(value = round(value, 2),
+         Variable = factor(Variable, 
+                           levels = c("ndai","corr","sd","af","an","bf","cf","df")))
+```
+
+
+```{r correlation_heatmap, fig.cap="correlation heatmap", echo=FALSE, fig.height = 4, fig.width = 8, out.width = '100%'}
+
+# correlation plot
+p1 <- cor_plot %>%
+  filter(Cor %in% c("cor1", "pcor1")) %>%
+  mutate(Cor = factor(Cor, levels = c("pcor1", "cor1"))) %>% 
+  ggplot(aes(x = Variable,y = Cor,fill = value ,label = value))+
+  geom_tile(colour = "white")+
+  geom_text(size = 4, color = "black") +
+  coord_equal()+xlab(NULL)+ylab(NULL)+ggtitle("Image 1")+
+  scale_y_discrete(labels=c("P-Cor", "Cor"))+
+  scale_fill_gradient2(low = brewer.pal(7,"Set1")[2],mid = "white",
+                       high = brewer.pal(7,"Set1")[1], midpoint = 0,limits=c(-0.85,0.85)) +
+  theme(axis.text.y = element_text(size=10),
+        axis.text.x = element_text(size=12),
+        plot.title = element_text(size=14),
+        legend.position = "none",
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "white"),
+        # plot.margin = margin(0, 0, 0, 0, "cm"),
+        axis.title.x=element_blank())
+
+p2 <- cor_plot %>%
+  filter(Cor %in% c("cor2", "pcor2")) %>%
+  mutate(Cor = factor(Cor, levels = c("pcor2", "cor2"))) %>%
+  ggplot(aes(x = Variable,y = Cor,fill = value ,label = value))+
+  geom_tile(colour = "white")+
+  geom_text(size = 3.5, color = "black") +
+  coord_equal()+xlab(NULL)+ylab(NULL)+ggtitle("Image 2")+
+  scale_y_discrete(labels=c("P-Cor", "Cor"))+
+  scale_fill_gradient2(low = brewer.pal(7,"Set1")[2],mid = "white",
+                       high = brewer.pal(7,"Set1")[1],midpoint = 0,limits=c(-0.85,0.85)) +
+  theme(axis.text.y = element_text(size=10),
+        axis.text.x = element_text(size=12),
+        plot.title = element_text(size= 14),
+        legend.position = "none",
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "white"),
+        # plot.margin = margin(0, 0, 0, 0, "cm"),
+        axis.title.x=element_blank())
+
+
+p <- p1 + p2  + plot_layout(ncol = 2)
+
+p
+```
+
+To explore the differences between the two classes based on the radiances or physical features. We first took a look at simple correlations. Here we only consider pixels labelled by "clear" and "cloud" (exclud "unlabeled"), so it is a binary variable. The point-biserial correlation, which numerically equals to Pearson correlation, is used to measure the correlation between one binary variable and one continuous variable. And as shown in previous discussion, there are obvious correlations between radiances and features, so we also calculate partial correlation for each variables, which can measuring the correlation after filtering out the effects of the other variables. The heat map in Figure \ref{fig:correlation_heatmap} shows all calculation results.
+The heat map shows that for both image, ndai has the strong correlation with pixel label, even after filtering out correlations of the other variables, it still has a high correlation. Other variables also have high correlation with label. Some are stable in different image, including sd, bf, cf and df, while the others are not so stable, including corr, af and an. Except corr, no other variable has stable and strong correlations with the pixel label. 
+For modeling and prediction, we want to use variables with separability and stability. Separability means the variable have relatively large differences between two classed, and stability requires these differences to be stable. In this preliminary simple correlation analysis, ndai satisfis our principle very well, but the effect of other variables need further exploration.
+
+
+```{r feature_distribution, fig.cap="feature distribution", echo=FALSE, fig.height = 3.5, fig.width = 7, out.width = '80%'}
+# plots to show the distributions of three features and why we want to use log(sd)
+
+data1_dist <- data1_raw %>%
+  mutate(log_sd = log(sd), label = factor(label, 
+                                          levels = c(-1, 0, 1),
+                                          labels = c("clear", "unlabeled", "cloud"))) %>%
+  dplyr::select(label, ndai, corr, sd, log_sd) %>%
+  gather(-label, key = "feature", value = "value") %>%
+  mutate(feature = factor(feature, levels = c("ndai", "corr", "sd", "log_sd")))
+
+p_dist_1 <- ggplot(data1_dist) +
+  geom_density(aes(x = value, fill = label), alpha = 0.4) +
+  facet_wrap(feature~., nrow = 1, scales = "free") +
+  ggtitle("Image 1") + xlab(NULL) + ylab(NULL) +
+  theme_bw() 
+
+data2_dist <- data2_raw %>%
+  mutate(log_sd = log(sd), label = factor(label, 
+                                          levels = c(-1, 0, 1),
+                                          labels = c("clear", "unlabeled", "cloud"))) %>%
+  dplyr::select(label, ndai, corr, sd, log_sd) %>%
+  gather(-label, key = "feature", value = "value") %>%
+  mutate(feature = factor(feature, levels = c("ndai", "corr", "sd", "log_sd")))
+
+p_dist_2 <- ggplot(data2_dist) +
+  geom_density(aes(x = value, fill = label), alpha = 0.4) +
+  facet_wrap(feature~., nrow = 1, scales = "free") +
+  ggtitle("Image 2") + xlab(NULL) + ylab(NULL) +
+  theme_bw()
+
+p_distribution = p_dist_1 + p_dist_2 +
+  plot_layout(ncol = 1,guides = 'collect')
+  
+
+p_distribution
+
+```
+
+@yu2008arctic suggest using three physical features can get a precise predictor for this classification problem, so we further explore the margin and joint distributions of these features in different classes. Figure \ref{fig:feature_distribution} shows the marginal distributions of 3 physical features. For ndai, the plots of two image are similar in "clear" and "cloud" pixels, which can be approximately mixed Gaussian. For corr, the plots are a little strange. There are two separate peaks in image2, but only one peak in image1. For sd, the original plots are so skewed and heavy-tailed. It's natural for us to think of log transformation. After taking log, the plots looks better with stable two peaks.
+
+
+3D plot: ( I haven't thought about how to show the plot in the report, I guess the plot would look better if we only plot two classes.)
+
+3D scatter plot visualizes the joint distribution. The plots show that two classes can be roughly separated in 3-dimensional space. This phenomenon inspires us to do classification by tree-based methods or support vector machines. The former one separate the space horizontally, and the latter one will separate the space by one hyperplane. Both ways seems plausible from our 3d plot.
+
+```{r 3d_plot}
+# setupKnitr()
+# colors <- c("#E69F00","#808080","#56B4E9")
+# colors <- colors[as.numeric(data_1$label)]
+# 
+# plot3d( 
+#   x=data_1$ndai, y=log(data_1$sd), z=data_1$corr, 
+#   col = colors, 
+#   radius = .1,
+#   xlab="NDAI", ylab="SD", zlab="CORR")
+# 
+# rglwidget()
+```
+
+# Variable Selection
+
+## Elastic Net
+
+We use Elastic Net regularized logistic regression as one feature selection method. The Elastic Net penalty term is controlled by a penalty parameter $\lambda$ and a weight parameter $\alpha \in [0,1]$ controlling a convex combination of L1 penalty and L2 penalty. We can write the model as: $$\min_{(\beta_0,\beta_1) \in \mathbb{R}^{d+1}} - \big[ \frac{1}{N} \sum_{i=1}^N y_i \cdot (\beta_0 + x_i^T\beta_1) - \log(1 + \exp((\beta_0 + x_i^T\beta_1))) \big] + \lambda \big[ (1 - \alpha) \lVert \beta \rVert_2^2 / 2 + \alpha \lVert \beta \rVert_1 \big]$$. 
+
+Logistic regression is a natural model to regularize because we work with binary labels. Setting $\alpha = 1$ gives logistic regression penalized by LASSO and $\alpha = 0$ gives logistic ridge regression. Intermediate $\alpha$ values encourage clusters of variables to be selected together and is a natural stability perturbation. We scale our features, which are all continuous, to zero mean and unit variance for use in this method. Without standardization, the order in which Elastic Net removes variables cannot be interpreted as a measure of importance.
+
+We implement Elastic Net with the package `glmnet.` This package includes a cross-validation procedure for fixed $\alpha$ over a grid of $\lambda$ choices. The cross validation method is 10-fold over random subsets of the data. For compatibility with that method, we relabel clear pixels as 0 and cloudy pixels as 1. Recall logistic regression is invariant to how we binary label our classes. Since we use combined image data and have removed spatial variables, this random sampling is justified. For cross validation loss, we consider primarily AUC and also mean-squared prediction error. 
+
+We want to select exactly three features and do so by finding the smallest $\lambda$, if one exists, that removes all but three variables. Notably the $\lambda$ we select are almost identical for our two loss functions. We search over a grid of alphas $[0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.995]$. We do not include $1$ because $0.995$ has very similar results, but makes the selection process more stable. We find that for $\alpha < 0.5$ the minimum number of included variables is 5. For all $\alpha \geq 0.5$, the three selected features are always `ndai`, `corr`, and `log_sd`. It is remarkable their inclusion is so stable and that `log_sd` is always selected over raw `sd`. The AUC for three variables is above $0.85$, which suggest the model has good predictive power and is also worth exploring as a classifier. This method was explored by Will.
+
+```{r elastic net variable selection}
+# This is the code I use to generate the results above. It takes significant time (over 20 minutes) to run locally.
+# assumes that unlabeled points have already been removed
+
+# scaled_covar_c <- scale(data_c[,-3])
+# labels_c <- data_c[3]
+# labels_c[labels_c<0] <- 0 # convert to binary for glmnet
+
+# alpha_list <- c(0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.995)
+# 
+# lambda_list <- c()
+# auc_lambda_list <- c()
+# auc_max_list <- c()
+# 
+# for (alpha in alpha_list){
+#     cvfit <- cv.glmnet(x=scaled_covar_c, y=labels_c, alpha=alpha, family = "binomial", type.measure="auc", standardize = FALSE)
+#     
+#     best_lambda <- cvfit$lambda[head(which(cvfit$nzero %in% c(3)),n=1)]
+#     lambda_index <- which(cvfit$lambda %in% best_lambda)
+#     lambda_auc <- cvfit$cvm[best_lambda]
+#     best_auc <- max(cvfit$cvm)
+#     
+#     lambda_list <- c(lambda_list,best_lambda)
+#     auc_lambda_list <- c(auc_lambda_list,lambda_auc)
+#     auc_max_list <- c(auc_max_list,best_auc)
+#     
+#     tryCatch(
+#         expr = {
+#             # get names of non-zero variables
+#             results <- rownames(coef(cvfit, s =best_lambda))[coef(cvfit, s = best_lambda)[,1]!= 0]
+#             print(results)
+#         },
+#         error = function(e){ 
+#             results <- NA
+#             print(results)
+#         }
+#     )
+# 
+# }
+
+```
+
+## Random Forest
+
+From the EDA part, we know that radiance data and physical features have strong relationship with labels and also with each other, and 3D plot presents a possible well-separated pattern in this data. These findings inspire us to use tree-based methods for variable selection and classifier construction. 
+
+For variable selection, our goal is to pick up three most important variables from a total set of eight. Within plenty of tree-based methods, in consideration of both interpretability and stability, we goes for Random Forest for its two random procedures. First, Random Forest bootstraps data when constructing one single tree which help improve the stability of final forest. Second and the most important, it will randomly choose a subset of variables when splitting data in one node. Unlike greedy algorithm like CART, this randomness is likely to explore more possible combinations and gives all variable opportunities to take effects in the classifiers. Therefore, we believe the average decreasing in Gini index based on Random Forest is suitable for variable selection in this setting.
+
+Figure \ref{fig:rf_gini} shows the result of random forest on the combined data of image1 and image2. There's no doubt ndai is the most important variable, which corresponding to our results in correlation analysis in Figure \ref{fig:correlation_heatmap}. And if we want to pick up three variables, we will choose three physical features, that is, ndai, corr and sd. And we also find that cf is the most importance variable among all radiance data in different angles. Here we didn't include log(sd) in model construction. The reason is that simple tree-based algorithms only do horizontal partition so sd and log(sd) are equivalent here.
+
+```{r rf_gini, fig.cap="gini indec random forest", echo=FALSE, fig.height = 5, fig.width = 7, out.width = '60%' }
+
+# combine and adjust data structure for random forest
+data_rf_3 <- rbind(data1_raw,data2_raw) %>%
+  dplyr::select(-x_loc, -y_loc) %>%
+  filter(label != 0) %>%
+  mutate(label = factor(label))
+
+set.seed(100)
+# train random forest model
+Random_Forest_Model <- randomForest(label ~ ., data = slice_sample(data_rf_3, n = 1000), importance = TRUE) 
+# print(rf3)
+# importance(rf3, type = 1)
+# importance(rf3, type = 2)
+varImpPlot(Random_Forest_Model,type=2) # plot variable improtance based on Gini Index
+```
+
+# Classification 
+
+## EDA on Training and Validation Set
+
+With our three most important features selected, we further explore their distributional differences between the two images in our training set. The goal of this exploration is to inform our model selection procedures and to consider how well our classifiers may extrapolate from this data.
+
+The following chart demonstrates that the distributions of expert labels vary significantly between images. We hope to train classifiers which are robust to this imbalance because data encountered in an online setting may be overwhelmingly clear or cloudy.  
+
+```{r label_distribution, fig.cap = "This bar chart summarizes the empirical distribution of expert labels assigned in our two training images. Note we remove unlabeled pixels before this step. In image 1 less than 30\\% of labeled pixels are cloudy, while nearly half are cloudy in image 2. This suggests we must be mindful of class imbalance when training our classifiers.", out.width="40%"}
+data_c <- rbind(data1 %>% mutate(image=as.factor(1)), 
+                data2 %>% mutate(image=as.factor(2)))
+
+label_data <- data_c %>% group_by(image) %>%
+    mutate(image_count = n(), label = factor(label,levels = c(-1, 0, 1),labels = c("Clear", "Unlabeled", "Cloudy")), 
+           image = factor(image,levels = c(1,2),labels = c("1","2"))) %>%
+    group_by(image,label) %>%
+    mutate(label_count = n()) %>%
+    mutate(freq = label_count/image_count) %>%
+    select(c(image,label,freq)) %>%
+    rename(Label=label,Image=image,Fraction=freq) %>%
+    distinct() %>%
+    arrange(.by_group=TRUE)
+
+ggplot(label_data, aes(fill=Label, y=Fraction, x=Image)) + 
+    geom_bar(position="stack", stat="identity") +
+    ggtitle("Distribution of Expert Labels in Training Images")
+```
+
+The next figure visualizes the distribution of features in our training images.
+
+```{r image grouped physical features, fig.cap="This scatterplot matrix summarizes key information about differences in the distribution of the three physical features between training images. On the trace KDE plots we observe significant overlap of support for all three variables. The distribution of NDAI is nearly identical between the training images. The log(SD) variable is unimodal with high variance in both images, but the modes are different. The most likely correlation are close between the images, but image 2 has a bimodal distribution with more variance than image 1. NDAI and log(SD) are highly correlated with each other in both images. The similarity of the first column's scatterplots demonstrates that high correlation. Other pairs of feathers have weaker correlation. Correlation is consistently higher in image 2.", out.width = '80%'}
+plotting_data <- sample_frac(data_c,0.0025)
+ggpairs(plotting_data[, c("corr","log_sd","ndai")],
+        columnLabels = c("CORR","log(SD)","NDAI"),
+        aes(color = plotting_data$image),                             
+        upper = list(continuous = wrap('cor', size = 3)),
+        lower = list(combo = wrap("dot", alpha = 0.005)),
+        diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
+        title = "Scatterplot Matrix of Physical Features Grouped by Training Image")
+```
+
+Based off this EDA, our two training images have different distributions of features and expert labels. We expect online images to have significant distributional shifts and want our classifiers to be robust to this. Therefore, we decide to use 2-fold cross-validation as our evaluation metric with each training image serving as a fold. The loss function is the prediction error rate averaged across the two folds. This model selection method encourages classifiers which have strong performance on both data distributions. 
+
+## Elastic Net
+
+Due to the very high AUC scores reported when using logistic regression with an Elastic Net penalty term, we decide to explore this method's predictive power further. In @yu2008arctic, the authors find logistic regression has suboptimal performance compared to QDA, and we judge the Elastic Net penalty a significant enough perturbation from that method to be interesting.
+
+Recall in the variable selection process we performed 10-fold cross validation on the combined image data with random subsets. We first test how well the $\lambda$ values selected in this phase perform on the training images. We observe that on both training images, these full-sample cross-validated $\lambda$s lead to solutions with only one or two non-zero features for most $\alpha$ values! This is surprising and suggests that Elastic Net's two hyperparameters are sensitive to the distributional perturbation.
+
+During our 2-fold cross validation, we use `glmnet`'s 10-fold cross validation method on one training image to pick the smallest three-parameter lambda. We then use that lambda and its associated weights to predict in the other image. This is a weaker setting than the algorithm would encounter online because it allows for a variable hyperparameter. However, due to the failure of full-sample hyperparameter tuning, we decide to use it.
+
+We perform cross-validation for $\alpha \in [0.5,0.6,0.7,0.8,0.9,0.995]$. As the following graph summarizes, the training and validation error differs significantly between the two images, but both are robust to the choice of $\alpha$. Our training accuracy is much higher on image 2, which has balanced labels, but its prediction accuracy suffers on image 1 which is mostly clear. Image 1 is more difficult to train on, but validates with better accuracy on its complement. At the best choice of $\alpha = 0.5$, the 2-fold error rate is approximately 0.13. This method was explored by Will.
+
+```{r en alpha selection}
+# Code takes a very long time to run, so I just add an image
+
+# covar1 <- data1 %>% select(ndai,corr,log_sd)
+# scaled_covar1 <- scale(covar1)
+# label1 <- data1 %>% select(label)
+# label1[label1<0] <- 0
+# en_image_1 <- as.matrix(cbind(covar1,label1))
+# 
+# covar2 <- data2 %>% select(ndai,corr,log_sd)
+# scaled_covar1 <- scale(covar2)
+# label2 <- data2 %>% select(label)
+# label2[label2<0] <- 0
+# en_image_2 <- as.matrix(cbind(covar2,label2))
+# 
+# beta_results <- matrix(nrow = 0, ncol = 4)
+# colnames(beta_results) <- c("Alpha","Accuracy","Split","Trained.Image")
+# 
+# for (alpha in c(0.5, 0.6, 0.7, 0.8, 0.9, 0.995)){
+#     first_experiment <- run_image_cv(en_image_1, en_image_2, alpha, mode_binning=TRUE, cv=TRUE)
+#     second_experiment <- run_image_cv(en_image_2, en_image_1, alpha, mode_binning=TRUE, cv=TRUE)
+#     beta_results <- rbind(beta_results,
+#                            c(alpha,first_experiment[1],"Train",1),
+#                            c(alpha,first_experiment[2],"Validation",1),
+#                            c(alpha,second_experiment[1],"Train",2),
+#                            c(alpha,second_experiment[2],"Validation",2))
+# }
+
+# data.frame(beta_results) %>%
+#   mutate(Accuracy = as.numeric(as.character(Accuracy))) %>%
+#   ggplot( aes(x=Alpha, y=Accuracy, linetype = Split, color=Trained.Image, group=interaction(Split, Trained.Image))) +
+#     geom_line()
+```
+
+# Classification
+
+```{r}
+data1_classifier <- data1_raw %>%
+  mutate(log_sd = log(sd)) %>%
+  dplyr::select(label, ndai, corr, log_sd) %>%
+  filter(label != 0) %>%
+  mutate(label = factor(label))
+  
+data2_classifier <- data2_raw %>%
+  mutate(log_sd = log(sd)) %>%
+  dplyr::select(label, ndai, corr, log_sd) %>%
+  filter(label != 0) %>%
+  mutate(label = factor(label))
+
+data3_classifier <- data3_raw %>%
+  mutate(log_sd = log(sd)) %>%
+  dplyr::select(label, ndai, corr, log_sd) %>%
+  filter(label != 0) %>%
+  mutate(label = factor(label))
+```
+
+
+## CART
+
+Inspired by our EDA and original paper, tree-based methods are good candidates for classifiers in this classification problem. We trained random forest for variable selection in the last section. Now based on the selected three features, there's no need for constructing a forest, so we simply use the greedy algorithm CART to build classification tree, which is very easy to implement and has high interpretability. Follow the setting of 2-fold cross validation. We trained models on image 1(2) and then testing on image 2(1). 
+
+The results show that when we trained model on image 1, the training error is 6.81% and the testing error is 6.89%, however, if we trained model on image 2, the training error is 4.02% while the testing error increases to 20.1%. 
+
+Checking the decision trees in Figure \ref{fig:cart_tree} and distributions two different images in Figure \ref{fig:feature_distribution}, we found the main problem causing the increase of testing error is the quite different distributions of \texttt{corr}. In image 1, the distributions of \texttt{corr} of different classes are not so separable and clear pixels are more likely to have higher \texttt{corr}, while in image 2, two classed are quiet separable by \texttt{corr} but clear pixels are more likely to have lower \texttt{corr}, opposite to image 1. This can explain why Tree_2 directly choose \texttt{corr} as the first rules, and therefore, it cannot have good performance on image 1 data. And Tree_1 use \texttt{ndai} and \texttt{log_sd}, which are stable within two images, thus have small errors in both training set and testing set. 
+
+By information provided in original paper, there are two different kinds of clouds with corresponding to two different distributions of \texttt{corr}. This is indeed the main challenge for this problem. Two samples are not enough for us to learn a lot about distribution stability, so we should be super careful with distribution-sensitibe methods like CART here.
+
+```{r cart_tree, fig.cap="Decision trees built by CART", echo=FALSE, fig.height = 5, fig.width = 8, out.width = '80%' }
+# use separate data sets
+# image1
+par(mfrow=c(1,2))
+
+cart_1 <- rpart(formula = label~., data = data1_classifier, method = "class")
+# fancyRpartPlot(cart_1)
+prp(cart_1, main = "Tree_1 built on Image 1 data")
+
+# pred_1on1 <- predict(cart_1, data1_classifier, type = "class") # predict class
+# train_error_1 <- length(which(data1_classifier$label != pred_1on1))/length(pred_1on1)
+# # train_error_1
+# pred_1on2 <- predict(cart_1, data2_classifier, type = "class") # predict class
+# test_error_1on2 <- length(which(data2_classifier$label != pred_1on2))/length(pred_1on2)
+# # test_error_1on2 
+
+cart_2 <- rpart(formula = label~., data = data2_classifier, method = "class")
+# fancyRpartPlot(cart_2)
+prp(cart_2, main = "Tree_2 built on Image 2 data")
+
+# pred_2on2 <- predict(cart_2, data2_classifier, type = "class") # predict class
+# train_error_2 <- length(which(data2_classifier$label != pred_2on2))/length(pred_2on2)
+# # train_error_2
+# pred_2on1 <- predict(cart_2, data1_classifier, type = "class") # predict class
+# test_error_2on1 <- length(which(data1_classifier$label != pred_2on1))/length(pred_2on1)
+# # test_error_2on1
+```
+
+
+
+## SVM
+
+Classification trees build by CART do horizontal partitions of the variable space. Another method, support vector machine, also do space partitions, but it can take the relationship within variables into consideration. Given the trees are not deep in CART, SVM might have better performance. And we also tried two different kernels in SVM, linear kernel and Gaussian kernel. SVM with Gaussian kernel projects data into a higher dimension spave where it will be easier to separate data. Therefore, it is obvious that it will perform better on training set. Our results show that it also performs better on testing set, so here we mainly discuss the models with Gaussian kernel.
+
+The results show that when we trained model on image 1, the training error is 5.39% and the testing error is 6.19%, however, if we trained model on image 2, the training error is 3.46% while the testing error increases to 18.5%. 
+
+These errors are slightly better that those of CART, but the increase of testing error of model trained on image 2 also exists. Figure \ref{fig:svm_1} shows the decision rule of two SVMs projecting on two different subspace. Plots shows that the big error rates were also caused by the distribution change of \texttt{corr}, and SVM_2 will depend a lot on \texttt{corr}. 
+
+CART and SVM cannot deal with this problem on single image, as single image only show one patterns. We guess if we train models on combined data of twoo images or even more, these models might be able to deal with this issue, but we cannot check this hypothesis as we only have two images for model training.
+
+
+```{r svm_1, fig.cap="svm classifier 1", echo=FALSE, fig.height = 6, fig.width = 8, out.width = '60%'}
+set.seed(100)
+n1 = nrow(data1_classifier)
+index1 = sample(n1, n1*0.1, replace = F)
+
+svm_1 <- svm(formula = label~., data = data1_classifier[index1, ], 
+             type = "C-classification", kernel = "radial")
+# par(mfrow=c(1,3),mar=c(1,1,1,1))
+plot(svm_1, data = data1_classifier[index1, ], ndai~corr, main = "SVM_1")
+# plot(svm_1, data = data1_classifier[index1, ], ndai~log_sd, main = "SVM_1")
+# plot(svm_1, data = data1_classifier[index1, ], corr~log_sd, main = "SVM_1")
+```
+
+
+```{r svm_2, fig.cap="svm classifier 2", echo=FALSE, fig.height = 6, fig.width = 12}
+set.seed(100)
+n2 = nrow(data2_classifier)
+index2 = sample(n2, n2*0.1, replace = F)
+svm_2 <- svm(formula = label~., data = data2_classifier[index2, ], 
+             type = "C-classification", kernel = "radial")
+# par(mfrow=c(1,3))
+# plot(svm_2, data = data2_classifier[index2, ], ndai~corr, main = "SVM_2")
+# plot(svm_2, data = data2_classifier[index2, ], ndai~log_sd, main = "SVM_2")
+# plot(svm_2, data = data2_classifier[index2, ], corr~log_sd, main = "SVM_2")
+```
+
+
+
+```{r}
+set.seed(100)
+data_classifier <- rbind(data1_classifier, data2_classifier)
+n = nrow(data_classifier)
+index = sample(n, n*0.1, replace = F)
+
+svm_4 <- svm(formula = label~., data = data_classifier[index, ], 
+             type = "C-classification", kernel = "radial")
+pred <- predict(svm_4, data3_classifier) # predict class
+train_error3 <- length(which(data3_classifier$label != pred))/length(pred)
+
+data3_classifier$pred_svm = pred
+```
+
+## Kmeans
+
+The distribution shifting problem brings us a lot of trouble in supervised training. Then we consider unsupervised learning method like clustering might be more stable in this special issue. Therefore, we tried to use K-means algorithm on each image and see if it would work. We did clustering on whole data of one image (labelled and unlabeled data) and calculated error rate within labelled data. The results are pretty good with error rates 6.68% on image 1 and 6.51% on image 2. This indicates that unsupervised clustering can well deal with the issue of unstable distributions and give more stable prediction. However, clustering only give us clusters without labels, we also need an supervised model to help with labeling. This is super easy as all our supervised model has high accuracy (more that 85%) which is enough for labeling two clusters.
+
+```{r}
+
+data3_cluster <- data3_raw %>%
+  mutate(log_sd = log(sd)) %>%
+  # filter(label != 0) %>%
+  dplyr::select(ndai, corr, log_sd)
+m <- kmeans(data3_cluster, centers = 2, nstart = 4)$cluster
+m[which(m == 1)] = -1
+m[which(m == 2)] = 1
+
+data3_classifier$pred_kmean = m[which(data3_raw$label != 0)]
+
+# table(data3_classifier$label, data3_classifier$pred_kmean)
+# table(data3_classifier$label, data3_classifier$pred_svm)
+# table(data3_classifier$pred_kmean, data3_classifier$pred_svm)
+# 
+# save(data3_classifier, file = "data3_classifier.Rda")
+```
+
+
+```{r plot alpha, fig.cap = "Training and Validation accuracy for Elastic Net penalized logistic regression varying alpha. The lambda parameter is chosen with cross-validation on the training image. The alpha parameter which minimizes validation set prediciton error is 0.5 with approximately 13\\% error.", out.width="60%"}
+img <-readPNG("images/en_accuracy.png")
+grid::grid.raster(img)
+```
+
+
+## QDA
+Code and diagnostics
+## LDA
+Code and diagnostics
+
+## 
+
+Cross-validation approach
+
+## CART
+
+## Confusion matrix
+
+## Imaege 3
+
+# References
