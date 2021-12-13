@@ -20,3 +20,13 @@ class Baseline:
         pred = [1 if (i > 0) else 0 for i in indicator]
         return pred
 
+    def print_model(self, data):
+
+        pred = self.predict(data)
+
+        n1 = pred.count(1)
+        n0 = pred.count(0)
+
+        print('Classification summary: '+str(n1) +' patients labeled 1 and ' +str(n0) + ' patients labeled 0.')
+
+        return

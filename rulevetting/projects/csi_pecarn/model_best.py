@@ -57,3 +57,14 @@ class SpecialTree:
                 pred.append(0)
 
         return pred
+
+    def print_model(self, data):
+
+        pred = self.predict(data)
+
+        n1 = pred.count(1)
+        n0 = pred.count(0)
+
+        print('Classification summary: '+str(n1) +' patients labeled 1 and ' +str(n0) + ' patients labeled 0.')
+
+        return
