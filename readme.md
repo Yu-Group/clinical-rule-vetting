@@ -60,7 +60,7 @@ Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md)
   - [ ] Save writeup into `writeup.pdf` + include source files
   - Should contain details on exploratory analysis, modeling, validation, comparisons with baseline, etc.
 - [ ] Submitting
-  - [ ] Ensure that all tests pass by running `pytest --project {project_name}` from the repo directory
+  - [x] Ensure that all tests pass by running `pytest --project {project_name}` from the repo directory
   - [ ] [Open a pull request](https://jarv.is/notes/how-to-pull-request-fork-github/) and it will be reviewed / merged
 - [ ] Reviewing submissions
   - [ ] Each pull request will be reviewed by others before being merged
