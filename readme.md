@@ -56,12 +56,12 @@ Helpful docs: [Collaboration details](docs/collaborating_for_data_scientists.md)
     - should override the [model template](rulevetting/templates/model.py) in a class named `Baseline`
   - [x] New model - implement `model_best.py` for making predictions using your newly derived best model
     - also should override the [model template](rulevetting/templates/model.py) in a class named `Model`
-- [ ] Lab writeup (see [instructions](docs/lab_writeup.md))    
-  - [ ] Save writeup into `writeup.pdf` + include source files
+- [x] Lab writeup (see [instructions](docs/lab_writeup.md))    
+  - [x] Save writeup into `writeup.pdf` + include source files
   - Should contain details on exploratory analysis, modeling, validation, comparisons with baseline, etc.
-- [ ] Submitting
+- [x] Submitting
   - [x] Ensure that all tests pass by running `pytest --project {project_name}` from the repo directory
-  - [ ] [Open a pull request](https://jarv.is/notes/how-to-pull-request-fork-github/) and it will be reviewed / merged
+  - [x] [Open a pull request](https://jarv.is/notes/how-to-pull-request-fork-github/) and it will be reviewed / merged
 - [ ] Reviewing submissions
   - [ ] Each pull request will be reviewed by others before being merged
 
