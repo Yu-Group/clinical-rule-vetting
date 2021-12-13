@@ -1,0 +1,109 @@
+license.md
+readme.md
+requirements.txt
+setup.py
+data/.DS_Store
+data/predictors.csv
+data/tbi_pecarn/raw/.DS_Store
+data/tbi_pecarn/raw/TBI PUD 10-08-2013.csv
+data/tbi_pecarn/raw/TBI PUD Documentation 10-08-2013.xlsx
+data/tbi_pecarn/raw/TBI PUD Frequencies of Variables 10-09-2013.pdf
+data/tbi_pecarn/raw/data_knn_imputation.csv
+data/tbi_pecarn/raw/data_median_imputation.csv
+data/tbi_pecarn/raw/data_no_imputation.csv
+data/tbi_pecarn/raw/misc/IRB.Protocol.January 19, 2006 Version 5.0.pdf
+data/tbi_pecarn/raw/misc/Read in TBI Imaging CSV.sas
+data/tbi_pecarn/raw/misc/Read in TBI NeuroDetails CSV.SAS
+data/tbi_pecarn/raw/misc/TBI Data Forms 1-4-6-7.pdf
+data/tbi_pecarn/raw/misc/TBI Imaging PUD Documentation.pdf
+data/tbi_pecarn/raw/misc/TBI PUD Frequencies of Neuro Variables.pdf
+data/tbi_pecarn/raw/misc/TBI PUD Imaging.csv
+data/tbi_pecarn/raw/misc/TBI PUD Neuro.csv
+data/tbi_pecarn/raw/misc/TBI PUD Neurosurgery Documentation.pdf
+docs/CNAME
+docs/build_docs.sh
+docs/collaborating_for_clinicians.md
+docs/collaborating_for_data_scientists.md
+docs/emails.md
+docs/github.css
+docs/index.html
+docs/lab_writeup.md
+docs/style_docs.py
+docs/api/eda.html
+docs/api/index.html
+docs/api/modeling.html
+docs/api/util.html
+docs/api/validation.html
+docs/api/viz.html
+docs/pres/_slides_rulevetting.md
+docs/pres/cs_black.css
+docs/pres/index.html
+docs/pres/preproc.js
+docs/pres/run_rule_slides.command
+docs/pres/assets_files/68747470733a2f2f79752d67726f75702e6769746875622e696f2f76657269646963616c2d666c6f772f6c6f676f5f76666c6f775f73747261696768742e6a7067
+docs/pres/assets_files/GitHub-Mark-64px.png
+docs/pres/assets_files/MathJax.js
+docs/pres/assets_files/Screen Shot 2021-11-03 at 11.29.24 AM.png
+docs/pres/assets_files/Screen Shot 2021-11-10 at 11.58.54 AM.png
+docs/pres/assets_files/Screen Shot 2021-11-10 at 12.01.27 PM.png
+docs/pres/assets_files/Screen Shot 2021-11-11 at 1.44.27 PM.png
+docs/pres/assets_files/Screen Shot 2021-11-11 at 11.23.43 AM.png
+docs/pres/assets_files/Screen Shot 2021-11-11 at 11.25.27 AM.png
+docs/pres/assets_files/Screen Shot 2021-11-11 at 12.32.58 PM.png
+docs/pres/assets_files/Screen Shot 2021-11-11 at 4.11.24 PM.png
+docs/pres/assets_files/atom-one-dark.css
+docs/pres/assets_files/cs_black.css
+docs/pres/assets_files/head.min.js
+docs/pres/assets_files/highlight.js
+docs/pres/assets_files/livereload.js
+docs/pres/assets_files/markdown.js
+docs/pres/assets_files/marked.js
+docs/pres/assets_files/math.js
+docs/pres/assets_files/ml_map.png
+docs/pres/assets_files/notes.js
+docs/pres/assets_files/pandas.png
+docs/pres/assets_files/paper.css
+docs/pres/assets_files/reveal.css
+docs/pres/assets_files/reveal.js
+docs/pres/assets_files/rule_list.png
+docs/pres/assets_files/zoom.js
+docs/projects/index.html
+docs/projects/tbi_pecarn/index.html
+docs/templates/baseline.html
+docs/templates/dataset.html
+docs/templates/index.html
+docs/templates/model.html
+rulevetting/__init__.py
+rulevetting.egg-info/PKG-INFO
+rulevetting.egg-info/SOURCES.txt
+rulevetting.egg-info/dependency_links.txt
+rulevetting.egg-info/requires.txt
+rulevetting.egg-info/top_level.txt
+rulevetting/__pycache__/__init__.cpython-39.pyc
+rulevetting/api/eda.py
+rulevetting/api/modeling.py
+rulevetting/api/util.py
+rulevetting/api/validation.py
+rulevetting/api/viz.py
+rulevetting/projects/tbi_pecarn/.DS_Store
+rulevetting/projects/tbi_pecarn/baseline.py
+rulevetting/projects/tbi_pecarn/dataset.py
+rulevetting/projects/tbi_pecarn/eda_tbi.ipynb
+rulevetting/projects/tbi_pecarn/fit_interpretable_models.ipynb
+rulevetting/projects/tbi_pecarn/fit_model_mqh.ipynb
+rulevetting/projects/tbi_pecarn/helper.py
+rulevetting/projects/tbi_pecarn/model_best.py
+rulevetting/projects/tbi_pecarn/readme.md
+rulevetting/projects/tbi_pecarn/.ipynb_checkpoints/eda_tbi-checkpoint.ipynb
+rulevetting/projects/tbi_pecarn/Notebooks/00_eda.ipynb
+rulevetting/projects/tbi_pecarn/Notebooks/01_fit_interpretable_models.ipynb
+rulevetting/templates/dataset.py
+rulevetting/templates/model.py
+tests/conftest.py
+tests/test_all_files_present.py
+tests/test_datasets.py
+tests/test_models.py
+tests/__pycache__/conftest.cpython-39-pytest-6.2.5.pyc
+tests/__pycache__/test_all_files_present.cpython-39-pytest-6.2.5.pyc
+tests/__pycache__/test_datasets.cpython-39-pytest-6.2.5.pyc
+tests/__pycache__/test_models.cpython-39-pytest-6.2.5.pyc
