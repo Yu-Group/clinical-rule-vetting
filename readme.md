@@ -90,7 +90,7 @@ cd rule-vetting
 pip install -e .
 ```
 
-Now run the automatic tests to ensure everything works.
+Now run the automatic tests to ensure everything works (warnings are fine as long as all test pass).
 
 ```bash
 pytest --project iai_pecarn
