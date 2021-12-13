@@ -14,6 +14,8 @@ git clone https://github.com/csinva/imodels.git
 cd imodels
 pip install -e .
 ```
+The model validation results used in `validation_results.ipynb` require results from `imodels-experiments` [repo](https://github.com/Yu-Group/imodels-experiments) and please contact authors for additional details or files required to reload the models.
+
 To perform veridical flow analysis, we used the development distribution installed from the `vflow` repo. Specifically, we would need to delete previous `vflow` installation from `rule-env` with the following commands:
 ```
 # in rule-env environment
