@@ -3,9 +3,8 @@ import pandas as pd
 
 
 class SpecialTree:
-    def __init__(self, data):
+    def __init__(self):
 
-        self.data = data
         self.v_lists = [
 
         # >12
@@ -27,19 +26,19 @@ class SpecialTree:
         'EMSArrival']
         ]
 
-    def predict(self):
+    def predict(self, data):
 
         for one_list in self.v_lists:
             for v in one_list:
-                if v not in self.data.columns:
+                if v not in data.columns:
                     print('cannot find ' + v)
                     return
 
         pred = []
-        n = self.data.shape[0]
+        n = data.shape[0]
 
         for i in range(n):
-            df = self.data.iloc[i]
+            df = data.iloc[i]
 
             if df['VeryYoung'] == 1:
                 v_list = self.v_lists[3]
