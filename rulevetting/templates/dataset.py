@@ -73,6 +73,7 @@ class DatasetTemplate:
         -------
         extracted_features: pd.DataFrame
         """
+    
         return NotImplemented
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
@@ -173,7 +174,7 @@ class DatasetTemplate:
             default_kwargs[key] = {k: func_kwargs[k][0]  # first arg in each list is default
                                    for k in func_kwargs.keys()}
 
-        print('kwargs', default_kwargs)
+#         print('kwargs', default_kwargs)
         if not run_perturbations:
             cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
             preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
@@ -205,6 +206,7 @@ class DatasetTemplate:
                     if isinstance(k, tuple):
                         os.makedirs(oj(PROCESSED_PATH, 'perturbed_data'), exist_ok=True)
                         perturbation_name = str(k).replace(', ', '_').replace('(', '').replace(')', '')
+#                         perturbation_name = str(kwargs).replace('{', '').replace('}', '').replace(':', '').replace('\'', '').replace(' ', '_')
                         perturbed_path = oj(PROCESSED_PATH, 'perturbed_data', perturbation_name)
                         os.makedirs(perturbed_path, exist_ok=True)
                         for i, fname in enumerate(['train.csv', 'tune.csv', 'test.csv']):
@@ -216,3 +218,4 @@ class DatasetTemplate:
                 return dfs[list(dfs.keys())[0]]
 
         return df_train, df_tune, df_test
+    
