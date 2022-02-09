@@ -107,6 +107,8 @@ class Dataset(DatasetTemplate):
         agegroup_df = pd.get_dummies(pd.cut(demog_df['AgeInYears'], bins=[0, 2, 6, 12, 16],
                                             labels=['infant', 'preschool', 'school_age', 'adolescents'],
                                             include_lowest=True), prefix='age')
+        agegroup_df['AgeInYears'] = demog_df['AgeInYears']
+
         result_df = result_df.merge(
             pd.concat([demog_df[['SITE', 'CaseID', 'StudySubjectID']], gender_df, agegroup_df], axis=1),
             how='left', on=['SITE', 'CaseID', 'StudySubjectID'])
@@ -180,7 +182,7 @@ class Dataset(DatasetTemplate):
            'Position_S', 'Position_W', 'PtCompPainHead2', 'PtCompPainFace2',
            'PtCompPainExt2', 'PtCompPainTorsoTrunk2', 'PtTenderHead2',
            'PtTenderFace2', 'PtTenderExt2', 'PtTenderTorsoTrunk2',
-           'Immobilization2', 'MedsRecd2', 'ArrPtIntub2', 'gender_F', 'age_infant',
+           'Immobilization2', 'MedsRecd2', 'ArrPtIntub2', 'age_infant',
            'age_preschool', 'age_school_age', 'age_adolescents']) & set(df.columns))
             df = df.drop(columns = feat_augmented)
             
@@ -273,7 +275,7 @@ class Dataset(DatasetTemplate):
 
     def get_meta_keys(self) -> list:
         site_keys = ['EDDisposition', 'IntervForCervicalStab', 'IntervForCervicalStabSCollar', 'IntervForCervicalStabRCollar', 'IntervForCervicalStabBrace', 'IntervForCervicalStabTraction', 'IntervForCervicalStabSurgical', 'IntervForCervicalStabHalo', 'IntervForCervicalStabIntFix', 'IntervForCervicalStabIntFixtxt', 'IntervForCervicalStabOther', 'IntervForCervicalStabOthertxt', 'LongTermRehab', 'OutcomeStudySiteNeuro', 'OutcomeStudySiteMobility', 'OutcomeStudySiteMobility1', 'OutcomeStudySiteMobility2', 'OutcomeStudySiteBowel', 'OutcomeStudySiteUrine']
-        return site_keys + ['SITE', 'StudySubjectID', 'ControlType', 'CaseID']  # keys which are useful but not used for prediction
+        return site_keys + ['SITE', 'StudySubjectID', 'ControlType', 'CaseID', 'AgeInYears']  # keys which are useful but not used for prediction
 
     def get_judgement_calls_dictionary(self) -> Dict[str, Dict[str, list]]:
         return {
