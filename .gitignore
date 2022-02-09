@@ -42,4 +42,4 @@ experiments/data/
 
 rule-env/
 data/csi_pecarn/*
-
+data/imodels_data/*
