@@ -39,3 +39,7 @@ dist
 experiments/data/
 !experiments/data/get_datasets.ipynb
 .hypothesis
+
+rule-env/
+data/csi_pecarn/*
+data/imodels_data/*
