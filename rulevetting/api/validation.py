@@ -34,8 +34,9 @@ def all_stats_curve(y_test, preds_proba, plot=False, thresholds=None):
             all_stats['f1'].append(tp / (tp + 0.5 * (fp + fn)))
 
     if plot:
-        plt.plot(all_stats['sens'], all_stats['spec'], '.-')
-        plt.xlabel('sensitivity')
-        plt.ylabel('specificity')
+        plt.plot([1 - x for x in all_stats['spec']], all_stats['sens'], '.-')
+        plt.xlabel('1-specificity')
+        plt.ylabel('sensitivity')
+        plt.plot([0, 1], [0, 1], color='r', linestyle='--', linewidth = 1)
         plt.grid()
     return all_stats, thresholds
