@@ -9,7 +9,7 @@ import pandas as pd
 from joblib import Memory
 
 import rulevetting
-from vflow import init_args, Vset, build_Vset
+from vflow import init_args, Vset, build_vset
 
 
 class DatasetTemplate:
@@ -181,13 +181,14 @@ class DatasetTemplate:
             df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
-            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
+            clean_set = build_vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH,
+                                   output_matching=True)
             cleaned_data = clean_set(data_path_arg)
-            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
-                                        cache_dir=CACHE_PATH)
+            preprocess_set = build_vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
+                                        cache_dir=CACHE_PATH, output_matching=True)
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
-                                     cache_dir=CACHE_PATH)
+            extract_set = build_vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
+                                     cache_dir=CACHE_PATH, output_matching=True)
             extracted_features = extract_set(preprocessed_data)
             split_data = Vset('split_data', modules=[self.split_data])
             dfs = split_data(extracted_features)
@@ -214,5 +215,7 @@ class DatasetTemplate:
                             df.loc[:, meta_keys].to_csv(oj(perturbed_path, f'meta_{fname}'))
                             df.drop(columns=meta_keys).to_csv(oj(perturbed_path, fname))
                 return dfs[list(dfs.keys())[0]]
-
+        if run_perturbations:
+            #return dfs[list(dfs.keys())[0]]
+            return dfs
         return df_train, df_tune, df_test
