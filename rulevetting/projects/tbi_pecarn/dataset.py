@@ -12,7 +12,7 @@ from rulevetting.projects.tbi_pecarn import helper
 
 
 import rulevetting
-from vflow import init_args, Vset, build_Vset
+from vflow import init_args, vset, build_vset
 
 
 class Dataset:
