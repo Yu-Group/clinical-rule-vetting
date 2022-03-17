@@ -69,8 +69,8 @@ class Dataset:
 
         # just looking at the first dataframe with pre-ct variables
         df = r['TBI PUD 10-08-2013.csv']
-        df = df.fillna(value='Unknown')
-        cleaned_data = df.replace('nan', 'Unknown')
+        cleaned_data = df.replace('nan', np.nan)
+        cleaned_data['AgeTwoPlus'] -= 1
 
         return cleaned_data
 
@@ -92,80 +92,87 @@ class Dataset:
         preprocessed_data: pd.DataFrame
         """
         
-        # infer missing PosIntFinal from the other outcome columns
-        def infer_missing_outcome(row):
-            outcome = 'Unknown'
-            # look at known outcome columns to infer outcome
-            not_missing = [data for data in row if data != 'Unknown']
+        # # infer missing PosIntFinal from the other outcome columns
+        # def infer_missing_outcome(row):
+        #     outcome = 'Unknown'
+        #     # look at known outcome columns to infer outcome
+        #     not_missing = [data for data in row if data != 'Unknown']
 
-            # if all values that are known give the same answer, use that as the outcome
-            # If all values are present (no missings)
-            if len(not_missing) == len(row) and not_missing.count(not_missing[0]) == len(not_missing):
-                outcome = not_missing[0]
-            return outcome
+        #     # if all values that are known give the same answer, use that as the outcome
+        #     # If all values are present (no missings)
+        #     if len(not_missing) == len(row) and not_missing.count(not_missing[0]) == len(not_missing):
+        #         outcome = not_missing[0]
+        #     return outcome
         
         # judgement call - we infer missing outcomes based on other outcome variables - hosphead, intub, ...
         if kwargs['infer_outcome']:
-            cleaned_data.loc[cleaned_data['PosIntFinal'] == 'Unknown', 'PosIntFinal'] = cleaned_data[cleaned_data['PosIntFinal'] == 'Unknown'][['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].apply(infer_missing_outcome, axis=1)
+            cleaned_data = cleaned_data.loc[
+                ~cleaned_data['PosIntFinal'].isna() | ~cleaned_data[['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].isna().any(axis=1)]
+            
+            cleaned_data.loc[cleaned_data['PosIntFinal'].isna(), 'PosIntFinal'] = (cleaned_data.loc[
+                cleaned_data['PosIntFinal'].isna(), ['HospHeadPosCT', 'Intub24Head', 'Neurosurgery', 'DeathTBI']].sum(axis=1) >= 1).astype(int)
         
         # judgement call - we drop patients with gcs <14 and thus gcs scores
         if kwargs['drop_low_gcs']:
             cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, :]
-            cleaned_data = cleaned_data.drop(columns = ['GCSTotal', 'GCSGroup'])  
+            cleaned_data = cleaned_data.drop(columns = ['GCSTotal', 'GCSGroup'])
             gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
             cleaned_data = cleaned_data.drop(columns=gcs_vars)
+
+        if not kwargs['propensity']:
+
+            # judgement call - impute unknowns with mode/mean/or drop patient
+            if 'impute_unknowns' in kwargs:
+                for col in cleaned_data.columns:
+                    if kwargs['impute_unknowns'] == 'mode':
+                        cleaned_data[col] = cleaned_data[col].fillna(cleaned_data[col].mode()[0])
+
+                    if kwargs['impute_unknowns'] == 'drop':
+                        cleaned_data = cleaned_data[cleaned_data[col].isna()]
                 
-        # judgement call - impute unknowns with mode/mean/or drop patient
-        if 'impute_unknowns' in kwargs:
-            for col in cleaned_data.columns.tolist():
-                if kwargs['impute_unknowns'] == 'mode':
-                    cleaned_data.loc[cleaned_data[col] == 'Unknown', col] = cleaned_data.mode()[col][0]
-                if kwargs['impute_unknowns'] == 'drop':
-                    cleaned_data = cleaned_data[cleaned_data[col] != 'Unknown']
-            
-        # judgement call - impute features that have descriptions about dealing with not applicables
-        not_applicable_doc_feats = ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
-                                    'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer', 
-                                    'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc', 
-                                    'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
-                                    'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
-                                    'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']
-        if kwargs['impute_not_applicables']:
-            for col in  not_applicable_doc_feats:
-                cleaned_data.loc[cleaned_data[col] == 'Not applicable', col] = 'No'
+            # judgement call - impute features that have descriptions about dealing with not applicables
+            not_applicable_doc_feats = ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
+                                        'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer', 
+                                        'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc', 
+                                        'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
+                                        'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
+                                        'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']
+            if kwargs['impute_not_applicables']:
+                cleaned_data.loc[:, not_applicable_doc_feats] = cleaned_data.loc[:, not_applicable_doc_feats].replace({92: 0})
+
+            # dropping variables that do not influence the doctors decision
+            other_vars = ['EmplType', 'Certification', 'Race', 'Gender']
+            cleaned_data = cleaned_data.drop(columns=other_vars)
             
         # renaming our target variable
-        cleaned_data.rename(columns = {'PosIntFinal':'outcome'}, inplace=True)
+        cleaned_data.rename(columns = {'PosIntFinal': 'outcome'}, inplace=True)
         
         # removing post-ct variables that aren't the outcome
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
         
-        # dropping variables that do not influence the doctors decision
-        other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy', 'Gender',
-                      'AgeInMonth', 'AgeinYears'] 
+        # dropping variables that do have high fraction of missing values
+        hi_missing_vars = ['Dizzy', 'Ethnicity']
+        cleaned_data = cleaned_data.drop(columns=hi_missing_vars)
+     
         # IF keep years, don't drop it
-        if "keep_years" in kwargs and kwargs["keep_years"] is not None:
-            if kwargs["keep_years"]:
-                other_vars = ['EmplType', 'Certification', 'Ethnicity', 'Race', 'Dizzy', 'Gender', 
-                      'AgeInMonth']
-                
-        cleaned_data = cleaned_data.drop(columns=other_vars)
+        if not kwargs["keep_years"]:
+            cleaned_data = cleaned_data.drop(columns=['AgeInMonth', 'AgeInYears'])
         
         # remapping binary variables
-        bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes']).all()]
-        for bool_col in bool_cols:
-            cleaned_data[bool_col] = cleaned_data[bool_col].map({'No': 0, 'Yes': 1})
-            
+        # bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes', ]).all()]
+        # cleaned_data.loc[:, bool_cols] = cleaned_data.loc[:, bool_cols].replace({'No': 0, 'Yes': 1})
+    
         # gender has to be remapped - if we actually use it
         # cleaned_data['Gender'] = cleaned_data['Gender'].map({'Male': 0, 'Female': 1})
-            
-        # one-hot encode categorical vars w/ >2 unique values
-        cleaned_data = helper.one_hot_encode_df(cleaned_data)
-        
+    
         # id isn't necessary post eda
         preprocessed_data = cleaned_data.drop(columns=['id'])
+
+        # one-hot encode categorical vars w/ >2 unique values
+        numeric_cols = ['AgeInMonth', 'AgeinYears']
+        preprocessed_data = helper.one_hot_encode_df(preprocessed_data, numeric_cols)
         
-        return preprocessed_data
+        return preprocessed_data.astype(np.float32)
     
     @abstractmethod
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -315,12 +322,16 @@ class Dataset:
         Each value should be a list of values, with the default value coming first.
         """
         return {
-            'clean_data': {},
+            'clean_data': {
+                'propensity': [False]
+            },
             'preprocess_data': {
                 'infer_outcome': [True, False],
+                'keep_years': [True, False],
                 'drop_low_gcs': [True, False],
                 'impute_unknowns': ['mode', 'drop'],
-                'impute_not_applicables': [True, False]
+                'impute_not_applicables': [True, False],
+                'propensity': [False]
             },
             'extract_features': {}
         }
@@ -383,19 +394,19 @@ class Dataset:
 
         print('kwargs', default_kwargs)
         if not run_perturbations:
-            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'], **kwargs)
-            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'], **kwargs)
-            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'], **kwargs)
+            cleaned_data = self.clean_data(data_path=data_path, **default_kwargs['clean_data'], **kwargs)
+            preprocessed_data = self.preprocess_data(cleaned_data, **default_kwargs['preprocess_data'], **kwargs)
+            extracted_features = self.extract_features(preprocessed_data, **default_kwargs['extract_features'], **kwargs)
             pre_data = extracted_features
             
             if simple:
                 pre_data = pre_data[simple_var_list]
             if not verbal_split:
-                if young and not old: 
-                    pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 1.0, :]
+                if young and not old:
+                    pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 0, :]
                     pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
                 if old and not young:
-                    pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 2.0, :]
+                    pre_data = pre_data.loc[pre_data['AgeTwoPlus'] == 1, :]
                     pre_data = pre_data.drop(columns = ['AgeTwoPlus'])
             elif verbal_split:
                 if verbal and not nonverbal:
@@ -405,19 +416,19 @@ class Dataset:
                     pre_data = pre_data.loc[pre_data['HA_verb'] == 91, :]
                     pre_data = pre_data.drop(columns = ['HA_verb'])             
 
-            df_train, df_tune, df_test = cache(self.split_data)(pre_data)
+            df_train, df_tune, df_test = self.split_data(pre_data)
             
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
-            clean_set = build_Vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
+            clean_set = build_vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH)
             cleaned_data = clean_set(data_path_arg)
-            preprocess_set = build_Vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
+            preprocess_set = build_vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
                                         cache_dir=CACHE_PATH)
             preprocessed_data = preprocess_set(cleaned_data)
-            extract_set = build_Vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
+            extract_set = build_vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
                                      cache_dir=CACHE_PATH)
             extracted_features = extract_set(preprocessed_data)
-            split_data = Vset('split_data', modules=[self.split_data])
+            split_data = vset('split_data', modules=[self.split_data])
             dfs = split_data(extracted_features)
         if save_csvs:
             os.makedirs(PROCESSED_PATH, exist_ok=True)
