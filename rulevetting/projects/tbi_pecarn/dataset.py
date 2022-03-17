@@ -171,6 +171,9 @@ class Dataset:
         # one-hot encode categorical vars w/ >2 unique values
         numeric_cols = ['AgeInMonth', 'AgeinYears']
         preprocessed_data = helper.one_hot_encode_df(preprocessed_data, numeric_cols)
+
+        preprocessed_data.insert(
+            len(preprocessed_data.columns) - 1, 'outcome', preprocessed_data.pop('outcome'))
         
         return preprocessed_data.astype(np.float32)
     
@@ -323,7 +326,7 @@ class Dataset:
         """
         return {
             'clean_data': {
-                'propensity': [False]
+                'propensity': [True, False]
             },
             'preprocess_data': {
                 'infer_outcome': [True, False],
@@ -331,7 +334,7 @@ class Dataset:
                 'drop_low_gcs': [True, False],
                 'impute_unknowns': ['mode', 'drop'],
                 'impute_not_applicables': [True, False],
-                'propensity': [False]
+                'propensity': [True, False]
             },
             'extract_features': {}
         }
