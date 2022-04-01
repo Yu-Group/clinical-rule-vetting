@@ -53,3 +53,5 @@ experiments/data/
 /rulevetting/projects/tbi_pecarn/notebooks/models/grl.pkl
 /rulevetting/projects/tbi_pecarn/notebooks/models/rulefit.pkl
 *.RData
+/Feedback.pdf
+/writeup-annotated.pdf
