@@ -219,6 +219,10 @@ class Dataset(DatasetTemplate):
 
         # remove (site), case ID, subject ID, control type
         df_encoded = one_hot_encode_df(df, numeric_cols=self.get_meta_keys())
+
+        df_encoded.insert(
+            len(df_encoded.columns) - 1, 'outcome', df_encoded.pop('outcome'))
+
         return df_encoded
 
     def split_data(self, preprocessed_data: pd.DataFrame) -> pd.DataFrame:
