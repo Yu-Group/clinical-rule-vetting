@@ -175,10 +175,10 @@ class DatasetTemplate:
 
         print('kwargs', default_kwargs)
         if not run_perturbations:
-            cleaned_data = cache(self.clean_data)(data_path=data_path, **default_kwargs['clean_data'])
-            preprocessed_data = cache(self.preprocess_data)(cleaned_data, **default_kwargs['preprocess_data'])
-            extracted_features = cache(self.extract_features)(preprocessed_data, **default_kwargs['extract_features'])
-            df_train, df_tune, df_test = cache(self.split_data)(extracted_features)
+            cleaned_data = self.clean_data(data_path=data_path, **default_kwargs['clean_data'])
+            preprocessed_data = self.preprocess_data(cleaned_data, **default_kwargs['preprocess_data'])
+            extracted_features = self.extract_features(preprocessed_data, **default_kwargs['extract_features'])
+            df_train, df_tune, df_test = self.split_data(extracted_features)
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
             clean_set = build_vset('clean_data', self.clean_data, param_dict=kwargs['clean_data'], cache_dir=CACHE_PATH,

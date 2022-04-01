@@ -8,10 +8,10 @@ from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from joblib import Memory
-from rulevetting.projects.tbi_pecarn import helper
-
 
 import rulevetting
+from rulevetting.projects import one_hot_encode_df
+from rulevetting.projects.tbi_pecarn import helper
 from vflow import init_args, vset, build_vset
 
 
@@ -140,9 +140,9 @@ class Dataset:
             if kwargs['impute_not_applicables']:
                 cleaned_data.loc[:, not_applicable_doc_feats] = cleaned_data.loc[:, not_applicable_doc_feats].replace({92: 0})
 
-            # dropping variables that do not influence the doctors decision
-            other_vars = ['EmplType', 'Certification', 'Race', 'Gender']
-            cleaned_data = cleaned_data.drop(columns=other_vars)
+        # dropping variables that do not influence the doctors decision
+        other_vars = ['EmplType', 'Certification', 'Race']
+        cleaned_data = cleaned_data.drop(columns=other_vars)
             
         # renaming our target variable
         cleaned_data.rename(columns = {'PosIntFinal': 'outcome'}, inplace=True)
@@ -170,7 +170,7 @@ class Dataset:
 
         # one-hot encode categorical vars w/ >2 unique values
         numeric_cols = ['AgeInMonth', 'AgeinYears']
-        preprocessed_data = helper.one_hot_encode_df(preprocessed_data, numeric_cols)
+        preprocessed_data = one_hot_encode_df(preprocessed_data, numeric_cols)
 
         preprocessed_data.insert(
             len(preprocessed_data.columns) - 1, 'outcome', preprocessed_data.pop('outcome'))
