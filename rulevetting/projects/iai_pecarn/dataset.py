@@ -60,16 +60,22 @@ class Dataset(DatasetTemplate):
 
     def preprocess_data(self, cleaned_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
 
-        # drop cols with vals missing this percent of the time
-        df = cleaned_data.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
+        if not kwargs['prop']:
 
-        # impute missing values
-        # fill in values for some vars from unknown -> None
-        df.loc[df['AbdomenTender'].isin(['no', 'unknown']), 'AbdTenderDegree'] = 'None'
+            # drop cols with vals missing this percent of the time
+            df = cleaned_data.dropna(axis=1, thresh=(1 - kwargs['frac_missing_allowed']) * cleaned_data.shape[0])
 
-        # pandas impute missing values with median
-        df = df.fillna(df.median())
-        df.GCSScore = df.GCSScore.fillna(df.GCSScore.median())
+            # impute missing values
+            # fill in values for some vars from unknown -> None
+            df.loc[df['AbdomenTender'].isin(['no', 'unknown']), 'AbdTenderDegree'] = 'None'
+
+            # pandas impute missing values with median
+            df = df.fillna(df.median())
+            df.GCSScore = df.GCSScore.fillna(df.GCSScore.median())
+        else:
+            df = cleaned_data
+            contin_cols = df.dtypes.astype(str).str.contains('float')
+            df.loc[:, contin_cols] = df.loc[:, contin_cols].fillna(df.median())
 
         df['outcome'] = df[self.get_outcome_name()]
 
@@ -92,6 +98,7 @@ class Dataset(DatasetTemplate):
         # narrow to good keys
         feat_names = [k for k in df.keys()  # features to use
                       if not 'iai' in k.lower()]
+        print([feat for feat in feat_names if 'nan' in feat])
         base_feat_names = []
         base_feat_names += ['AbdDistention', 'AbdTenderDegree', 'AbdTrauma', 'AbdTrauma_or_SeatBeltSign',
                             'AbdomenPain', 'Costal', 'DecrBreathSound', 'DistractingPain',
@@ -101,6 +108,7 @@ class Dataset(DatasetTemplate):
         base_feat_names += self.get_meta_keys()
         feats = rulevetting.api.util.get_feat_names_from_base_feats(feat_names,
                                                                     base_feat_names=base_feat_names) + ['outcome']
+        print([feat for feat in feats if 'nan' in feat])
         return df[feats]
 
     def get_outcome_name(self) -> str:
@@ -118,6 +126,7 @@ class Dataset(DatasetTemplate):
             'preprocess_data': {
                 # drop cols with vals missing this percent of the time
                 'frac_missing_allowed': [0.05, 0.10],
+                'prop': [True, False]
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
