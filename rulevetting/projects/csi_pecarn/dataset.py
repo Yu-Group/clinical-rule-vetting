@@ -27,9 +27,17 @@ class Dataset(DatasetTemplate):
 
         clean_key_col_names = lambda df: df.rename(columns={'site': 'SITE',
                                                             'caseid': 'CaseID',
-                                                            'studysubjectid': 'StudySubjectID'})
+                                                            'studysubjectid': 'StudySubjectID',
+                                                            'SubInj_Head': 'SubInjHead',
+                                                            'SubInj_Face': 'SubInjFace',
+                                                            'SubInj_Ext': 'SubInjExt',
+                                                            'SubInj_TorsoTrunk': 'SubInjTorsoTrunk',
+                                                            'subinj_Head2': 'SubInjHead2',
+                                                            'subinj_Face2': 'SubInjFace2',
+                                                            'subinj_Ext2': 'SubInjExt2',
+                                                            'subinj_TorsoTrunk2': 'SubInjTorsoTrunk2'})
         # Build on AnalysisVariable
-        result_df = dfs[0].copy()
+        result_df = clean_key_col_names(dfs[0].copy())
 
         key_df = dfs[0][MERGE_KEYS]
         # Read clinical presentation
@@ -41,48 +49,46 @@ class Dataset(DatasetTemplate):
                                 on=MERGE_KEYS)
         
         # + Is patient sent by EMS?
-        result_df['is_ems'] = 0
-        result_df.loc[(field_df['FieldDocumentation'].isin(['EMS', 'NR'])), 'is_ems'] = 1
+        result_df['IsEms'] = 0
+        result_df.loc[(field_df['FieldDocumentation'].isin(['EMS', 'NR'])), 'IsEms'] = 1
         
-        # + Patient position
+        # + Patient position. A position of ND means not documented, i.e. missing
         position_df = pd.get_dummies(field_df['PatientsPosition'], prefix='Position')
+        position_df['Position_ND'] = (
+            position_df['Position_ND'] + field_df['PatientsPosition'].isna().astype(int)).clip(0, 1)
+        position_df = position_df.rename(columns={'Position_ND': 'Position_nan'})
+
         result_df = result_df.merge(
             pd.concat([field_df[MERGE_KEYS], position_df], axis=1),
             how='left', on=MERGE_KEYS)
 
-        if kwargs['fillna']:
-            # + Compaint of pain in other region
-            result_df['PtCompPainHead'] = site_df['PtCompPainHead'].fillna(0)
-            result_df['PtCompPainFace'] = site_df['PtCompPainFace'].fillna(0)
-            result_df['PtCompPainExt'] = site_df['PtCompPainExt'].fillna(0)
-            result_df['PtCompPainTorsoTrunk'] = site_df[['PtCompPainChest', 'PtCompPainBack', 'PtCompPainFlank', 'PtCompPainAbd', 'PtCompPainPelvis']].fillna(0).sum(axis = 1)
-            result_df.loc[result_df['PtCompPainTorsoTrunk'] > 0, 'PtCompPainTorsoTrunk'] = 1
+        # + Complaints of pain and tenderness
+        for type in ['CompPain', 'Tender']:
+            torso_vars = [
+                f'Pt{type}Chest', f'Pt{type}Back', f'Pt{type}Flank', f'Pt{type}Abd', f'Pt{type}Pelvis']
 
-            result_df['PtCompPainHead2'] = result_df['PtCompPainHead'] + field_df['PtCompPainHead'].fillna(0) + outside_df['PtCompPainHead'].fillna(0)
-            result_df.loc[result_df['PtCompPainHead2'] > 0, 'PtCompPainHead2'] = 1
-            result_df['PtCompPainFace2'] = result_df['PtCompPainFace'] + field_df['PtCompPainFace'].fillna(0) + outside_df['PtCompPainFace'].fillna(0)
-            result_df.loc[result_df['PtCompPainFace2'] > 0, 'PtCompPainFace2'] = 1
-            result_df['PtCompPainExt2'] = result_df['PtCompPainExt'] + field_df['PtCompPainExt'].fillna(0) + outside_df['PtCompPainExt'].fillna(0)
-            result_df.loc[result_df['PtCompPainExt2'] > 0, 'PtCompPainExt2'] = 1
-            result_df['PtCompPainTorsoTrunk2'] = result_df['PtCompPainTorsoTrunk'] + field_df[['PtCompPainChest', 'PtCompPainBack', 'PtCompPainFlank', 'PtCompPainAbd', 'PtCompPainPelvis']].fillna(0).sum(axis = 1) + outside_df[['PtCompPainChest', 'PtCompPainBack', 'PtCompPainFlank', 'PtCompPainAbd', 'PtCompPainPelvis']].fillna(0).sum(axis = 1)
-            result_df.loc[result_df['PtCompPainTorsoTrunk2'] > 0, 'PtCompPainTorsoTrunk2'] = 1        
+            for df in [site_df, field_df, outside_df]:
+                df[f'Pt{type}TorsoTrunk'] = df[torso_vars].sum(axis=1).clip(0, 1)
             
-            # + Tenderness in other region
-            result_df['PtTenderHead'] = site_df['PtTenderHead'].fillna(0)
-            result_df['PtTenderFace'] = site_df['PtTenderFace'].fillna(0)
-            result_df['PtTenderExt'] = site_df['PtTenderExt'].fillna(0)
-            result_df['PtTenderTorsoTrunk'] = site_df[['PtTenderChest', 'PtTenderBack', 'PtTenderFlank', 'PtTenderAbd', 'PtTenderPelvis']].fillna(0).sum(axis = 1)
-            result_df.loc[result_df['PtTenderTorsoTrunk'] > 0, 'PtTenderTorsoTrunk'] = 1
+            for df in [site_df, field_df, outside_df]:
 
-            result_df['PtTenderHead2'] = result_df['PtTenderHead'] + field_df['PtTenderHead'].fillna(0) + outside_df['PtTenderHead'].fillna(0)
-            result_df.loc[result_df['PtTenderHead2'] > 0, 'PtTenderHead2'] = 1
-            result_df['PtTenderFace2'] = result_df['PtTenderFace'] + field_df['PtTenderFace'].fillna(0) + outside_df['PtTenderFace'].fillna(0)
-            result_df.loc[result_df['PtTenderFace2'] > 0, 'PtTenderFace2'] = 1
-            result_df['PtTenderExt2'] = result_df['PtTenderExt'] + field_df['PtTenderExt'].fillna(0) + outside_df['PtTenderExt'].fillna(0)
-            result_df.loc[result_df['PtTenderExt2'] > 0, 'PtTenderExt2'] = 1
-            result_df['PtTenderTorsoTrunk2'] = result_df['PtTenderTorsoTrunk'] + field_df[['PtTenderChest', 'PtTenderBack', 'PtTenderFlank', 'PtTenderAbd', 'PtTenderPelvis']].fillna(0).sum(axis = 1) + outside_df[['PtTenderChest', 'PtTenderBack', 'PtTenderFlank', 'PtTenderAbd', 'PtCompPainPelvis']].fillna(0).sum(axis = 1)
-            result_df.loc[result_df['PtTenderTorsoTrunk2'] > 0, 'PtTenderTorsoTrunk2'] = 1   
-        
+                # If PtCompPain is missing then specific categories should be too
+                missing_index = df[f'Pt{type}'].isna() | df[f'Pt{type}'].isin({'S', 'P', 'ND'})
+                df.loc[missing_index, :] = np.nan
+
+            for region in ['Head', 'Face', 'Ext', 'TorsoTrunk']:
+                colname = f'Pt{type}{region}'
+
+                result_df[colname] = site_df[colname]
+                result_df[f'{colname}2'] = site_df[colname]
+
+                field_indices = ((result_df[f'{colname}2'] != 1) & ~field_df[colname].isna())
+                result_df.loc[field_indices, f'{colname}2'] = field_df.loc[field_indices, colname]
+
+                outside_indices = ((result_df[f'{colname}2'] != 1) & ~outside_df[colname].isna())
+                result_df.loc[outside_indices, f'{colname}2'] = outside_df.loc[outside_indices, colname]
+
+                # print(result_df[f'{colname}2'].isna().value_counts())
 
         # + Intervention after inital evaluation?
         if kwargs['include_intervention']:
@@ -100,13 +106,13 @@ class Dataset(DatasetTemplate):
             result_df.loc[(site_df['ArrPtIntub'] == 'Y'), 'ArrPtIntub'] = 1
             result_df['ArrPtIntub2'] = result_df['ArrPtIntub'].copy()
             result_df.loc[(outside_df['ArrPtIntub'] == 'Y'), 'ArrPtIntub2'] = 1
-            
+        
         
         # result_df['Precaution'] = 0
         # result_df.loc[(site_df['CSpinePrecautions'].isin(['YD', 'YND'])), 'Precaution'] = 1
         # result_df['Precaution2'] = result_df['Precaution']
         # result_df.loc[(outside_df['CervicalSpinePrecautions'].isin(['YD', 'YND'])), 'Precaution2'] = 1
-        
+    
         # + Gender and age
         demog_df = clean_key_col_names(dfs[4])
         gender_df = pd.get_dummies(demog_df['Gender'], prefix='gender').drop(columns='gender_ND')
@@ -142,18 +148,26 @@ class Dataset(DatasetTemplate):
 
         if kwargs['fillna']:
             # Impute: Use domain knowledge
-            liberal_feats = ['FocalNeuroFindings', 'FocalNeuroFindings2', 'Torticollis', 'Torticollis2', 
-                            'SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk', 'subinj_Head2', 'subinj_Face2', 'subinj_Ext2', 'subinj_TorsoTrunk2',
-                            'Predisposed', 
-                            'HighriskMVC', 'HighriskDiving', 'HighriskFall', 'HighriskHanging', 'HighriskHitByCar', 'HighriskOtherMV', 'AxialLoadAnyDoc', 'axialloadtop', 'Clotheslining']
+            liberal_feats = ['FocalNeuroFindings', 'Torticollis', 'SubInjHead', 'SubInjFace', 'SubInjExt', 
+                             'SubInjTorsoTrunk', 'Predisposed', 'HighriskMVC', 'HighriskDiving', 'HighriskFall', 
+                             'HighriskHanging', 'HighriskHitByCar', 'HighriskOtherMV', 'AxialLoadAnyDoc', 
+                             'axialloadtop', 'Clotheslining', 'PtCompPainHead', 'PtCompPainFace', 'PtCompPainExt', 
+                             'PtCompPainTorsoTrunk', 'PtTenderHead', 'PtTenderFace', 'PtTenderExt', 'PtTenderTorsoTrunk']
             conserv_feats = ['LOC']
-            unclear_feats = ['AlteredMentalStatus', 'AlteredMentalStatus2', 'ambulatory', 'PainNeck', 'PainNeck2', 'PosMidNeckTenderness', 'PosMidNeckTenderness2', 'TenderNeck', 'TenderNeck2']
-            df[liberal_feats] = df[liberal_feats].fillna(0)
+            unclear_feats = ['AlteredMentalStatus', 'ambulatory', 'PainNeck', 'PosMidNeckTenderness', 'TenderNeck']
             df[conserv_feats] = df[conserv_feats].fillna(1)
-            unclear_feat_default = kwargs['unclear_feat_default']
-            df[unclear_feats] = df[unclear_feats].fillna(unclear_feat_default)
-            
+            for feat in liberal_feats:
+                df[feat] = df[feat].fillna(0)
+                if f'{feat}2' in df:
+                    df[f'{feat}2'] = df[f'{feat}2'].fillna(0)
+
+            for feat in unclear_feats:
+                df[feat] = df[feat].fillna(kwargs['unclear_feat_default'])
+                if f'{feat}2' in df:
+                    df[f'{feat}2'] = df[f'{feat}2'].fillna(kwargs['unclear_feat_default'])
+
             # Impute others to be 0
+            df = df.drop(columns=['Position_nan'])
             df = df.fillna(0)
         
         # drop missing values
@@ -164,8 +178,12 @@ class Dataset(DatasetTemplate):
        #  df <- df.filter(regex = '[^2]$', axis = 1)
 
         # Use only on-site data or also outside + field
-        feats1 = ['AlteredMentalStatus', 'FocalNeuroFindings', 'Torticollis', 'PainNeck', 'TenderNeck', 'PosMidNeckTenderness', 'PtCompPainHead', 'PtCompPainFace', 'PtCompPainExt', 'PtCompPainTorsoTrunk', 'PtTenderHead', 'PtTenderFace', 'PtTenderExt', 'PtTenderTorsoTrunk', 'SubInj_Head', 'SubInj_Face', 'SubInj_Ext', 'SubInj_TorsoTrunk', 'Immobilization', 'MedsRecd', 'ArrPtIntub']
-        feats2 = ['AlteredMentalStatus2', 'FocalNeuroFindings2', 'Torticollis2', 'PainNeck2', 'TenderNeck2', 'PosMidNeckTenderness2', 'PtCompPainHead2', 'PtCompPainFace2', 'PtCompPainExt2', 'PtCompPainTorsoTrunk2', 'PtTenderHead2', 'PtTenderFace2', 'PtTenderExt2', 'PtTenderTorsoTrunk2', 'subinj_Head2', 'subinj_Face2', 'subinj_Ext2', 'subinj_TorsoTrunk2', 'Immobilization2', 'MedsRecd2', 'ArrPtIntub2']
+        feats1 = ['AlteredMentalStatus', 'FocalNeuroFindings', 'Torticollis', 'PainNeck', 'TenderNeck', 
+                  'PosMidNeckTenderness', 'PtCompPainHead', 'PtCompPainFace', 'PtCompPainExt', 
+                  'PtCompPainTorsoTrunk', 'PtTenderHead', 'PtTenderFace', 'PtTenderExt', 'PtTenderTorsoTrunk', 
+                  'SubInjHead', 'SubInjFace', 'SubInjExt', 'SubInjTorsoTrunk', 'Immobilization', 
+                  'MedsRecd', 'ArrPtIntub']
+        feats2 = [f'{feat}2' for feat in feats1]
         feats1 = list(set(feats1) & set(df.columns))
         feats2 = list(set(feats2) & set(df.columns))
 #         if kwargs['only_site_data'] == True:
@@ -219,7 +237,7 @@ class Dataset(DatasetTemplate):
 
         # remove (site), case ID, subject ID, control type
         df_encoded = one_hot_encode_df(df, numeric_cols=self.get_meta_keys())
-
+        
         df_encoded.insert(
             len(df_encoded.columns) - 1, 'outcome', df_encoded.pop('outcome'))
 
@@ -292,8 +310,8 @@ class Dataset(DatasetTemplate):
             'clean_data': {
                 # Include features about clinical intervention received before arrival
                 #'include_intervention': [True, False],
-                'include_intervention': [False, True], # after stability analysis new jcall
-                'fillna': [True, False]
+                'include_intervention': [False], # after stability analysis new jcall
+                # 'fillna': [False, True]
             },
             'preprocess_data': {
                 # for unclear features whether to impute conservatively or liberally
@@ -307,7 +325,7 @@ class Dataset(DatasetTemplate):
                 # Use with control group
 #                 'use_control_type': ['all', 'ran', 'moi', 'ems']
                 'use_control_type': ['all'],
-                'fillna': [True, False]
+                'fillna': [True, False, True]
             },
             'extract_features': {
                 # whether to drop columns with suffix _no
