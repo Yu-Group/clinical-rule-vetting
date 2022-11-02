@@ -1,5 +1,10 @@
+import logging
+
 import pandas as pd
 import numpy as np
+
+logging.basicConfig(level=logging.INFO)
+
 
 def one_hot_encode_df(df, numeric_cols):
     """Transforms categorical features in dataframe 

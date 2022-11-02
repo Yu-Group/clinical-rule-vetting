@@ -21,7 +21,7 @@ class Model(ModelTemplate):
 
 
 if __name__ == '__main__':
-    from rulevetting.projects.iai_pecarn.dataset import Dataset
+    from rulevetting.projects.tbi_pecarn.dataset import Dataset
 
     df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
     df_full = pd.concat((df_train, df_tune, df_test))
