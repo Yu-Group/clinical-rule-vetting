@@ -82,6 +82,7 @@ class Dataset:
         cleaned_data = df.replace('nan', np.nan)
         cleaned_data['AgeTwoPlus'] -= 1
 
+
         LOGGER.info(f"Cleaned data: {cleaned_data.shape}")
 
         return cleaned_data
@@ -132,13 +133,7 @@ class Dataset:
                 axis=1) >= 1).astype(int)
 
             LOGGER.info(f"Data shape: {cleaned_data.shape}\nciTBI: {cleaned_data['PosIntFinal'].value_counts()/cleaned_data.shape[0]}")
-            na_sum = cleaned_data.isna().sum()
-            na_sum = na_sum[na_sum > 100]
-            na_sum.reset_index(name="n").plot.bar(x='index', y='n', rot=60, fontsize=10, legend=None, figsize=(12,12))
-            plt.ylabel("Number of Missing Values")
-            plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/na.png", dpi=300)
-            plt.close()
-            raise RuntimeError("Pick")
+
 
         # judgement call - we drop patients with gcs <14 and thus gcs scores
         if kwargs['drop_low_gcs']:
@@ -147,10 +142,28 @@ class Dataset:
             gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
             cleaned_data = cleaned_data.drop(columns=gcs_vars)
 
-        # cleaned_data = cleaned_data.replace('Not applicable', np.nan)
-        null_vec = cleaned_data.isnull().sum(axis=0)
+        # dropping variables that do not influence the doctors decision
+        other_vars = ['EmplType', 'Certification', 'Race']
+        cleaned_data = cleaned_data.drop(columns=other_vars)
 
-        null_vec = null_vec[null_vec != 0]
+        # removing post-ct variables that aren't the outcome
+        cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
+
+        # cleaned_data = cleaned_data.replace('Not applicable', np.nan)
+        na_sum = cleaned_data.isna().sum()
+        na_sum = na_sum[na_sum > 100]
+        na_sum.reset_index(name="n").plot.bar(x='index', y='n', rot=60, fontsize=10, legend=None, figsize=(12, 12))
+        plt.ylabel("Number of Missing Values")
+        plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/na.png", dpi=300)
+        plt.close()
+
+        most_freq = cleaned_data.apply(lambda x: x.value_counts().max() / cleaned_data.shape[0])
+        most_freq.reset_index(name="n").plot.bar(x='index', y='n', rot=60, fontsize=10, legend=None, figsize=(12, 12))
+        plt.ylabel("Proportion of Most Frequent Value")
+        plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/most_freq.png", dpi=300)
+        plt.close()
+
+        raise RuntimeError("Pick")
 
         if not kwargs['propensity']:
             def _drop_nas(col):
@@ -190,15 +203,12 @@ class Dataset:
                                                                                       not_applicable_doc_feats].replace(
                     {92: 0})
 
-        # dropping variables that do not influence the doctors decision
-        other_vars = ['EmplType', 'Certification', 'Race']
-        cleaned_data = cleaned_data.drop(columns=other_vars)
+
 
         # renaming our target variable
         cleaned_data.rename(columns={'PosIntFinal': 'outcome'}, inplace=True)
 
-        # removing post-ct variables that aren't the outcome
-        cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
+
 
         # dropping variables that do have high fraction of missing values
         hi_missing_vars = ['Dizzy', 'Ethnicity']
