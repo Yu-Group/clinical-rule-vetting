@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 from joblib import Memory
 
+import matplotlib.pylab as plt
+
 import rulevetting
 from rulevetting.projects import one_hot_encode_df
 from rulevetting.projects.tbi_pecarn import helper
@@ -129,6 +131,15 @@ class Dataset:
                                                                                            'DeathTBI']].sum(
                 axis=1) >= 1).astype(int)
 
+            LOGGER.info(f"Data shape: {cleaned_data.shape}\nciTBI: {cleaned_data['PosIntFinal'].value_counts()/cleaned_data.shape[0]}")
+            na_sum = cleaned_data.isna().sum()
+            na_sum = na_sum[na_sum > 100]
+            na_sum.reset_index(name="n").plot.bar(x='index', y='n', rot=60, fontsize=10, legend=None, figsize=(12,12))
+            plt.ylabel("Number of Missing Values")
+            plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/na.png", dpi=300)
+            plt.close()
+            raise RuntimeError("Pick")
+
         # judgement call - we drop patients with gcs <14 and thus gcs scores
         if kwargs['drop_low_gcs']:
             cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, :]
@@ -136,7 +147,17 @@ class Dataset:
             gcs_vars = ['GCSEye', 'GCSMotor', 'GCSVerbal']
             cleaned_data = cleaned_data.drop(columns=gcs_vars)
 
+        # cleaned_data = cleaned_data.replace('Not applicable', np.nan)
+        null_vec = cleaned_data.isnull().sum(axis=0)
+
+        null_vec = null_vec[null_vec != 0]
+
         if not kwargs['propensity']:
+            def _drop_nas(col):
+                for c in kwargs['drop nas']:
+                    if col.startswith(c):
+                        return True
+                return False
 
             # judgement call - impute unknowns with mode/mean/or drop patient
             if 'impute_unknowns' in kwargs:
@@ -144,7 +165,8 @@ class Dataset:
                     col_data = cleaned_data.loc[:, col]
                     not_nan_idx = col_data == col_data
                     nas = np.mean(not_nan_idx)
-                    if col not in kwargs['drop nas']:
+                    # if col not in kwargs['drop nas']:
+                    if not _drop_nas(col):
 
                         mode_fill = cleaned_data.loc[:, col].fillna(col_data.mode()[0])
                         n_row = len(mode_fill)
@@ -262,10 +284,14 @@ class Dataset:
         np.random.seed(42)
         indices = np.random.choice(n, size=n, replace=False)
         # LOGGER.info(indices[0:5])
-        pre_indices = list(preprocessed_data.index)
-        train_ind = [i for i in indices[0:int(0.6*n)] if i in pre_indices]
-        tune_ind = [i for i in indices[int(0.6*n):int(0.8*n)] if i in pre_indices]
-        test_ind = [i for i in indices[int(0.8*n):n]if i in pre_indices]
+        pre_indices = set(preprocessed_data.index)
+        train_ind = list(set(indices[0:int(0.6*n)]).intersection(pre_indices))
+        tune_ind = list(set(indices[int(0.6*n):int(0.8*n)]).intersection(pre_indices))
+        test_ind = list(set(indices[int(0.8*n):n]).intersection(pre_indices))
+
+        # train_ind = [i for i in indices[0:int(0.6*n)] if i in pre_indices]
+        # tune_ind = [i for i in indices[int(0.6*n):int(0.8*n)] if i in pre_indices]
+        # test_ind = [i for i in indices[int(0.8*n):n]if i in pre_indices]
 
         return (
             preprocessed_data.loc[train_ind, :],
@@ -392,9 +418,7 @@ class Dataset:
                 'impute_unknowns': ['mode'],
                 'impute_not_applicables': [False],
                 'propensity': [False],
-                "drop nas": [list(l) for l in powerset(["AMS", "Hema", "OSI",
-                                                        "SFxPalp","Clav"
-                                                        "SFxBas"])]
+                "drop nas": [list(l) for l in powerset(["HASeverity", "LocLen", "LOCSeparate"])]
 
             },
             'extract_features': {}
