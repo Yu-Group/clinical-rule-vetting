@@ -155,7 +155,7 @@ class Dataset:
         na_sum.plot.bar(x='index', y='n', rot=60, fontsize=10,
                                               legend=None, figsize=(12, 12), color=clrs)
         plt.ylabel("Number of Missing Values")
-        plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/na.png", dpi=300)
+        plt.savefig("results/na.png", dpi=300)
         plt.close()
 
         # dropping variables that do not influence the doctors decision
@@ -187,10 +187,10 @@ class Dataset:
         most_freq.plot.bar(x='index', y='n', rot=60, fontsize=10,
                                                  legend=None, figsize=(20, 12), color=clrs)
         plt.ylabel("Proportion of Most Frequent Value")
-        plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/most_freq.png", dpi=300)
+        plt.savefig("results/most_freq.png", dpi=300)
         plt.close()
 
-        raise RuntimeError("Pick")
+        # raise RuntimeError("Pick")
 
         if not kwargs['propensity']:
             def _drop_nas(col):
