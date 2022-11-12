@@ -169,14 +169,14 @@ class Dataset:
         na_sum.plot.bar(x='index', y='n', rot=60, fontsize=10,
                                               legend=None, figsize=(12, 12), color=clrs)
         plt.ylabel("Number of Missing Values")
-        plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/na.png", dpi=300)
+        plt.savefig("results/na.png", dpi=300)
         plt.close()
 
         # dropping variables that do not influence the doctors decision
         other_vars = ['EmplType', 'Certification', 'Race']
         cleaned_data = cleaned_data.drop(columns=other_vars)
 
-        # removing post-ct variables that aren't the outcome
+        # removing post-dct variables that aren't the outcome
         cleaned_data = cleaned_data.drop(columns=self.get_post_ct_names())
 
         # dropping variables that do have high fraction of missing values
@@ -201,7 +201,7 @@ class Dataset:
         most_freq.plot.bar(x='index', y='n', rot=60, fontsize=10,
                                                  legend=None, figsize=(20, 12), color=clrs)
         plt.ylabel("Proportion of Most Frequent Value")
-        plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/most_freq.png", dpi=300)
+        plt.savefig("results/most_freq.png", dpi=300)
         plt.close()
 
         if not kwargs['propensity']:
@@ -323,7 +323,6 @@ class Dataset:
         np.random.seed(42)
         indices = np.random.choice(n, size=n, replace=False)
         # LOGGER.info(indices[0:5])
-        print(f"Shape: {preprocessed_data.shape}, ciTBI: {preprocessed_data.outcome.mean()}")
         pre_indices = set(preprocessed_data.index)
         train_ind = list(set(indices[0:int(0.6*n)]).intersection(pre_indices))
         tune_ind = list(set(indices[int(0.6*n):int(0.8*n)]).intersection(pre_indices))
@@ -559,7 +558,7 @@ class Dataset:
             cleaned_data = clean_set(data_path_arg)
             number_of_data_points = list(cleaned_data.values())[0].shape[0]
             preprocess_set = build_vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
-                                        cache_dir=CACHE_PATH,  is_async=True)
+                                        cache_dir=CACHE_PATH)
             preprocessed_data = preprocess_set(cleaned_data)
             extract_set = build_vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
                                      cache_dir=CACHE_PATH)

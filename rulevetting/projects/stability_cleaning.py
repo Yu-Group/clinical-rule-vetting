@@ -31,7 +31,7 @@ def get_sensitivity_thres(y_true, y_prob_pred, tpr_min):
 
 if __name__ == '__main__':
     tpr = 98
-    if not os.path.exists("/accounts/campus/omer_ronen/projects/rule-vetting/data/tbi_pecarn/processed/perturbed_data"):
+    if not os.path.exists("data/tbi_pecarn/processed/perturbed_data"):
         tbiDataset().get_data(run_perturbations=True, load_csvs=False, save_csvs=True)
     data = tbiDataset().get_data(run_perturbations=True, load_csvs=True, save_csvs=True)
     columns = list(set.intersection(*[set(d[0].columns) for d in list(data.values())]))
@@ -51,12 +51,15 @@ if __name__ == '__main__':
         _, y_test = _get_x_y(test, columns)
         print(f"test hist: 1: {np.sum(y_test == 1)}, 0: {np.sum(y_test == 0)}")
 
-        mdl = RuleFitClassifier()
+        mdl = RuleFitClassifier(max_rules=10)
         X_train, y_train = _get_x_y(train, columns)
         X_tune, y_tune = _get_x_y(tune, columns)
 
         #
         mdl.fit(X_train, y_train)
+
+        description = mdl.visualize(decimals=5)
+        description.to_csv(f"results/mdl_{_get_perturb_name(perturb)}.csv")
         thres = get_sensitivity_thres(y_tune, mdl.predict_proba(X_tune)[:, 1], tpr_min=0.01 * tpr)
 
         models.append((perturb, mdl, thres))
@@ -76,5 +79,5 @@ if __name__ == '__main__':
             models_sens[_get_perturb_name(p)].append(sensitivity)
 
     # print(models_spec)
-    pd.DataFrame(models_spec).to_csv(f"/accounts/campus/omer_ronen/projects/rule-vetting/results/tbi_spec_{tpr}.csv")
-    pd.DataFrame(models_sens).to_csv(f"/accounts/campus/omer_ronen/projects/rule-vetting/results/tbi_sens_{tpr}.csv")
+    pd.DataFrame(models_spec).to_csv(f"results/tbi_spec_{tpr}.csv")
+    pd.DataFrame(models_sens).to_csv(f"results/tbi_sens_{tpr}.csv")

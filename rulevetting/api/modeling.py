@@ -11,7 +11,7 @@ import random
 
 import numpy as np
 import pandas as pd
-from autogluon.tabular import TabularDataset, TabularPredictor
+# from autogluon.tabular import TabularDataset, TabularPredictor
 
 import rulevetting
 import rulevetting.api.util
