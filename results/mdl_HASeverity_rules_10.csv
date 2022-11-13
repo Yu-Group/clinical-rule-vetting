@@ -1,0 +1,23 @@
+,rule,coef
+5,NeuroDOth_92,-0.0032
+7,SFxPalp_No,-0.01677
+204,NeuroDSensory_92,-0.0128
+196,SFxPalpDepress_92.0,-0.01695
+193,SFxBasPer_92,-0.01154
+190,NeuroDMotor_92,-0.01764
+188,NeuroDCranial_92,-0.03422
+184,NeuroDReflex_92,-0.00845
+172,SFxBasOto_92,-0.01193
+167,SFxBasRet_92,-0.01833
+162,SFxBasRhi_92,-0.02154
+160,FontBulg_0.0,-0.02031
+140,Drugs_0.0,-0.01487
+128,Seiz_0.0,-0.01227
+126,SFxBas_0.0,-0.01224
+118,SFxBasHem_92,-0.00974
+106,Sedated_0.0,-0.01197
+77,Paralyzed_0.0,-0.02238
+67,NeuroD_0.0,-0.02366
+26,SeizLen_Not applicable,-0.00629
+10,SeizOccur_Not applicable,-0.01793
+208,Intubated_0.0,-0.01592

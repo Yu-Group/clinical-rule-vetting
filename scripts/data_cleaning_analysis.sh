@@ -7,5 +7,5 @@
 #SBATCH -e DataCleaningAnalysis.err #File to which standard err will be written
 #SBATCH -p jsteinhardt
 #SBATCH -C manycore
-
+cd /accounts/campus/omer_ronen/projects/rule-vetting
 /scratch/users/omer_ronen/rule-vetting/bin/python -m rulevetting.projects.stability_cleaning
