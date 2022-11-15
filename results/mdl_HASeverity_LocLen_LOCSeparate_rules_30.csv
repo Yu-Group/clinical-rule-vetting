@@ -1,28 +1,31 @@
 ,rule,coef
-11,ClavFro_92,-0.11265
-147,AMSSleep_92,-0.15679
-208,LOCSeparate_Yes,0.09228
-203,HemaLoc_Frontal,-0.04917
-200,ClavTem_92,-0.11479
-187,LOCSeparate_No,-0.36891
-179,AMSOth_92,-0.23133
-31,VomitStart_Not applicable,-0.50835
-160,ActNorm_1.0,-0.34851
-152,AMSRepeat_92,-0.31504
-177,HAStart_Within 1 hr of event,0.12658
-136,AMSSlow_92,-0.16097
-132,ClavFace_0,0.28963
-124,LocLen_Not applicable,-0.37027
-96,ClavFro_0,0.09817
-63,AMSAgitated_92,-0.2143
-59,ClavPar_92,-0.10603
-57,ClavOcc_92,-0.04442
-55,HemaLoc_Parietal/Temporal,0.68323
-224,SFxPalp_Yes <= 0.5 and SFxBasHem_1 <= 0.5 and AMSRepeat_1 <= 0.5,-0.51404
-222,AgeInMonth > 0.5 and SFxPalpDepress_1.0 <= 0.5 and LocLen_>5 min <= 0.5,-0.18719
-221,AgeInMonth > 0.5 and LocLen_>5 min <= 0.5 and SFxBasHem_1 <= 0.5,-0.2607
-220,OSICspine_1 <= 0.5 and NeuroDMotor_1 <= 0.5 and SFxBasHem_1 <= 0.5 and HASeverity_Severe <= 0.5,-0.43285
-223,SFxPalpDepress_1.0 <= 0.5 and SFxBasHem_1 <= 0.5 and HemaSize_Large <= 0.5,-0.74099
-219,VomitLast_1-4 hrs before ED <= 0.5 and LOCSeparate_Suspected <= 0.5 and SFxBasRet_0 <= 0.5 and AMSAgitated_1 <= 0.5 and SFxPalpDepress_92.0 > 0.5 and SeizLen_>15 min <= 0.5,-0.54248
-218,High_impact_InjSev_High <= 0.5 and SFxBasRet_0 <= 0.5,-1.17944
-217,NeuroDReflex_1 <= 0.5 and HASeverity_Moderate <= 0.5 and InjuryMech_BikeMV <= 0.5 and AMSOth_1 <= 0.5,-0.07123
+24,ClavFro_0,0.0413
+144,AMSRepeat_0,0.47904
+204,HASeverity_Moderate,0.05083
+203,ActNorm_1.0,-0.25231
+29,HA_verb_0.0,-0.0212
+173,VomitStart_Not applicable,-0.57586
+170,HemaLoc_Parietal/Temporal,0.5401
+165,AMS_1.0,0.55194
+162,ClavFace_92,-0.0103
+194,HAStart_Within 1 hr of event,0.273
+138,Vomit_1.0,0.11556
+134,High_impact_InjSev_High,0.36063
+105,ClavFace_0,0.2096
+82,ClavPar_92,-0.0061
+67,Amnesia_verb_0.0,-0.0005
+45,LocLen_Not applicable,-0.4026
+44,Clav_1.0,0.38448
+33,LOCSeparate_No,-0.47931
+219,SFxBasRet_0 <= 0.5 and OSIPelvis_1 <= 0.5,-0.18017
+227,SFxBasHem_1 <= 0.5 and AgeInMonth > 0.5,-0.03722
+225,AMSRepeat_1 <= 0.5 and SFxBasHem_1 <= 0.5 and SFxPalp_Yes <= 0.5,-1.11954
+222,NeuroD_nan <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and SeizLen_1-5 min <= 0.5 and AgeInMonth > 0.5,-0.90431
+228,AMSAgitated_1 <= 0.5 and SeizOccur_>30 minutes after injury <= 0.5 and SFxBasHem_1 <= 0.5,-0.64183
+226,AMSAgitated_1 <= 0.5 and SFxBasPer_0 <= 0.5 and SeizLen_>15 min <= 0.5,-0.1367
+220,AMSSlow_1 <= 0.5 and SFxBasHem_1 <= 0.5,-0.19409
+223,ActNorm_nan <= 0.5 and HemaSize_Large <= 0.5,-0.40869
+218,SFxPalpDepress_92.0 > 0.5 and ActNorm_nan <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and SFxBasHem_1 <= 0.5 and SeizLen_5-15 min <= 0.5 and ClavPar_1 <= 0.5,-0.5884
+217,HemaLoc_Occipital <= 0.5 and OSICut_1 <= 0.5 and OSIPelvis_1 <= 0.5 and AgeInMonth > 0.5,-0.33463
+221,NeuroDReflex_1 <= 0.5 and HemaLoc_Parietal/Temporal <= 0.5,-0.09209
+224,NeuroDMotor_1 <= 0.5 and High_impact_InjSev_High <= 0.5 and SFxBasRet_1 <= 0.5 and InjuryMech_OtherWheelCrash <= 0.5 and LocLen_>5 min <= 0.5,-0.65536

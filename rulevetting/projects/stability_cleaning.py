@@ -50,6 +50,8 @@ if __name__ == '__main__':
         return perturb[s:e].replace("'", "")
 
 
+    importances = []
+
     for perturb, (train, tune, test) in data.items():
         print(_get_perturb_name(perturb))
         print(f"Shapes: train - {train.shape[0]}, tune - {tune.shape[0]}, test - {test.shape[0]}")
@@ -63,9 +65,10 @@ if __name__ == '__main__':
         #
         # #
         mdl.fit(X_train, y_train)
-        important_mdi = pd.DataFrame({"imp":mdl.feature_importances_, "feature":X_train.columns}).sort_values("imp", ascending=False)
-
-        print(important_mdi.head(5))
+        important_mdi = pd.DataFrame({"imp": mdl.feature_importances_, "feature": X_train.columns}).sort_values("imp",
+                                                                                                                ascending=False)
+        importances.append(important_mdi)
+        # important_mdi.to_csv(f"results/rf_{_get_perturb_name(perturb)}_features.csv")
         # mdl.plot()
         # plt.show()
         # description = mdl.visualize(decimals=5)
@@ -78,9 +81,22 @@ if __name__ == '__main__':
         #     X_train, y_train = _get_x_y(train.sample(train.shape[0]), columns)
         #     X_tune, y_tune = _get_x_y(tune.sample(tune.shape[0]), columns)
         #     mdl_bs.fit(X_train, y_train)
-        #     bs_models.append(mdl_bs)
+        #     thres_bs = get_sensitivity_thres(y_tune, mdl_bs.predict_proba(X_tune)[:, 1], tpr_min=0.01 * tpr)
+        #
+        #     bs_models.append((mdl_bs, thres_bs))
 
         models.append((perturb, mdl, thres, bs_models))
+    imp = pd.concat([i.iloc[:, 0] for i in importances], axis=1, ignore_index=True)
+    imp.index = importances[0].iloc[:, 1]
+    imp.to_csv("results/rf_features.csv")
+
+    fig, ax = plt.subplots(1)
+    ax.matshow(imp, aspect='auto')
+    ax.set_ylabel("Feature number")
+    ax.set_xlabel("RF model number")
+
+    plt.savefig("results/heatmap.png")
+    plt.close()
     # i = 0
 
     models_spec = {_get_perturb_name(perturb): [] for perturb in data.keys()}
@@ -95,25 +111,26 @@ if __name__ == '__main__':
             y_pred = np.array(mdl.predict_proba(X_test)[:, 1] > thres, dtype=np.int)
             sensitivity = np.sum(y_test[y_pred == 1]) / np.sum(y_test)
             specificty = np.sum((1 - y_test)[y_pred == 0]) / np.sum((1 - y_test))
+            print(f"sens: {sensitivity}, y: {np.mean(y_test)}")
             # spec = get_specificity(y_test, y_pred, tpr_min=0.01*tpr)
 
-            sens_bs = []
-            spec_bs = []
-            for bs_mdl in bs_models:
-                y_pred = np.array(bs_mdl.predict_proba(X_test)[:, 1] > thres, dtype=np.int)
-                sensitivity_bs = np.sum(y_test[y_pred == 1]) / np.sum(y_test)
-                sens_bs.append(sensitivity_bs)
-                specificty_bs = np.sum((1 - y_test)[y_pred == 0]) / np.sum((1 - y_test))
-                spec_bs.append(specificty_bs)
+            # sens_bs = []
+            # spec_bs = []
+            # for (bs_mdl, bs_thres) in bs_models:
+            #     y_pred = np.array(bs_mdl.predict_proba(X_test)[:, 1] > bs_thres, dtype=np.int)
+            #     sensitivity_bs = np.sum(y_test[y_pred == 1]) / np.sum(y_test)
+            #     sens_bs.append(sensitivity_bs)
+            #     specificty_bs = np.sum((1 - y_test)[y_pred == 0]) / np.sum((1 - y_test))
+            #     spec_bs.append(specificty_bs)
             models_spec[_get_perturb_name(p)].append(specificty)
             models_sens[_get_perturb_name(p)].append(sensitivity)
-
-            models_spec_std[_get_perturb_name(p)].append(np.std(spec_bs))
-            models_sens_std[_get_perturb_name(p)].append(np.std(sens_bs))
+            #
+            # models_spec_std[_get_perturb_name(p)].append(np.std(spec_bs))
+            # models_sens_std[_get_perturb_name(p)].append(np.std(sens_bs))
 
     # print(models_spec)
     pd.DataFrame(models_spec).to_csv(f"results/tbi_spec_{tpr}_rules_{max_rules}_rf.csv")
     pd.DataFrame(models_sens).to_csv(f"results/tbi_sens_{tpr}_rules_{max_rules}_rf.csv")
 
-    pd.DataFrame(models_spec_std).to_csv(f"results/tbi_spec_std_{tpr}_rules_{max_rules}_rf.csv")
-    pd.DataFrame(models_sens_std).to_csv(f"results/tbi_sens_std_{tpr}_rules_{max_rules}_rf.csv")
+    # pd.DataFrame(models_spec_std).to_csv(f"results/tbi_spec_std_{tpr}_rules_{max_rules}.csv")
+    # pd.DataFrame(models_sens_std).to_csv(f"results/tbi_sens_std_{tpr}_rules_{max_rules}.csv")

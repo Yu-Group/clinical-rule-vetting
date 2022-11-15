@@ -1,28 +1,27 @@
 ,rule,coef
-20,AMSOth_0,0.01621
-132,ClavFace_0,0.2291
-200,ClavTem_92,-0.2744
-187,LOCSeparate_No,-0.38125
-180,ClavNeck_92,-0.00075
-179,AMSOth_92,-0.17782
-160,ActNorm_1.0,-0.26522
-31,VomitStart_Not applicable,-0.59212
-147,AMSSleep_92,-0.20904
-136,AMSSlow_92,-0.13154
-152,AMSRepeat_92,-0.21462
-124,LocLen_Not applicable,-0.45534
-112,HA_verb_1.0,0.21685
-104,High_impact_InjSev_High,0.83843
-96,ClavFro_0,0.05931
-63,AMSAgitated_92,-0.35919
-57,ClavOcc_92,-0.00088
-37,Vomit_0.0,-0.00619
-35,ClavFace_92,-0.0001
-219,SFxBasHem_92 > 0.5 and SFxPalp_Yes <= 0.5 and NeuroDMotor_1 <= 0.5 and SeizOccur_>30 minutes after injury <= 0.5,-0.82097
-221,SFxPalp_Unclear <= 0.5 and SFxBasPer_0 <= 0.5 and AMSRepeat_1 <= 0.5,-0.30905
-220,SFxPalp_Unclear <= 0.5 and NeuroDOth_0 <= 0.5 and AgeInMonth > 0.5 and SeizLen_1-5 min <= 0.5 and SFxBasOto_0 <= 0.5,-0.93239
-217,AgeInMonth > 4.5 and OSIAbdomen_1 <= 0.5 and SFxBasHem_1 <= 0.5,-0.36431
-218,ClavTem_1 <= 0.5 and SFxBas_1.0 <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and LocLen_>5 min <= 0.5 and InjuryMech_OtherWheelCrash <= 0.5,-0.37055
-224,VomitStart_Within 1 hr of event <= 0.5,-0.02461
-223,HemaSize_Large <= 0.5,-0.11377
-222,HemaLoc_Parietal/Temporal <= 0.5,-0.66938
+2,AMSRepeat_92,-0.23995
+125,AMSAgitated_92,-0.19792
+203,ActNorm_1.0,-0.25145
+197,AMSSlow_92,-0.20442
+173,VomitStart_Not applicable,-0.62801
+170,HemaLoc_Parietal/Temporal,0.06906
+162,ClavFace_92,-0.00064
+18,ClavTem_92,-0.01662
+140,AMSOth_92,-0.14069
+134,High_impact_InjSev_High,0.8187
+148,HA_verb_1.0,0.26035
+105,ClavFace_0,0.21577
+46,ClavFro_92,-0.0152
+45,LocLen_Not applicable,-0.77668
+41,ClavOcc_92,-0.24078
+33,LOCSeparate_No,-0.07857
+25,ClavNeck_92,-0.00086
+24,ClavFro_0,0.08109
+23,AMSSleep_92,-0.28015
+221,AMSRepeat_1 <= 0.5 and SeizLen_5-15 min <= 0.5 and SFxBasPer_0 <= 0.5,-0.10268
+223,AMSAgitated_1 <= 0.5 and SFxBasHem_1 <= 0.5,-0.33755
+222,SFxPalpDepress_1.0 <= 0.5 and SFxBasPer_1 <= 0.5 and SFxBasHem_1 <= 0.5 and SFxPalp_Unclear <= 0.5,-1.14515
+217,SFxPalpDepress_92.0 > 0.5 and AgeInMonth > 1.5 and SFxBasHem_92 > 0.5,-1.02121
+219,AMSAgitated_1 <= 0.5 and SFxPalpDepress_92.0 > 0.5 and SeizLen_5-15 min <= 0.5 and LocLen_1-5 min <= 0.5,-0.22584
+220,HemaSize_Large <= 0.5,-0.11659
+218,HemaLoc_Parietal/Temporal <= 0.5,-0.63005

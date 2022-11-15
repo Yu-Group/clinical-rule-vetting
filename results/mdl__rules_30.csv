@@ -1,28 +1,27 @@
 ,rule,coef
-4,AMS_0.0,-0.13089
-136,AMSSlow_92,-0.1263
-193,HemaSize_Not applicable,-0.14109
-187,LOCSeparate_No,-0.79146
-179,AMSOth_92,-0.15106
-169,Clav_0.0,-0.2604
-20,AMSOth_0,0.07758
-147,AMSSleep_92,-0.06973
-137,OSIFlank_92,-0.00076
-152,AMSRepeat_92,-0.13386
-132,ClavFace_0,0.25191
-104,High_impact_InjSev_High,0.92272
-83,OSIAbdomen_92,-0.10054
-63,AMSAgitated_92,-0.26923
-55,HemaLoc_Parietal/Temporal,0.6715
-49,OSIPelvis_92,-0.0449
-47,OSIOth_92,-0.00825
-31,VomitStart_Not applicable,-0.47909
-225,SFxPalpDepress_1.0 <= 0.5 and SFxBasHem_1 <= 0.5,-0.47947
-224,SFxPalp_Yes <= 0.5 and NeuroDMotor_1 <= 0.5 and SFxBasHem_1 <= 0.5,-0.78761
-223,AMSAgitated_1 <= 0.5 and SFxBasPer_0 <= 0.5,-1.01766
-221,Sedated_1.0 <= 0.5 and HemaSize_Large <= 0.5,-0.40572
-222,NeuroDOth_0 <= 0.5 and ClavPar_1 <= 0.5,-0.0703
-219,InjuryMech_MVC <= 0.5 and SFxBasHem_1 <= 0.5,-0.2931
-220,OSIFlank_0 <= 0.5 and NeuroDOth_1 <= 0.5,-0.08011
-218,AMSRepeat_1 <= 0.5 and SFxBasRet_1 <= 0.5 and Amnesia_verb_1.0 <= 0.5,-0.08832
-217,AMSAgitated_0 <= 0.5 and SFxBasPer_92 > 0.5,-0.44009
+2,AMSRepeat_92,-0.15015
+140,AMSOth_92,-0.11896
+212,OSIFlank_92,-8e-05
+202,Clav_0.0,-0.26931
+22,OSICut_92,-0.20286
+175,AMSOth_0,0.17623
+173,VomitStart_Not applicable,-0.46258
+170,HemaLoc_Parietal/Temporal,0.69658
+188,HemaSize_Not applicable,-0.08993
+134,High_impact_InjSev_High,0.92153
+132,AMS_0.0,-0.14581
+125,AMSAgitated_92,-0.17553
+105,ClavFace_0,0.2795
+33,LOCSeparate_No,-0.77984
+23,AMSSleep_92,-0.21992
+133,LOCSeparate_Yes,0.00643
+221,SFxPalpDepress_92.0 > 0.5 and SFxBasHem_1 <= 0.5,-0.01122
+224,SFxPalpDepress_1.0 <= 0.5 and SeizLen_5-15 min <= 0.5 and SFxPalp_Unclear <= 0.5,-0.59175
+225,SFxPalp_No > 0.5,-0.05171
+226,SFxBasPer_1 <= 0.5 and SFxBasHem_1 <= 0.5 and HASeverity_Severe <= 0.5,-0.28223
+217,NeuroDMotor_1 <= 0.5 and SFxPalpDepress_92.0 > 0.5 and SFxBasRhi_92 > 0.5 and OSIPelvis_1 <= 0.5 and SFxBasPer_0 <= 0.5 and SeizLen_Not applicable > 0.5 and AgeInMonth <= 214.5,-1.00025
+219,AMSAgitated_1 <= 0.5 and SFxBasPer_0 <= 0.5 and AgeInMonth > 0.5,-1.13474
+222,Sedated_0.0 > 0.5 and HemaSize_Large <= 0.5,-0.29318
+218,InjuryMech_MVC <= 0.5,-0.03282
+220,NeuroDOth_1 <= 0.5 and OSIFlank_0 <= 0.5,-0.01526
+223,AMSAgitated_0 <= 0.5 and SFxBasRet_0 <= 0.5,-0.3666

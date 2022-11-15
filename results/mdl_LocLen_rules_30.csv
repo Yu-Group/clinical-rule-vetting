@@ -1,27 +1,32 @@
 ,rule,coef
-13,OSI_1.0,0.18118
-132,ClavFace_0,0.22399
-212,ClavOcc_1,0.14881
-208,LOCSeparate_Yes,0.09722
-26,Clav_1.0,0.22726
-187,LOCSeparate_No,-0.19174
-160,ActNorm_1.0,-0.0365
-157,OSIFlank_0,0.068
-198,High_impact_InjSev_Low,-0.08942
-124,LocLen_Not applicable,-0.39412
-98,VomitStart_Within 1 hr of event,0.24329
-96,ClavFro_0,0.04617
-75,HemaSize_Large,0.45461
-51,Vomit_1.0,0.1251
-31,VomitStart_Not applicable,-0.33471
-112,HA_verb_1.0,0.092
-225,OSIOth_1 <= 0.5 and NeuroDMotor_1 <= 0.5 and SFxBasHem_1 <= 0.5,-0.4329
-219,AgeInMonth > 0.5 and LocLen_>5 min <= 0.5 and SFxBasHem_1 <= 0.5 and Drugs_1.0 <= 0.5,-0.06669
-224,SFxPalp_Unclear <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and SFxBasHem_1 <= 0.5 and SFxBasRet_1 <= 0.5,-1.11998
-223,SFxBasPer_1 <= 0.5 and AMSSlow_1 <= 0.5 and HAStart_1-4 hrs after event <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and AMSAgitated_1 <= 0.5 and SeizOccur_>30 minutes after injury <= 0.5,-0.64122
-220,SFxPalpDepress_1.0 <= 0.5 and SFxBasHem_1 <= 0.5 and AMSSleep_1 <= 0.5,-0.26278
-221,Sedated_1.0 <= 0.5 and HemaLoc_Parietal/Temporal <= 0.5 and ActNorm_nan <= 0.5,-0.68431
-217,HemaLoc_Parietal/Temporal <= 0.5 and NeuroDOth_1 <= 0.5,-0.23829
-218,High_impact_InjSev_High <= 0.5 and SeizLen_1-5 min <= 0.5 and OSICut_1 <= 0.5 and SFxBasRet_1 <= 0.5,-1.03644
-222,AgeInMonth > 0.5 and OSIFlank_1 <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and SFxBasHem_1 <= 0.5 and InjuryMech_BikeMV <= 0.5 and HAStart_nan <= 0.5 and AMSAgitated_92 > 0.5 and FontBulg_nan <= 0.5,-1.38618
-226,SFxBas_0.0 <= 0.5,0.17402
+2,AMSRepeat_92,-0.27525
+153,OSIExtremity_92,-0.02552
+212,OSIFlank_92,-0.00035
+203,ActNorm_1.0,-0.04728
+197,AMSSlow_92,-0.0044
+22,OSICut_92,-0.03725
+188,HemaSize_Not applicable,-0.16726
+173,VomitStart_Not applicable,-0.32564
+170,HemaLoc_Parietal/Temporal,0.20397
+163,OSIAbdomen_92,-0.00576
+189,OSIPelvis_92,-0.17118
+140,AMSOth_92,-0.00482
+134,High_impact_InjSev_High,0.45294
+131,OSICspine_92,-0.02048
+125,AMSAgitated_92,-0.96443
+106,OSI_0.0,-0.00198
+45,LocLen_Not applicable,-0.45365
+39,OSIOth_92,-0.00318
+23,AMSSleep_92,-0.00479
+228,SFxPalpDepress_1.0 <= 0.5 and SFxBasPer_0 <= 0.5,-0.67247
+220,SFxBasHem_1 <= 0.5 and AgeInMonth > 0.5,-0.02275
+225,SFxPalpDepress_1.0 <= 0.5 and SFxBasRet_1 <= 0.5 and SFxBasHem_1 <= 0.5 and SFxPalp_Unclear <= 0.5,-1.3322
+226,SFxPalpDepress_1.0 <= 0.5 and AMSSlow_1 <= 0.5,-0.1277
+227,SFxBasHem_1 <= 0.5 and LocLen_1-5 min <= 0.5,-0.15103
+224,AMSAgitated_1 <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and AgeInMonth <= 212.5 and NeuroDSensory_0 <= 0.5,-0.14957
+218,OSIPelvis_1 <= 0.5 and ClavTem_1 <= 0.5 and SFxPalp_Unclear <= 0.5,-0.0963
+222,AMSSleep_0 <= 0.5 and SFxBasHem_1 <= 0.5,-0.04403
+217,ActNorm_nan <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and AMSOth_1 <= 0.5 and AMSSleep_1 <= 0.5 and NeuroDOth_0 <= 0.5,-0.08691
+221,ClavNeck_1 <= 0.5 and ClavPar_1 <= 0.5,-0.385
+223,AMSSlow_0 <= 0.5 and SFxBasHem_1 <= 0.5,-0.0242
+219,HAStart_nan <= 0.5 and AMSRepeat_1 <= 0.5 and ActNorm_nan <= 0.5 and HemaLoc_Occipital <= 0.5 and SFxBasHem_1 <= 0.5 and OSICspine_1 <= 0.5,-0.20462
