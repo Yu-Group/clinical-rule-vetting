@@ -1,31 +1,30 @@
 ,rule,coef
-23,LOCSeparate_No,-0.90901
-132,AMSSlow_92,-0.03239
-35,AMSAgitated_92,-0.04385
-191,Clav_1.0,0.18825
-188,AMS_0.0,-0.00011
-184,AMSOth_0,0.15831
-158,Vomit_0.0,-0.02021
-145,AMSSleep_92,-0.17885
-211,HemaSize_Not applicable,-0.00509
-131,Clav_0.0,-0.193
-113,AMS_1.0,0.51167
-71,AMSOth_92,-0.22951
-64,VomitStart_Not applicable,-0.10933
-61,HA_verb_1.0,0.03723
-44,Vomit_1.0,0.0001
-123,ClavFace_0,0.29527
-229,AMSAgitated_1 <= 0.5 and SFxBasPer_0 <= 0.5,-0.63471
-226,SFxPalp_No > 0.5,-0.01738
-225,SFxBasRet_0 <= 0.5 and NeuroDReflex_1 <= 0.5 and HASeverity_Severe <= 0.5,-0.19759
-228,SFxBasHem_1 <= 0.5 and SFxPalp_No > 0.5,-0.76042
-223,InjuryMech_PedesMV <= 0.5 and SFxPalp_Yes <= 0.5 and AMSRepeat_1 <= 0.5,-0.24762
-221,SFxBasHem_1 <= 0.5 and InjuryMech_PedesMV <= 0.5 and InjuryMech_BikeMV <= 0.5 and SFxPalp_Yes <= 0.5,-0.05123
-227,VomitStart_Within 1 hr of event <= 0.5 and SeizLen_>15 min <= 0.5,-0.03879
-220,OSIPelvis_1 <= 0.5 and HemaSize_Large <= 0.5,-0.12047
-217,SFxBasHem_1 <= 0.5 and OSIOth_1 <= 0.5 and ClavPar_1 <= 0.5,-0.288
-218,OSIPelvis_1 <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and HemaLoc_Parietal/Temporal <= 0.5,-0.71284
-230,AMSOth_0 <= 0.5,-0.0583
-222,SFxBasHem_1 <= 0.5 and ActNorm_nan <= 0.5 and LOCSeparate_Yes <= 0.5 and AgeInMonth <= 214.5,-0.33536
-224,SFxBasHem_1 <= 0.5 and VomitStart_Not applicable > 0.5,-0.545
-219,SFxBasHem_1 <= 0.5 and SeizLen_>15 min <= 0.5 and High_impact_InjSev_High <= 0.5,-1.0146
+29,Sedated_0.0,-0.03888
+125,SFxBasHem_92,-0.04519
+213,NeuroDOth_92,-0.03173
+211,NeuroDMotor_92,-0.05649
+210,SFxPalp_No,-0.01208
+190,SFxBasOto_92,-0.00115
+175,NeuroD_0.0,-0.03965
+165,NeuroDSensory_92,-0.0042
+52,Drugs_0.0,-0.00064
+143,SeizLen_Not applicable,-0.03898
+138,NeuroDCranial_92,-0.04634
+162,Seiz_0.0,-0.02906
+115,FontBulg_0.0,-0.05998
+68,SeizOccur_Not applicable,-0.00417
+110,SFxBasRhi_92,-0.05716
+64,SFxBas_0.0,-0.05804
+65,NeuroDReflex_92,-0.05411
+61,SFxPalpDepress_92.0,-0.0415
+92,Intubated_0.0,-0.0002
+99,SFxBasPer_92,-0.00216
+100,SFxBasRet_92,-0.00152
+221,SFxBasRet_1 <= 0.5,-0.00136
+219,SFxPalpDepress_1.0 <= 0.5,-0.33986
+224,SFxPalpDepress_1.0 <= 0.5 and SFxBas_nan <= 0.5,-0.1313
+223,SFxBasHem_1 <= 0.5,-0.21452
+222,SFxBasHem_1 <= 0.5 and SeizLen_>15 min <= 0.5,-0.81265
+220,SeizLen_5-15 min <= 0.5 and SFxBasHem_1 <= 0.5,-0.00182
+218,SFxBasPer_0 <= 0.5,-0.0239
+217,SFxPalpDepress_1.0 <= 0.5 and SFxBasHem_1 <= 0.5,-0.21502

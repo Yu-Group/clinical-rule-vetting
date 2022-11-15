@@ -2,7 +2,10 @@ import os.path
 
 import numpy as np
 import pandas as pd
+from imodels import FIGSClassifier, FIGSClassifierCV
 from imodels.rule_set.rule_fit import RuleFitClassifier
+from matplotlib import pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_recall_fscore_support, roc_curve
 # from sklearn.metrics import roc_curve, auc
 from .tbi_pecarn.dataset import Dataset as tbiDataset
@@ -30,8 +33,8 @@ def get_sensitivity_thres(y_true, y_prob_pred, tpr_min):
 
 
 if __name__ == '__main__':
-    tpr = 90
-    max_rules = 10
+    tpr = 95
+    max_rules = 30
 
     if not os.path.exists("data/tbi_pecarn/processed/perturbed_data"):
         tbiDataset().get_data(run_perturbations=True, load_csvs=False, save_csvs=True)
@@ -52,33 +55,65 @@ if __name__ == '__main__':
         print(f"Shapes: train - {train.shape[0]}, tune - {tune.shape[0]}, test - {test.shape[0]}")
         _, y_test = _get_x_y(test, columns)
         print(f"test hist: 1: {np.sum(y_test == 1)}, 0: {np.sum(y_test == 0)}")
-        mdl = RuleFitClassifier(max_rules=max_rules)
+        # mdl = FIGSClassifier(max_rules=10)
+        mdl = RandomForestClassifier(random_state=0, max_depth=3)
+        # mdl = RuleFitClassifier(max_rules=max_rules)
         X_train, y_train = _get_x_y(train, columns)
         X_tune, y_tune = _get_x_y(tune, columns)
-
         #
+        # #
         mdl.fit(X_train, y_train)
+        important_mdi = pd.DataFrame({"imp":mdl.feature_importances_, "feature":X_train.columns}).sort_values("imp", ascending=False)
 
-        description = mdl.visualize(decimals=5)
-        description.to_csv(f"results/mdl_{_get_perturb_name(perturb)}_rules_{max_rules}.csv")
+        print(important_mdi.head(5))
+        # mdl.plot()
+        # plt.show()
+        # description = mdl.visualize(decimals=5)
+        # description.to_csv(f"results/mdl_{_get_perturb_name(perturb)}_rules_{max_rules}.csv")
+
         thres = get_sensitivity_thres(y_tune, mdl.predict_proba(X_tune)[:, 1], tpr_min=0.01 * tpr)
+        bs_models = []
+        # for i in range(5):
+        #     mdl_bs = RuleFitClassifier(max_rules=max_rules)
+        #     X_train, y_train = _get_x_y(train.sample(train.shape[0]), columns)
+        #     X_tune, y_tune = _get_x_y(tune.sample(tune.shape[0]), columns)
+        #     mdl_bs.fit(X_train, y_train)
+        #     bs_models.append(mdl_bs)
 
-        models.append((perturb, mdl, thres))
+        models.append((perturb, mdl, thres, bs_models))
     # i = 0
 
     models_spec = {_get_perturb_name(perturb): [] for perturb in data.keys()}
     models_sens = {_get_perturb_name(perturb): [] for perturb in data.keys()}
 
+    models_spec_std = {_get_perturb_name(perturb): [] for perturb in data.keys()}
+    models_sens_std = {_get_perturb_name(perturb): [] for perturb in data.keys()}
+
     for perturb, (train, tune, test) in data.items():
         X_test, y_test = _get_x_y(test, columns)
-        for p, mdl, thres in models:
+        for p, mdl, thres, bs_models in models:
             y_pred = np.array(mdl.predict_proba(X_test)[:, 1] > thres, dtype=np.int)
             sensitivity = np.sum(y_test[y_pred == 1]) / np.sum(y_test)
             specificty = np.sum((1 - y_test)[y_pred == 0]) / np.sum((1 - y_test))
             # spec = get_specificity(y_test, y_pred, tpr_min=0.01*tpr)
+
+            sens_bs = []
+            spec_bs = []
+            for bs_mdl in bs_models:
+                y_pred = np.array(bs_mdl.predict_proba(X_test)[:, 1] > thres, dtype=np.int)
+                sensitivity_bs = np.sum(y_test[y_pred == 1]) / np.sum(y_test)
+                sens_bs.append(sensitivity_bs)
+                specificty_bs = np.sum((1 - y_test)[y_pred == 0]) / np.sum((1 - y_test))
+                spec_bs.append(specificty_bs)
             models_spec[_get_perturb_name(p)].append(specificty)
             models_sens[_get_perturb_name(p)].append(sensitivity)
 
+            models_spec_std[_get_perturb_name(p)].append(np.std(spec_bs))
+            models_sens_std[_get_perturb_name(p)].append(np.std(sens_bs))
+
     # print(models_spec)
-    pd.DataFrame(models_spec).to_csv(f"results/tbi_spec_{tpr}_rules_{max_rules}.csv")
-    pd.DataFrame(models_sens).to_csv(f"results/tbi_sens_{tpr}_rules_{max_rules}.csv")
+    pd.DataFrame(models_spec).to_csv(f"results/tbi_spec_{tpr}_rules_{max_rules}_rf.csv")
+    pd.DataFrame(models_sens).to_csv(f"results/tbi_sens_{tpr}_rules_{max_rules}_rf.csv")
+
+    pd.DataFrame(models_spec_std).to_csv(f"results/tbi_spec_std_{tpr}_rules_{max_rules}_rf.csv")
+    pd.DataFrame(models_sens_std).to_csv(f"results/tbi_sens_std_{tpr}_rules_{max_rules}_rf.csv")

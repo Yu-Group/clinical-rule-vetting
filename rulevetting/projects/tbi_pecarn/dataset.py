@@ -23,9 +23,9 @@ from rulevetting.projects.tbi_pecarn import helper
 from rulevetting.api.util import get_feat_names_from_base_feats
 from vflow import init_args, Vset, build_vset
 
-
 LOGGER = logging.getLogger("Stability Analysis")
 ray.init(num_cpus=4)
+
 
 class Dataset:
     """All functions take **kwargs, so you can specify any judgement calls you aren't sure about with a kwarg flag. Please refrain from shuffling / reordering the data in any of these functions, to ensure a consistent test set.
@@ -84,7 +84,6 @@ class Dataset:
         cleaned_data = df.replace('nan', np.nan)
         cleaned_data['AgeTwoPlus'] -= 1
 
-
         LOGGER.info(f"Cleaned data: {cleaned_data.shape}")
 
         return cleaned_data
@@ -134,8 +133,6 @@ class Dataset:
                                                                                            'DeathTBI']].sum(
                 axis=1) >= 1).astype(int)
 
-
-
         # judgement call - we drop patients with gcs <14 and thus gcs scores
         if kwargs['drop_low_gcs']:
             cleaned_data = cleaned_data.loc[cleaned_data['GCSTotal'] >= 14, :]
@@ -150,24 +147,25 @@ class Dataset:
         # for c in ["HASeverity", "LocLen", "LOCSeparate"]:
         #     color_dict[c] = "blue"
 
-
         na_sum = cleaned_data.isna().sum()
         na_sum = na_sum[na_sum > 100]
         na_sum.reset_index(name="n")
+
         def _get_clr(c):
             if c in ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
-                                        'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer',
-                                        'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc',
-                                        'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
-                                        'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
-                                        'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']:
+                     'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer',
+                     'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc',
+                     'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
+                     'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
+                     'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']:
                 return "green"
             elif c in ["HASeverity", "LocLen", "LOCSeparate"]:
                 return "red"
             return "blue"
+
         clrs = [_get_clr(c) for c in na_sum.index]
         na_sum.plot.bar(x='index', y='n', rot=60, fontsize=10,
-                                              legend=None, figsize=(12, 12), color=clrs)
+                        legend=None, figsize=(12, 12), color=clrs)
         plt.ylabel("Number of Missing Values")
         plt.savefig("results/na.png", dpi=300)
         plt.close()
@@ -185,7 +183,7 @@ class Dataset:
         # LOGGER.info(f"Dataset shape: {cleaned_data.shape}")
 
         # IF keep years, don't drop it
-        if True:#not kwargs["keep_years"]:
+        if True:  # not kwargs["keep_years"]:
             try:
                 cleaned_data = cleaned_data.drop(columns=['AgeInMonth', 'AgeInYears'])
             except KeyError:
@@ -193,13 +191,12 @@ class Dataset:
 
         # cleaned_data = cleaned_data.replace('Not applicable', np.nan)
 
-
         most_freq = cleaned_data.apply(lambda x: x.value_counts().max() / (cleaned_data.shape[0] - x.isna().sum()))
         most_freq.reset_index(name="n")
         clrs = [_get_clr(c) for c in most_freq.index]
 
         most_freq.plot.bar(x='index', y='n', rot=60, fontsize=10,
-                                                 legend=None, figsize=(20, 12), color=clrs)
+                           legend=None, figsize=(20, 12), color=clrs)
         plt.ylabel("Proportion of Most Frequent Value")
         plt.savefig("results/most_freq.png", dpi=300)
         plt.close()
@@ -242,14 +239,8 @@ class Dataset:
                                                                                       not_applicable_doc_feats].replace(
                     {92: 0})
 
-
-
         # renaming our target variable
         cleaned_data.rename(columns={'PosIntFinal': 'outcome'}, inplace=True)
-
-
-
-
 
         # remapping binary variables
         # bool_cols = [col for col in cleaned_data if np.isin(cleaned_data[col].unique(), ['No', 'Yes', ]).all()]
@@ -302,7 +293,7 @@ class Dataset:
 
         return extracted_features
 
-    def split_data(self, preprocessed_data: pd.DataFrame, n:int) -> pd.DataFrame:
+    def split_data(self, preprocessed_data: pd.DataFrame, n: int) -> pd.DataFrame:
         """Split into 3 sets: training, tuning, testing.
         Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
@@ -324,9 +315,9 @@ class Dataset:
         indices = np.random.choice(n, size=n, replace=False)
         # LOGGER.info(indices[0:5])
         pre_indices = set(preprocessed_data.index)
-        train_ind = list(set(indices[0:int(0.6*n)]).intersection(pre_indices))
-        tune_ind = list(set(indices[int(0.6*n):int(0.8*n)]).intersection(pre_indices))
-        test_ind = list(set(indices[int(0.8*n):n]).intersection(pre_indices))
+        train_ind = list(set(indices[0:int(0.6 * n)]).intersection(pre_indices))
+        tune_ind = list(set(indices[int(0.6 * n):int(0.8 * n)]).intersection(pre_indices))
+        test_ind = list(set(indices[int(0.8 * n):n]).intersection(pre_indices))
 
         # train_ind = [i for i in indices[0:int(0.6*n)] if i in pre_indices]
         # tune_ind = [i for i in indices[int(0.6*n):int(0.8*n)] if i in pre_indices]
@@ -337,7 +328,6 @@ class Dataset:
             preprocessed_data.loc[tune_ind, :],
             preprocessed_data.loc[test_ind, :]
         )
-
 
         # return tuple(np.split(
         #     preprocessed_data.sample(frac=1, random_state=42),
