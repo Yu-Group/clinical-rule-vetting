@@ -219,3 +219,9 @@ class DatasetTemplate:
             #return dfs[list(dfs.keys())[0]]
             return dfs
         return df_train, df_tune, df_test
+
+    def export_full_dataframe(self) -> pd.DataFrame:
+        dfs = self.get_data(save_csvs=False, run_perturbations=False)
+        df_full = pd.concat(dfs, axis=0)
+        return df_full
+
